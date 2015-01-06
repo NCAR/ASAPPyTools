@@ -10,7 +10,7 @@ import unittest
 import messenger
 
 
-class MessengerTests(unittest.TestCase):
+class MessengerSerialTests(unittest.TestCase):
     '''
     Messenger unit tests.
     '''
