@@ -12,7 +12,7 @@ import messenger
 
 class MessengerSerialTests(unittest.TestCase):
     '''
-    Messenger unit tests.
+    Serial Messenger unit tests.
     '''
 
     def test_serial_init(self):
@@ -52,45 +52,47 @@ class MessengerSerialTests(unittest.TestCase):
 
     def test_serial_sum_list(self):
         msngr = messenger.Messenger()
-        data = [1, 2, 3]
-        msngr_sum = msngr.sum(data)
+        data = [1, 2, 3, 4]
+        msngr_sum = msngr.reduce(data, op='sum')
         print msngr_sum
-        self.assertEqual(msngr_sum, 6,
+        self.assertEqual(msngr_sum, sum(data),
                         'Serial messenger list sum not working')
 
     def test_serial_sum_dict(self):
         msngr = messenger.Messenger()
-        data = {'a': 1, 'b': 2, 'c': 3}
-        msngr_sum = msngr.sum(data)
+        data = {'a': 1, 'b': [2, 6], 'c': 3}
+        rslt = {'a': 1, 'b': 8, 'c': 3}
+        msngr_sum = msngr.reduce(data, op='sum')
         print msngr_sum
-        self.assertDictEqual(msngr_sum, data,
+        self.assertDictEqual(msngr_sum, rslt,
                         'Serial messenger dict sum not working')
 
     def test_serial_max_list(self):
         msngr = messenger.Messenger()
         data = [1, 2, 3]
-        msngr_max = msngr.sum(data)
+        msngr_max = msngr.reduce(data, op='max')
         print msngr_max
-        self.assertEqual(msngr_max, 6,
+        self.assertEqual(msngr_max, 3,
                         'Serial messenger list max not working')
 
     def test_serial_max_dict(self):
         msngr = messenger.Messenger()
-        data = {'a': 1, 'b': 2, 'c': 3}
-        msngr_max = msngr.sum(data)
+        data = {'a': 1, 'b': [2, 7], 'c': 3}
+        rslt = {'a': 1, 'b': 7, 'c': 3}
+        msngr_max = msngr.reduce(data, op='max')
         print msngr_max
-        self.assertDictEqual(msngr_max, data,
+        self.assertDictEqual(msngr_max, rslt,
                         'Serial messenger dict max not working')
 
     def test_serial_print_once(self):
         msngr = messenger.Messenger()
         msg = 'TEST - ONCE - SERIAL'
-        msngr.print_once(msg, vlevel=0)
+        msngr.prinfo(msg, vlevel=0)
 
     def test_serial_print_all(self):
         msngr = messenger.Messenger()
         msg = 'TEST - ALL - SERIAL'
-        msngr.print_all(msg, vlevel=0)
+        msngr.prinfo(msg, vlevel=0, all=True)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

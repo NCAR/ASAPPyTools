@@ -1,17 +1,37 @@
 '''
-This is the Parallel Utilities class to provide basic load-balancing and
-decomposition routines for the PyReshaper.  This encapsulates all of the
-mpi4py calls as needed.  It also has the ability to detect if the mpi4py
-module is present.  If not, it throws an exception.
+This is the parallel/messenging tool to simplify and streamline some of the
+common MPI messaging tasks needed by many of our in-house tools in the
+NCAR Application Scalability and Performance group (ASAP).  The Messenger
+class is designed to provide simplified functionality to/from the MPI
+communicators, without completely wrapping the entire MPI API.  If more
+functionality is needed than is provided currently, one should seriously
+consider directly using the mpi4py interface itself.
+
+If, however, a simplified interface to parallel messaging is all that is
+needed, and you want to hide the MPI interface completely, then the
+Messenger may be the class for you.  It is designed to work the same way
+in serial as in parallel, and there is provided a 'create_messenger'
+factory function for creating the kind of Messenger desired (i.e., serial
+or parallel).
 
 _______________________
 Created on Apr 30, 2014
+Last modified on Jan 6, 2015
 
 @author: Kevin Paul <kpaul@ucar.edu>
 '''
 
 import sys
+from functools import partial
 
+#==============================================================================
+# Define mapped "reduce" operations, mapping going from MPI name (lowercase) to
+# Python function name.  If a reduce operation is given that is not in this
+# mapping, then assume the names are the same (all lowercase for Python and
+# all uppercase for MPI Op name)
+#==============================================================================
+_MAPPED_OPS = {'prod':partial(reduce, lambda x, y: x * y),
+               'sum' :partial(reduce, lambda x, y: x + y)}
 
 #==============================================================================
 # create_messenger factory function
@@ -63,14 +83,35 @@ class Messenger(object):
         ## Whether this is the master process/rank
         self._is_master = True
 
+        ## MPI namespace for common classes and methods
+        self._mpi = None
+
         ## The rank of the processor
         self._mpi_rank = 0
 
         ## Size of the MPI communicator
         self._mpi_size = 1
 
+        ## Pointer to the MPI communicator itself
+        self._mpi_comm = None
+
+        ## Reference to the Messenger parent
+        self._parent = None
+
         ## Indicates verbosity level
         self.verbosity = 1
+
+    def split(self, unused):
+        '''
+        Returns a new Messenger instance that carries messages only between
+        the ranks with the same color.  In serial, this returns None.
+
+        @param unused  An identifier (e.g., int) for this rank's group
+
+        @return A new Messenger instance that communicates among ranks within
+                the same group.
+        '''
+        return None
 
     def partition(self, global_items):
         '''
@@ -135,101 +176,71 @@ class Messenger(object):
         '''
         return self._mpi_size
 
-    def sum(self, data):
+    def reduce(self, data, op='sum'):
         '''
-        This sums data across all processors.
+        This reduces data across all processors, returning the result of the
+        given reduction operation.
 
         If the data is a dictionary (with assumed numberic values), then this
-        summes the values associated with each key across all processors.  It
-        returns a dictionary with the sum for each key.  Every processor
+        reduces the values associated with each key across all processors.  It
+        returns a dictionary with the reduction for each key.  Every processor
         must have the same keys in their associated dictionaries.
 
         If the data is not a dictionary, but is list-like (i.e., iterable),
-        then this returns a single value with the sum of all values across all
-        processors.
+        then this returns a single value with the reduction of all values
+        across all processors.
 
-        If the data is not iterable (i.e., a single value), then it sums across
-        all processors and returns one value.
+        If the data is not iterable (i.e., a single value), then it reduces
+        across all processors and returns one value.
 
-        In serial, this returns just the sum on the local processor.
+        In serial, this returns just the reduction on the local processor.
+
+        @note: This is an "allreduce" operation, so the final reduction is
+               valid on all ranks.
 
         @param data The data with values to be summed
 
         @return The sum of the data values
         '''
+        if type(op) is not str:
+            err_msg = 'Reduce operator name must be a string'
+            raise TypeError(err_msg)
         if (isinstance(data, dict)):
             totals = {}
             for name in data:
-                totals[name] = self.sum(data[name])
+                totals[name] = self.reduce(data[name], op=op)
             return totals
         elif (hasattr(data, '__len__')):
-            return reduce(lambda x, y: x + y, data)
+            if op in _MAPPED_OPS:
+                return _MAPPED_OPS[op](data)
+            else:
+                return eval(op.lower())(data)
         else:
             return data
 
-    def max(self, data):
+    def prinfo(self, output, vlevel=0, all=False):
         '''
-        This returns the maximum of the data across all processors.
+        Short for "print info", this method prints output to stdout, but only
+        if the "verbosity level" (vlevel) is less than the Messenger's
+        defined verbosity.  If the "all" parameter is True, then the
+        message is printed from every rank in the Messenger's domain.
+        Otherwise, the message is printed only from the "master" rank.
 
-        If the data is a dictionary (with assumed numberic values), then this
-        find the maximum of the values associated with each key across all
-        processors.  It returns a dictionary with the maximum for each key.
-        Every processor must have the same keys in their associated
-        dictionaries.
-
-        If the data is not a dictionary, but is list-like (i.e., iterable),
-        then this returns a single value with the maximum of all values across
-        all processors.
-
-        If the data is not iterable (i.e., a single value), then it finds the
-        maximum across all processors and returns one value.
-
-        In serial, this returns just the maximum on the local processor.
-
-        @param data The data with values
-
-        @return The maximum of the data values
-        '''
-        if (isinstance(data, dict)):
-            maxima = {}
-            for name in data:
-                maxima[name] = self.max(data[name])
-            return maxima
-        elif (hasattr(data, '__len__')):
-            return max(data)
-        else:
-            return data
-
-    def print_once(self, output, vlevel=0):
-        '''
-        This method prints output to stdout, but only if it is the
-        master processes and the verbosity level is high enough.
-
-        @param output A string that should be printed to stdout
+        @param output The thing that should be printed to stdout.  (It is
+                      converted to a string before printing.)
 
         @param vlevel The verbosity level associated with the message.  If
                       this level is less than the messenger's verbosity, no
-                      output is generated.
-        '''
-        if (self.is_master() and vlevel < self.verbosity):
-            print output
-            sys.stdout.flush()
+                      output is generated.  The default is 0.
 
-    def print_all(self, output, vlevel=0):
-        '''
-        This prints a message to stdout from every processor.
-
-        @param output A string that should be printed to stdout
-
-        @param vlevel The verbosity level associated with the message.  If
-                      this level is less than the messenger's verbosity, no
-                      output is generated.
+        @param all    True or False, indicating if the message should be
+                      printed from all ranks (True) or only from the master
+                      rank (False).  The default is False.
         '''
         if (vlevel < self.verbosity):
-            ostr = '[' + str(self._mpi_rank) + '/' \
-                       + str(self._mpi_size) + '] ' + output
-            print ostr
-            sys.stdout.flush()
+            if (not all and self.is_master()) or (all):
+                print output
+                sys.stdout.flush()
 
 
 #==============================================================================
@@ -256,17 +267,43 @@ class MPIMessenger(Messenger):
         except:
             raise ImportError('Failed to import MPI.')
 
-        ## Pointer to the MPI module
+        ## MPI namespace for common classes and methods
         self._mpi = MPI
 
+        ## Pointer to the MPI module (defaults to COMM_WORLD)
+        self._mpi_comm = MPI.COMM_WORLD
+
         ## The rank of the processor
-        self._mpi_rank = self._mpi.COMM_WORLD.Get_rank()
+        self._mpi_rank = self._mpi_comm.Get_rank()
 
         ## MPI Communicator size
-        self._mpi_size = self._mpi.COMM_WORLD.Get_size()
+        self._mpi_size = self._mpi_comm.Get_size()
 
         ## Whether this is the master process/rank
         self._is_master = (self._mpi_rank == 0)
+
+        ## Reference to the Messenger parent
+        self._parent = None
+
+    def split(self, color):
+        '''
+        Returns a new Messenger instance that carries messages only between
+        the ranks with the same color.  In serial, this returns None.
+
+        @param color  An identifier (e.g., int) for this rank
+
+        @return A new Messenger instance that communicates among ranks with
+                the same color.
+        '''
+        newcomm = self._mpi_comm.Split(color, self._mpi_rank)
+        newmsgr = MPIMessenger()
+        newmsgr._mpi_comm = newcomm
+        newmsgr._mpi_rank = newcomm.Get_rank()
+        newmsgr._mpi_size = newcomm.Get_size()
+        newmsgr._is_master = (newmsgr._mpi_rank == 0)
+        newmsgr._parent = self
+
+        return newmsgr
 
     def partition(self, global_items):
         '''
@@ -310,71 +347,46 @@ class MPIMessenger(Messenger):
         A wrapper on the MPI Barrier method.  Forces execution to wait for
         all other processors to get to this point in the code.
         '''
-        self._mpi.COMM_WORLD.Barrier()
+        self._mpi_comm.Barrier()
 
-    def sum(self, data):
+    def reduce(self, data, op='sum'):
         '''
-        This sums data across all processors.
+        This reduces data across all processors, returning the result of the
+        given reduction operation.
 
         If the data is a dictionary (with assumed numberic values), then this
-        summes the values associated with each key across all processors.  It
-        returns a dictionary with the sum for each key.  Every processor
+        reduces the values associated with each key across all processors.  It
+        returns a dictionary with the reduction for each key.  Every processor
         must have the same keys in their associated dictionaries.
 
         If the data is not a dictionary, but is list-like (i.e., iterable),
-        then this returns a single value with the sum of all values across all
-        processors.
+        then this returns a single value with the reduction of all values
+        across all processors.
 
-        If the data is not iterable (i.e., a single value), then it sums across
-        all processors and returns one value.
+        If the data is not iterable (i.e., a single value), then it reduces
+        across all processors and returns one value.
 
-        In serial, this returns just the sum on the local processor.
+        In serial, this returns just the reduction on the local processor.
+
+        @note: This is an "allreduce" operation, so the final reduction is
+               valid on all ranks.
 
         @param data The data with values to be summed
 
         @return The sum of the data values
         '''
+        if type(op) is not str:
+            err_msg = 'Reduce operator name must be a string'
+            raise TypeError(err_msg)
+
         if (isinstance(data, dict)):
             totals = {}
             for name in data:
-                totals[name] = self.sum(data[name])
+                totals[name] = self.reduce(data[name], op=op)
             return totals
         elif (hasattr(data, '__len__')):
-            total = Messenger.sum(self, data)
-            return self.sum(total)
+            total = Messenger.sum(self, data, op=op)
+            return self.reduce(total, op=op)
         else:
-            return self._mpi.COMM_WORLD.allreduce(data, op=self._mpi.SUM)
+            return self._mpi_comm.allreduce(data, op=getattr(self._mpi, op.upper()))
 
-    def max(self, data):
-        '''
-        This returns the maximum of the data across all processors.
-
-        If the data is a dictionary (with assumed numberic values), then this
-        find the maximum of the values associated with each key across all
-        processors.  It returns a dictionary with the maximum for each key.
-        Every processor must have the same keys in their associated
-        dictionaries.
-
-        If the data is not a dictionary, but is list-like (i.e., iterable),
-        then this returns a single value with the maximum of all values across
-        all processors.
-
-        If the data is not iterable (i.e., a single value), then it finds the
-        maximum across all processors and returns one value.
-
-        In serial, this returns just the maximum on the local processor.
-
-        @param data The data with values
-
-        @return The maximum of the data values
-        '''
-        if (isinstance(data, dict)):
-            maxima = {}
-            for name in data:
-                maxima[name] = self.max(data[name])
-            return maxima
-        elif (hasattr(data, '__len__')):
-            maximum = Messenger.max(self, data)
-            return self.max(maximum)
-        else:
-            return self._mpi.COMM_WORLD.allreduce(data, op=self._mpi.MAX)
