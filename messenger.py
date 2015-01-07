@@ -218,13 +218,13 @@ class Messenger(object):
         else:
             return data
 
-    def prinfo(self, output, vlevel=0, all=False):
+    def prinfo(self, output, vlevel=0, master=False):
         '''
         Short for "print info", this method prints output to stdout, but only
         if the "verbosity level" (vlevel) is less than the Messenger's
-        defined verbosity.  If the "all" parameter is True, then the
+        defined verbosity.  If the "master" parameter is True, then the
+        message is printed from only the master rank.  Otherwise, the
         message is printed from every rank in the Messenger's domain.
-        Otherwise, the message is printed only from the "master" rank.
 
         @param output The thing that should be printed to stdout.  (It is
                       converted to a string before printing.)
@@ -233,13 +233,17 @@ class Messenger(object):
                       this level is less than the messenger's verbosity, no
                       output is generated.  The default is 0.
 
-        @param all    True or False, indicating if the message should be
+        @param master True or False, indicating if the message should be
                       printed from all ranks (True) or only from the master
                       rank (False).  The default is False.
         '''
         if (vlevel < self.verbosity):
-            if (not all and self.is_master()) or (all):
-                print output
+            if (master and self.is_master()):
+                print str(output)
+                sys.stdout.flush()
+            elif (not master):
+                print '[' + str(self._mpi_rank) + '/' + str(self._mpi_size) \
+                    + ']: ' + str(output)
                 sys.stdout.flush()
 
 
@@ -257,6 +261,9 @@ class MPIMessenger(Messenger):
         '''
         Constructor
         '''
+
+        # Call the parent class initialization first
+        super(MPIMessenger, self).__init__()
 
         ## Type of decomp utility constructed
         self.messenger_type = 'parallel'
@@ -385,7 +392,7 @@ class MPIMessenger(Messenger):
                 totals[name] = self.reduce(data[name], op=op)
             return totals
         elif (hasattr(data, '__len__')):
-            total = Messenger.sum(self, data, op=op)
+            total = Messenger.reduce(self, data, op=op)
             return self.reduce(total, op=op)
         else:
             return self._mpi_comm.allreduce(data, op=getattr(self._mpi, op.upper()))
