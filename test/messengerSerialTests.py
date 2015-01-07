@@ -54,7 +54,6 @@ class MessengerSerialTests(unittest.TestCase):
         msngr = messenger.Messenger()
         data = [1, 2, 3, 4]
         msngr_sum = msngr.reduce(data, op='sum')
-        print msngr_sum
         self.assertEqual(msngr_sum, sum(data),
                         'Serial messenger list sum not working')
 
@@ -63,7 +62,6 @@ class MessengerSerialTests(unittest.TestCase):
         data = {'a': 1, 'b': [2, 6], 'c': 3}
         rslt = {'a': 1, 'b': 8, 'c': 3}
         msngr_sum = msngr.reduce(data, op='sum')
-        print msngr_sum
         self.assertDictEqual(msngr_sum, rslt,
                         'Serial messenger dict sum not working')
 
@@ -71,7 +69,6 @@ class MessengerSerialTests(unittest.TestCase):
         msngr = messenger.Messenger()
         data = [1, 2, 3]
         msngr_max = msngr.reduce(data, op='max')
-        print msngr_max
         self.assertEqual(msngr_max, 3,
                         'Serial messenger list max not working')
 
@@ -80,19 +77,18 @@ class MessengerSerialTests(unittest.TestCase):
         data = {'a': 1, 'b': [2, 7], 'c': 3}
         rslt = {'a': 1, 'b': 7, 'c': 3}
         msngr_max = msngr.reduce(data, op='max')
-        print msngr_max
         self.assertDictEqual(msngr_max, rslt,
                         'Serial messenger dict max not working')
 
     def test_print_once(self):
         msngr = messenger.Messenger()
         msg = 'TEST - ONCE - SERIAL'
-        msngr.prinfo(msg, vlevel=0)
+        msngr.prinfo(msg, vlevel=0, master=True)
 
     def test_print_all(self):
         msngr = messenger.Messenger()
         msg = 'TEST - ALL - SERIAL'
-        msngr.prinfo(msg, vlevel=0, all=True)
+        msngr.prinfo(msg, vlevel=0, master=False)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
