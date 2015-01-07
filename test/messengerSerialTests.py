@@ -15,7 +15,7 @@ class MessengerSerialTests(unittest.TestCase):
     Serial Messenger unit tests.
     '''
 
-    def test_serial_init(self):
+    def test_init(self):
         msngr = messenger.Messenger()
         self.assertIsInstance(msngr, messenger.Messenger,
                               'Failed to create class instance')
@@ -28,29 +28,29 @@ class MessengerSerialTests(unittest.TestCase):
         self.assertEqual(msngr.verbosity, 1,
                          'Verbosity is wrong after initialization')
 
-    def test_serial_partition(self):
+    def test_partition(self):
         msngr = messenger.Messenger()
         data = [1, 2, 3]
         p_data = msngr.partition(data)
         self.assertListEqual(data, p_data,
                          'Serial partition is wrong')
 
-    def test_serial_is_master(self):
+    def test_is_master(self):
         msngr = messenger.Messenger()
         self.assertTrue(msngr.is_master(),
                         'Serial messenger should be master')
 
-    def test_serial_get_rank(self):
+    def test_get_rank(self):
         msngr = messenger.Messenger()
         self.assertEqual(msngr.get_rank(), 0,
                         'Serial messenger rank should be 0')
 
-    def test_serial_get_size(self):
+    def test_get_size(self):
         msngr = messenger.Messenger()
         self.assertEqual(msngr.get_size(), 1,
                         'Serial messenger size should be 1')
 
-    def test_serial_sum_list(self):
+    def test_sum_list(self):
         msngr = messenger.Messenger()
         data = [1, 2, 3, 4]
         msngr_sum = msngr.reduce(data, op='sum')
@@ -58,7 +58,7 @@ class MessengerSerialTests(unittest.TestCase):
         self.assertEqual(msngr_sum, sum(data),
                         'Serial messenger list sum not working')
 
-    def test_serial_sum_dict(self):
+    def test_sum_dict(self):
         msngr = messenger.Messenger()
         data = {'a': 1, 'b': [2, 6], 'c': 3}
         rslt = {'a': 1, 'b': 8, 'c': 3}
@@ -67,7 +67,7 @@ class MessengerSerialTests(unittest.TestCase):
         self.assertDictEqual(msngr_sum, rslt,
                         'Serial messenger dict sum not working')
 
-    def test_serial_max_list(self):
+    def test_max_list(self):
         msngr = messenger.Messenger()
         data = [1, 2, 3]
         msngr_max = msngr.reduce(data, op='max')
@@ -75,7 +75,7 @@ class MessengerSerialTests(unittest.TestCase):
         self.assertEqual(msngr_max, 3,
                         'Serial messenger list max not working')
 
-    def test_serial_max_dict(self):
+    def test_max_dict(self):
         msngr = messenger.Messenger()
         data = {'a': 1, 'b': [2, 7], 'c': 3}
         rslt = {'a': 1, 'b': 7, 'c': 3}
@@ -84,12 +84,12 @@ class MessengerSerialTests(unittest.TestCase):
         self.assertDictEqual(msngr_max, rslt,
                         'Serial messenger dict max not working')
 
-    def test_serial_print_once(self):
+    def test_print_once(self):
         msngr = messenger.Messenger()
         msg = 'TEST - ONCE - SERIAL'
         msngr.prinfo(msg, vlevel=0)
 
-    def test_serial_print_all(self):
+    def test_print_all(self):
         msngr = messenger.Messenger()
         msg = 'TEST - ALL - SERIAL'
         msngr.prinfo(msg, vlevel=0, all=True)
