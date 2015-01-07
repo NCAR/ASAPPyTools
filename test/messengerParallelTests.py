@@ -1,6 +1,23 @@
 '''
 Unit tests for the Messenger class (parallel only)
 
+These tests should be run through mpirun/mpiexec in order to test them
+in true parallel.  If this is run like a normal unit test suite, then it
+will only test the 1-rank MPI case.  In other words, testing this suite with
+the command:
+
+    python messengerParallelTests.py
+
+will give the same results as:
+
+    mpirun -n 1 python messengerParallelTests.py
+
+To get true test coverage, one should run this test suite with the command:
+
+    mpirun -n N python messengerParallelTests.py
+
+With various values for N.
+
 -----------------------
 Created on Jan 7, 2015
 
