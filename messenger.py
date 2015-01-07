@@ -218,7 +218,7 @@ class Messenger(object):
         else:
             return data
 
-    def prinfo(self, output, vlevel=0, master=False):
+    def prinfo(self, output, vlevel=0, master=True):
         '''
         Short for "print info", this method prints output to stdout, but only
         if the "verbosity level" (vlevel) is less than the Messenger's
