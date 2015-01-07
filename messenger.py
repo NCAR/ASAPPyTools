@@ -98,6 +98,9 @@ class Messenger(object):
         ## Reference to the Messenger parent
         self._parent = None
 
+        ## Group Identifier
+        self._group = 0
+
         ## Indicates verbosity level
         self.verbosity = 1
 
@@ -254,12 +257,17 @@ class MPIMessenger(Messenger):
     '''
     This is the parallel-operation class for decomposition/parallel utilities.
     This is derived from the Messenger class, which defines the serial
-    operation.  This defines operations using MPI.
+    operation.  This defines basic operations using MPI.
     '''
 
-    def __init__(self):
+    def __init__(self, comm=None):
         '''
         Constructor
+
+        @param comm  This is an optional parameter to associate the Messenger
+                     with an already known MPI communicator (intracomm).
+                     If None (not specified), the messenger will be associated
+                     with the COMM_WORLD, by default.
         '''
 
         # Call the parent class initialization first
@@ -278,7 +286,13 @@ class MPIMessenger(Messenger):
         self._mpi = MPI
 
         ## Pointer to the MPI module (defaults to COMM_WORLD)
-        self._mpi_comm = MPI.COMM_WORLD
+        if comm is None:
+            self._mpi_comm = MPI.COMM_WORLD
+        elif type(comm) is self._mpi.Intracomm:
+            self._mpi_comm = comm
+        else:
+            err_msg = "Communicator passed to MPIMessenger must be an Intracomm"
+            raise TypeError(err_msg)
 
         ## The rank of the processor
         self._mpi_rank = self._mpi_comm.Get_rank()
@@ -292,24 +306,20 @@ class MPIMessenger(Messenger):
         ## Reference to the Messenger parent
         self._parent = None
 
-    def split(self, color):
+    def split(self, group):
         '''
         Returns a new Messenger instance that carries messages only between
         the ranks with the same color.  In serial, this returns None.
 
-        @param color  An identifier (e.g., int) for this rank
+        @param group  An identifier (e.g., int) for this rank
 
         @return A new Messenger instance that communicates among ranks with
                 the same color.
         '''
-        newcomm = self._mpi_comm.Split(color, self._mpi_rank)
-        newmsgr = MPIMessenger()
-        newmsgr._mpi_comm = newcomm
-        newmsgr._mpi_rank = newcomm.Get_rank()
-        newmsgr._mpi_size = newcomm.Get_size()
-        newmsgr._is_master = (newmsgr._mpi_rank == 0)
+        newcomm = self._mpi_comm.Split(group, self._mpi_rank)
+        newmsgr = MPIMessenger(comm=newcomm)
         newmsgr._parent = self
-
+        newmsgr._group = group
         return newmsgr
 
     def partition(self, global_items):

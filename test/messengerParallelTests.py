@@ -116,6 +116,17 @@ class MessengerParallelTests(unittest.TestCase):
         self.assertDictEqual(msngr_max, rslt,
                         'Parallel messenger dict max not working')
 
+    def test_split(self):
+        msngr = messenger.MPIMessenger()
+        rank = msngr.get_rank()
+        color = rank % 2
+        submsngr = msngr.split(color)
+        subrank = submsngr.get_rank()
+        msg = 'Rank: ' + str(rank) + '  SubRank:' + str(subrank) + '  Color:' + str(color)
+        msngr.prinfo(msg, vlevel=0, master=False)
+        self.assertEqual(subrank, rank / 2,
+                         'Unexpected subrank result from split')
+
     def test_print_once(self):
         msngr = messenger.MPIMessenger()
         msg = 'TEST - ONCE - Parallel'
