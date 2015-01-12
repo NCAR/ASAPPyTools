@@ -98,8 +98,8 @@ class Messenger(object):
         ## Reference to the Messenger parent
         self._parent = None
 
-        ## Group Identifier
-        self._group = 0
+        ## Group Identifier (color)
+        self._color = None
 
         ## Indicates verbosity level
         self.verbosity = 1
@@ -260,7 +260,7 @@ class MPIMessenger(Messenger):
     operation.  This defines basic operations using MPI.
     '''
 
-    def __init__(self, comm=None):
+    def __init__(self):
         '''
         Constructor
 
@@ -286,13 +286,7 @@ class MPIMessenger(Messenger):
         self._mpi = MPI
 
         ## Pointer to the MPI module (defaults to COMM_WORLD)
-        if comm is None:
-            self._mpi_comm = MPI.COMM_WORLD
-        elif type(comm) is self._mpi.Intracomm:
-            self._mpi_comm = comm
-        else:
-            err_msg = "Communicator passed to MPIMessenger must be an Intracomm"
-            raise TypeError(err_msg)
+        self._mpi_comm = MPI.COMM_WORLD
 
         ## The rank of the processor
         self._mpi_rank = self._mpi_comm.Get_rank()
@@ -303,23 +297,25 @@ class MPIMessenger(Messenger):
         ## Whether this is the master process/rank
         self._is_master = (self._mpi_rank == 0)
 
-        ## Reference to the Messenger parent
-        self._parent = None
-
-    def split(self, group):
+    def split(self, color):
         '''
         Returns a new Messenger instance that carries messages only between
         the ranks with the same color.  In serial, this returns None.
 
-        @param group  An identifier (e.g., int) for this rank
+        @param color  An identifier (e.g., int) for this rank
 
         @return A new Messenger instance that communicates among ranks with
                 the same color.
         '''
-        newcomm = self._mpi_comm.Split(group, self._mpi_rank)
-        newmsgr = MPIMessenger(comm=newcomm)
+        # Note, this is essentially a constructor
+        newcomm = self._mpi_comm.Split(color, self._mpi_rank)
+        newmsgr = MPIMessenger()
+        newmsgr._mpi_comm = newcomm
+        newmsgr._mpi_rank = newmsgr._mpi_comm.Get_rank()
+        newmsgr._mpi_size = newmsgr._mpi_comm.Get_size()
+        newmsgr._is_master = (newmsgr._mpi_rank == 0)
         newmsgr._parent = self
-        newmsgr._group = group
+        newmsgr._color = color
         return newmsgr
 
     def partition(self, global_items):
