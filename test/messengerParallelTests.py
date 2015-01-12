@@ -127,6 +127,18 @@ class MessengerParallelTests(unittest.TestCase):
         self.assertEqual(subrank, rank / 2,
                          'Unexpected subrank result from split')
 
+    def test_gather_int(self):
+        msngr = messenger.MPIMessenger()
+        rank = msngr.get_rank()
+        allranks = msngr.gather(rank)
+        rslt = range(msngr.get_size())
+        if msngr.is_master():
+            self.assertEqual(allranks, rslt,
+                             'Unexpected integer gather result on master')
+        else:
+            self.assertIsNone(allranks,
+                              'Unexpected integer gather result on subordinate')
+
     def test_print_once(self):
         msngr = messenger.MPIMessenger()
         msg = 'TEST - ONCE - Parallel'
@@ -136,6 +148,8 @@ class MessengerParallelTests(unittest.TestCase):
         msngr = messenger.MPIMessenger()
         msg = 'TEST - ALL - Parallel'
         msngr.prinfo(msg, vlevel=0, master=False)
+
+
 
 if __name__ == "__main__":
     hline = '=' * 70

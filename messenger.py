@@ -14,6 +14,10 @@ in serial as in parallel, and there is provided a 'create_messenger'
 factory function for creating the kind of Messenger desired (i.e., serial
 or parallel).
 
+One of the main advantages of the Messenger class is that it works regardless
+of whether mpi4py is installed on your system.  In other words, the interface
+is the same for the serial operation or the parallel operation.
+
 _______________________
 Created on Apr 30, 2014
 Last modified on Jan 6, 2015
@@ -221,6 +225,19 @@ class Messenger(object):
         else:
             return data
 
+    def gather(self, data):
+        '''
+        Implements a gather operation, where data is send from all ranks
+        in the Messenger's domain to the master rank.
+
+        @param  data  The data to be gathered on the master rank
+
+        @return  The accumulated data (on the master rank), or None (on
+                 all other ranks).
+        '''
+        # In serial, just return the data unchanged
+        return data
+
     def prinfo(self, output, vlevel=0, master=True):
         '''
         Short for "print info", this method prints output to stdout, but only
@@ -403,3 +420,15 @@ class MPIMessenger(Messenger):
         else:
             return self._mpi_comm.allreduce(data, op=getattr(self._mpi, op.upper()))
 
+    def gather(self, data):
+        '''
+        Implements a gather operation, where data is send from all ranks
+        in the Messenger's domain to the master rank.
+
+        @param  data  The data to be gathered on the master rank
+
+        @return  The accumulated data (on the master rank), or None (on
+                 all other ranks).
+        '''
+        alldata = self._mpi_comm.gather(data)
+        return alldata
