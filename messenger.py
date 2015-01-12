@@ -236,7 +236,18 @@ class Messenger(object):
                  all other ranks).
         '''
         # In serial, just return the data unchanged
-        return data
+        return [data]
+
+    def scatter(self, data):
+        '''
+        Implements a scatter operation, where data is send from the master rank
+        in the Messenger's domain to all of the subordinate ranks.
+
+        @param  data  The data to be scattered from the master rank
+
+        @return  The scattered data
+        '''
+        return data[0]
 
     def prinfo(self, output, vlevel=0, master=True):
         '''
@@ -432,3 +443,18 @@ class MPIMessenger(Messenger):
         '''
         alldata = self._mpi_comm.gather(data)
         return alldata
+
+    def scatter(self, data):
+        '''
+        Implements a scatter operation, where data is send from the master rank
+        in the Messenger's domain to all of the subordinate ranks.
+
+        @param  data  The data to be scattered from the master rank.  The nth
+                      item in data will be sent to rank n, and data must have
+                      length equal to the size of the Messenger's domain.
+
+        @return  The appropriate subset of the scattered data
+                 (i.e., the nth element of data on rank n)
+        '''
+        subdata = self._mpi_comm.scatter(data)
+        return subdata
