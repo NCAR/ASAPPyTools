@@ -212,6 +212,7 @@ class Messenger(object):
         if type(op) is not str:
             err_msg = 'Reduce operator name must be a string'
             raise TypeError(err_msg)
+
         if (isinstance(data, dict)):
             totals = {}
             for name in data:
@@ -248,6 +249,17 @@ class Messenger(object):
         @return  The scattered data
         '''
         return data[0]
+
+    def broadcast(self, data):
+        '''
+        Implements a broadcast operation, where data is send from the master
+        rank in the Messenger's domain to all of the subordinate ranks.
+
+        @param  data  The data to be scattered from the master rank
+
+        @return  The scattered data
+        '''
+        return data
 
     def prinfo(self, output, vlevel=0, master=True):
         '''
@@ -335,7 +347,7 @@ class MPIMessenger(Messenger):
         @return A new Messenger instance that communicates among ranks with
                 the same color.
         '''
-        # Note, this is essentially a constructor
+        # Note, this is essentially a constructor...
         newcomm = self._mpi_comm.Split(color, self._mpi_rank)
         newmsgr = MPIMessenger()
         newmsgr._mpi_comm = newcomm
@@ -458,3 +470,15 @@ class MPIMessenger(Messenger):
         '''
         subdata = self._mpi_comm.scatter(data)
         return subdata
+
+    def broadcast(self, data):
+        '''
+        Implements a broadcast operation, where data is send from the master
+        rank in the Messenger's domain to all of the subordinate ranks.
+
+        @param  data  The data to be scattered from the master rank
+
+        @return  The scattered data
+        '''
+        newdata = self._mpi_comm.bcast(data)
+        return newdata

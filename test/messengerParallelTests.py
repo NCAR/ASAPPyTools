@@ -151,6 +151,15 @@ class MessengerParallelTests(unittest.TestCase):
         self.assertEqual(subdata, rank ** 2,
                          'Unexpected integer scatter result')
 
+    def test_bcast_int(self):
+        msngr = messenger.MPIMessenger()
+        rank = msngr.get_rank()
+        size = msngr.get_size()
+        data = size + rank ** 2
+        bcdata = msngr.broadcast(data)
+        self.assertEqual(bcdata, size,
+                         'Unexpected integer broadcast result')
+
     def test_print_once(self):
         msngr = messenger.MPIMessenger()
         msg = 'TEST - ONCE - Parallel'
