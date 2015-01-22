@@ -122,7 +122,8 @@ class MessengerParallelTests(unittest.TestCase):
         color = rank % 2
         submsngr = msngr.split(color)
         subrank = submsngr.get_rank()
-        msg = 'Rank: ' + str(rank) + '  SubRank:' + str(subrank) + '  Color:' + str(color)
+        msg = 'SPLIT - Rank:' + str(rank) + '  SubRank:' + \
+            str(subrank) + '  Color:' + str(color)
         msngr.prinfo(msg, vlevel=0, master=False)
         self.assertEqual(subrank, rank / 2,
                          'Unexpected subrank result from split')
@@ -159,6 +160,46 @@ class MessengerParallelTests(unittest.TestCase):
         bcdata = msngr.broadcast(data)
         self.assertEqual(bcdata, size,
                          'Unexpected integer broadcast result')
+
+    def test_sendrecv_int(self):
+        msngr = messenger.MPIMessenger()
+        rank = msngr.get_rank()
+        size = msngr.get_size()
+        data = None
+        dest = 0
+        source = size - 1
+        if rank == source:
+            data = 5
+        recvd = msngr.sendrecv(data, source=source, dest=dest)
+        msg = 'SENDRECV (' + str(source) + '-->' \
+            + str(dest) + ') - data=' + str(data) + ' - recvd:' + str(recvd)
+        msngr.prinfo(msg, vlevel=0, master=False)
+        if rank == dest:
+            self.assertEqual(recvd, 5,
+                         'Unexpected integer sendrecv result on destination')
+        else:
+            self.assertEqual(recvd, None,
+                         'Unexpected integer sendrecv result on other')
+
+    def test_sendrecv_int_self(self):
+        msngr = messenger.MPIMessenger()
+        rank = msngr.get_rank()
+        size = msngr.get_size()
+        data = None
+        dest = size - 1
+        source = size - 1
+        if rank == source:
+            data = 5
+        recvd = msngr.sendrecv(data, source=source, dest=dest)
+        msg = 'SEND to Self (' + str(source) + '-->' \
+            + str(dest) + ') - data=' + str(data) + ' - recvd:' + str(recvd)
+        msngr.prinfo(msg, vlevel=0, master=False)
+        if rank == dest:
+            self.assertEqual(recvd, 5,
+                         'Unexpected integer sendrecv result on destination')
+        else:
+            self.assertEqual(recvd, None,
+                         'Unexpected integer sendrecv result on other')
 
     def test_print_once(self):
         msngr = messenger.MPIMessenger()

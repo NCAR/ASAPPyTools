@@ -261,6 +261,21 @@ class Messenger(object):
         '''
         return data
 
+    def sendrecv(self, data, source=None, dest=None):
+        '''
+        Implements a point-to-point communication, sending data from 'orig'
+        to the 'dest' rank.
+
+        @param  data  The data to be sent (only from 'orig' rank)
+
+        @param  orig  The origin rank to send the data (Defaults to
+
+        @param  dest  The destination rank to received the data
+
+        @return  The received data (only on 'dest' rank)
+        '''
+        return data
+
     def prinfo(self, output, vlevel=0, master=True):
         '''
         Short for "print info", this method prints output to stdout, but only
@@ -482,3 +497,26 @@ class MPIMessenger(Messenger):
         '''
         newdata = self._mpi_comm.bcast(data)
         return newdata
+
+    def sendrecv(self, data, source=0, dest=0):
+        '''
+        Implements a point-to-point communication, sending data from 'source'
+        to the 'dest' rank.  This communication uses a hand-shake.
+
+        @param  data  The data to be sent (only from 'source' rank)
+
+        @param  source  The origin rank to send the data (Defaults to 0, or
+                      the master rank).
+
+        @param  dest  The destination rank to receive the data (Defaults to
+                      0, or the master rank).
+
+        @return  The received data (only on 'dest' rank, None on others)
+        '''
+        recvd = None
+        tag = 3 * source + 1
+        if self._mpi_rank == source:
+            self._mpi_comm.send(data, dest=dest, tag=tag)
+        if self._mpi_rank == dest:
+            recvd = self._mpi_comm.recv(source=source, tag=tag)
+        return recvd
