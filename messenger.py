@@ -256,9 +256,14 @@ class Messenger(object):
             for name in data:
                 totals[name] = self.reduce(data[name], op=op)
             return totals
+        elif (self._is_ndarray(data)):
+            if hasattr(self._np, op):
+                return getattr(self._np, op.lower())(data)
+            else:
+                return eval(op.lower())(data)
         elif (hasattr(data, '__len__')):
             if op in _MAPPED_OPS:
-                return _MAPPED_OPS[op](data)
+                return _MAPPED_OPS[op.lower()](data)
             else:
                 return eval(op.lower())(data)
         else:
@@ -275,7 +280,10 @@ class Messenger(object):
                  all other ranks).
         '''
         # In serial, just return the data unchanged
-        return [data]
+        if (self._is_ndarray(data)):
+            return data
+        else:
+            return [data]
 
     def scatter(self, data):
         '''
@@ -299,16 +307,18 @@ class Messenger(object):
         '''
         return data
 
-    def sendrecv(self, data, source=None, dest=None):
+    def sendrecv(self, data, source=0, dest=0):
         '''
         Implements a point-to-point communication, sending data from 'orig'
         to the 'dest' rank.
 
         @param  data  The data to be sent (only from 'orig' rank)
 
-        @param  orig  The origin rank to send the data (Defaults to
+        @param  orig  The origin rank to send the data (Defaults to 0, the
+                      master rank)
 
-        @param  dest  The destination rank to received the data
+        @param  dest  The destination rank to received the data (Defaults to 0,
+                      the master rank)
 
         @return  The received data (only on 'dest' rank)
         '''
@@ -497,8 +507,14 @@ class MPIMessenger(Messenger):
         @return  The accumulated data (on the master rank), or None (on
                  all other ranks).
         '''
-        alldata = self._mpi_comm.gather(data)
-        return alldata
+        if (self._is_ndarray(data)):
+            allshape = [self._mpi_size] + list(data.shape)
+            alltype = data.dtype
+            alldata = self._np.empty(allshape, dtype=alltype)
+            self._mpi_comm.Gather(data, alldata)
+            return alldata
+        else:
+            return self._mpi_comm.gather(data)
 
     def scatter(self, data):
         '''
@@ -512,8 +528,17 @@ class MPIMessenger(Messenger):
         @return  The appropriate subset of the scattered data
                  (i.e., the nth element of data on rank n)
         '''
-        subdata = self._mpi_comm.scatter(data)
-        return subdata
+        if (self._is_ndarray(data)):
+            if data.shape[0] != self._mpi_size:
+                raise IndexError('Shape[0] of scattered Numpy data must be ' \
+                                 'equal to the size of the Messenger domain')
+            subshape = data.shape[1:]
+            subtype = data.dtype
+            subdata = self._np.empty(subshape, dtype=subtype)
+            self._mpi_comm.Scatter(data, subdata)
+            return subdata
+        else:
+            return self._mpi_comm.scatter(data)
 
     def broadcast(self, data):
         '''
@@ -524,8 +549,11 @@ class MPIMessenger(Messenger):
 
         @return  The scattered data
         '''
-        newdata = self._mpi_comm.bcast(data)
-        return newdata
+        if (self._is_ndarray(data)):
+            self._mpi_comm.Bcast(data)
+            return data
+        else:
+            return self._mpi_comm.bcast(data)
 
     def sendrecv(self, data, source=0, dest=0):
         '''
@@ -545,7 +573,19 @@ class MPIMessenger(Messenger):
         recvd = None
         tag = 3 * source + 1
         if self._mpi_rank == source:
-            self._mpi_comm.send(data, dest=dest, tag=tag)
+            if (self._is_ndarray(data)):
+                msg = {'shape': data.shape, 'dtype': data.dtype}
+                self._mpi_comm.send(msg, dest=dest, tag=tag)
+                dummy = self._mpi_comm.recv(source=dest, tag=tag + 1)
+                self._mpi_comm.Send(data, dest=dest, tag=tag + 2)
+            else:
+                self._mpi_comm.send(data, dest=dest, tag=tag)
         if self._mpi_rank == dest:
-            recvd = self._mpi_comm.recv(source=source, tag=tag)
+            if (self._is_ndarray(data)):
+                msg = self._mpi_comm.recv(source=source)
+                self._mpi_comm.send("Received request", dest=source, tag=tag + 1)
+                recvd = self._np.empty((msg['shape']), dtype=msg['dtype'])
+                self._mpi_comm.Recv(recvd, source=source, tag=tag + 2)
+            else:
+                recvd = self._mpi_comm.recv(source=source, tag=tag)
         return recvd
