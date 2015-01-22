@@ -127,20 +127,17 @@ if __name__ == "__main__":
         raise RuntimeError('Must run these tests in parallel with 1 rank')
 
     hline = '=' * 70
-    if MPI.COMM_WORLD.Get_rank() == 0:
-        print hline
-        print 'STANDARD OUTPUT FROM ALL TESTS:'
-        print hline
+    print hline
+    print 'STANDARD OUTPUT FROM ALL TESTS:'
+    print hline
 
     from cStringIO import StringIO
     mystream = StringIO()
     tests = unittest.TestLoader().loadTestsFromTestCase(MessengerParallelTests)
     unittest.TextTestRunner(stream=mystream).run(tests)
 
-    results = MPI.COMM_WORLD.gather(mystream.getvalue())
-    if MPI.COMM_WORLD.Get_rank() == 0:
-        for rank, result in enumerate(results):
-            print hline
-            print 'TESTS RESULTS FOR RANK ' + str(rank) + ':'
-            print hline
-            print str(result)
+    results = mystream.getvalue()
+    print hline
+    print 'TESTS RESULTS:'
+    print hline
+    print str(results)
