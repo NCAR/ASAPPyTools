@@ -108,17 +108,20 @@ class Messenger(object):
         ## Indicates verbosity level
         self.verbosity = 1
 
-    def split(self, unused):
+    def split(self, color):
         '''
         Returns a new Messenger instance that carries messages only between
         the ranks with the same color.  In serial, this returns 'self'.
 
-        @param unused  An identifier (e.g., int) for this rank's group
+        @param color  An identifier (e.g., int) for this rank's group
 
         @return A new Messenger instance that communicates among ranks within
                 the same group.
         '''
-        return self
+        newmsgr = Messenger()
+        newmsgr._parent = self
+        newmsgr._color = color
+        return newmsgr
 
     def partition(self, global_items):
         '''
