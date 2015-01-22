@@ -84,6 +84,14 @@ class Messenger(object):
         ## The type of decomp utility constructed
         self.messenger_type = 'serial'
 
+        ## Store the Numpy module, if it can be found
+        self._np = None
+        try:
+            import numpy
+            self._np = numpy
+        except:
+            pass
+
         ## Whether this is the master process/rank
         self._is_master = True
 
@@ -107,6 +115,18 @@ class Messenger(object):
 
         ## Indicates verbosity level
         self.verbosity = 1
+
+    def _is_ndarray(self, data):
+        '''
+        This is a simple helper function to check if a given object is a
+        Numpy NDArray.  Returns false if Numpy cannot be found.
+        '''
+        if self._np is None:
+            return False
+        if isinstance(data, self._np.ndarray):
+            return True
+        else:
+            return False
 
     def split(self, color):
         '''
@@ -349,14 +369,6 @@ class MPIMessenger(Messenger):
         ## Type of decomp utility constructed
         self.messenger_type = 'parallel'
 
-        ## Store the Numpy module, if it can be found
-        self._np = None
-        try:
-            import numpy
-            self._np = numpy
-        except:
-            pass
-
         # Try to import the MPI module
         try:
             from mpi4py import MPI
@@ -377,18 +389,6 @@ class MPIMessenger(Messenger):
 
         ## Whether this is the master process/rank
         self._is_master = (self._mpi_rank == 0)
-
-    def __is_ndarray(self, data):
-        '''
-        This is a simple helper function to check if a given object is a
-        Numpy NDArray.  Returns false if Numpy cannot be found.
-        '''
-        if self._np is None:
-            return False
-        if isinstance(data, self._np.ndarray):
-            return True
-        else:
-            return False
 
     def split(self, color):
         '''
