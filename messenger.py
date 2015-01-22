@@ -111,14 +111,14 @@ class Messenger(object):
     def split(self, unused):
         '''
         Returns a new Messenger instance that carries messages only between
-        the ranks with the same color.  In serial, this returns None.
+        the ranks with the same color.  In serial, this returns 'self'.
 
         @param unused  An identifier (e.g., int) for this rank's group
 
         @return A new Messenger instance that communicates among ranks within
                 the same group.
         '''
-        return None
+        return self
 
     def partition(self, global_items):
         '''
@@ -133,19 +133,25 @@ class Messenger(object):
         @param global_items  If this is a list, then the weights of the items
                              are considered unity.  If this is a dictionary,
                              then the values in the dictionary are considered
-                             weights.
+                             weights and sorted by weights.
 
         @return A list containing a subset of the global items to be used
-                on the current (local) processor
+                on the current (local) processor (in sorted order)
         '''
         if isinstance(global_items, list):
-            return global_items
+            global_dict = dict((name, 1) for name in global_items)
         elif isinstance(global_items, dict):
-            return global_items.keys()
+            global_dict = global_items
         else:
             err_msg = 'Global items object has unrecognized type (' \
                     + str(type(global_items)) + ')'
             raise TypeError(err_msg)
+
+        # Sort the names of the variables by their weight
+        global_list = list(zip(*sorted(global_dict.items(), key=lambda p: p[1]))[0])
+
+        # Serial just return the global list
+        return global_list
 
     def sync(self):
         '''
@@ -400,17 +406,8 @@ class MPIMessenger(Messenger):
         @return A list containing a subset of the global items to be used
                 on the current (local) processor
         '''
-        if isinstance(global_items, list):
-            global_dict = dict((name, 1) for name in global_items)
-        elif isinstance(global_items, dict):
-            global_dict = global_items
-        else:
-            err_msg = 'Global items object has unrecognized type (' \
-                    + str(type(global_items)) + ')'
-            raise TypeError(err_msg)
-
-        # Sort the names of the variables by their weight
-        global_list = list(zip(*sorted(global_dict.items(), key=lambda p: p[1]))[0])
+        # Get the sorted global names (per the serial operation)
+        global_list = Messenger.partition(self, global_items)
 
         # KMP: A better partitioning algorithm should be implemented.  The
         #      above line with the striding below does not necessarily load
