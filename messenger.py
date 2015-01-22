@@ -183,6 +183,15 @@ class Messenger(object):
         '''
         return self._mpi_size
 
+    def get_color(self):
+        '''
+        Returns the color of the rank in the (presumably split) MPI
+        communicator.
+
+        @return The color of this rank
+        '''
+        return self._color
+
     def reduce(self, data, op='sum'):
         '''
         This reduces data across all processors, returning the result of the
