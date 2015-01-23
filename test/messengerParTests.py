@@ -25,6 +25,7 @@ Created on Jan 7, 2015
 '''
 import unittest
 import messenger
+import numpy as np
 from mpi4py import MPI
 
 
@@ -84,10 +85,13 @@ class MessengerParallelTests(unittest.TestCase):
 
     def test_sum_list(self):
         msngr = messenger.MPIMessenger()
-        data = [1, 2, 3, 4]
+        rank = msngr.get_rank()
         size = msngr.get_size()
+        lst = [1, 2, 3, 4]
+        data = map(lambda x: x + rank, lst)
+        rslt = sum(lst) * size + len(lst) * sum(range(size))
         msngr_sum = msngr.reduce(data, op='sum')
-        self.assertEqual(msngr_sum, sum(data) * size,
+        self.assertEqual(msngr_sum, rslt,
                         'Parallel messenger list sum not working')
 
     def test_sum_dict(self):
@@ -98,6 +102,17 @@ class MessengerParallelTests(unittest.TestCase):
         msngr_sum = msngr.reduce(data, op='sum')
         self.assertDictEqual(msngr_sum, rslt,
                         'Parallel messenger dict sum not working')
+
+    def test_sum_ndarray(self):
+        msngr = messenger.MPIMessenger()
+        rank = msngr.get_rank()
+        size = msngr.get_size()
+        lst = [1, 2, 3, 4]
+        data = np.array(map(lambda x: x + rank, lst))
+        rslt = sum(lst) * size + len(lst) * sum(range(size))
+        msngr_sum = msngr.reduce(data, op='sum')
+        self.assertEqual(msngr_sum, rslt,
+                        'Parallel messenger NDArray sum not working')
 
     def test_max_list(self):
         msngr = messenger.MPIMessenger()
@@ -115,6 +130,16 @@ class MessengerParallelTests(unittest.TestCase):
         msngr_max = msngr.reduce(data, op='max')
         self.assertDictEqual(msngr_max, rslt,
                         'Parallel messenger dict max not working')
+
+    def test_max_ndarray(self):
+        msngr = messenger.MPIMessenger()
+        rank = msngr.get_rank()
+        size = msngr.get_size()
+        data = np.array([rank + i for i in range(4)])
+        rslt = (size - 1) + 3
+        msngr_max = msngr.reduce(data, op='max')
+        self.assertEqual(msngr_max, rslt,
+                        'Parallel messenger NDarray max not working')
 
     def test_split(self):
         msngr = messenger.MPIMessenger()
@@ -138,7 +163,22 @@ class MessengerParallelTests(unittest.TestCase):
                              'Unexpected integer gather result on master')
         else:
             self.assertIsNone(allranks,
-                              'Unexpected integer gather result on subordinate')
+                              'Unexpected integer gather result on slave')
+
+    def test_gather_ndarray(self):
+        msngr = messenger.MPIMessenger()
+        rank = msngr.get_rank()
+        size = msngr.get_size()
+        data = np.array([rank])
+        alldata = msngr.gather(data)
+        if msngr.is_master():
+            rslt = np.array(range(size))
+            rslt.shape = (size, 1)
+            np.testing.assert_array_equal(alldata, rslt,
+                              'Unexpected NDArray gather result on master')
+        else:
+            self.assertTupleEqual(alldata.shape, (size, 1),
+                              'Unexpected NDArray gather result on subordinate')
 
     def test_scatter_int(self):
         msngr = messenger.MPIMessenger()
@@ -151,6 +191,19 @@ class MessengerParallelTests(unittest.TestCase):
         subdata = msngr.scatter(data)
         self.assertEqual(subdata, rank ** 2,
                          'Unexpected integer scatter result')
+
+    def test_scatter_ndarray(self):
+        msngr = messenger.MPIMessenger()
+        rank = msngr.get_rank()
+        size = msngr.get_size()
+        if msngr.is_master():
+            data = np.array([i ** 2 for i in range(size)])
+            data.shape = (size, 1)
+        else:
+            data = np.empty((size, 1))
+        subdata = msngr.scatter(data)
+        np.testing.assert_array_equal(subdata, np.array([rank ** 2]),
+                         'Unexpected NDArray scatter result')
 
     def test_bcast_int(self):
         msngr = messenger.MPIMessenger()
