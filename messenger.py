@@ -99,18 +99,18 @@ class Messenger(object):
         self._mpi = None
 
         ## The rank of the processor
-        self._mpi_rank = 0
+        self._rank = 0
 
         ## Size of the MPI communicator
-        self._mpi_size = 1
+        self._size = 1
 
-        ## Pointer to the MPI communicator itself
-        self._mpi_comm = None
+        ## Pointer to the MPI intra-communicator
+        self._intracomm = None
 
-        ## Reference to the Messenger parent
-        self._parent = None
+        ## Pointer to the MPI inter-communicator
+        self._intercomm = None
 
-        ## Group Identifier (color)
+        ## MPI Group ID (Color)
         self._color = None
 
         ## Indicates verbosity level
@@ -139,7 +139,7 @@ class Messenger(object):
                 the same group.
         '''
         newmsgr = Messenger()
-        newmsgr._parent = self
+        newmsgr._intercomm = self
         newmsgr._color = color
         return newmsgr
 
@@ -201,7 +201,7 @@ class Messenger(object):
 
         @return The integer ID associated with the local MPI processor/rank
         '''
-        return self._mpi_rank
+        return self._rank
 
     def get_size(self):
         '''
@@ -210,16 +210,7 @@ class Messenger(object):
 
         @return The integer number of ranks in the MPI communicator
         '''
-        return self._mpi_size
-
-    def get_color(self):
-        '''
-        Returns the color of the rank in the (presumably split) MPI
-        communicator.
-
-        @return The color of this rank
-        '''
-        return self._color
+        return self._size
 
     def reduce(self, data, op='sum'):
         '''
@@ -324,6 +315,40 @@ class Messenger(object):
         '''
         return data
 
+    def push(self, data):
+        '''
+        Implements a point-to-point communication, sending data from the
+        master rank of this Messenger to the master rank of the parent's
+        Messenger.  If there is no parent, then it simply returns the data.
+
+        @param  data  The data to "push" up to the parent master rank from
+                      the child master rank.
+
+        @return  The data received on the parent master rank, or None.
+        '''
+        if self._intercomm is None:
+            return data
+        elif self._intercomm.Get_rank() == 0:
+            return data
+        return None
+
+    def pull(self, data):
+        '''
+        Implements a point-to-point communication, sending data from the
+        parent Messenger's master rank to this Messenger's master rank.
+        If there is no parent, then it simply returns the data.
+
+        @param  data  The data to "pull" down from the parent master rank to
+                      the child master rank.
+
+        @return  The data received on master rank, or None.
+        '''
+        if self._intercomm is None:
+            return data
+        if self.is_master():
+            return data
+        return None
+
     def prinfo(self, output, vlevel=0, master=True):
         '''
         Short for "print info", this method prints output to stdout, but only
@@ -348,7 +373,7 @@ class Messenger(object):
                 print str(output)
                 sys.stdout.flush()
             elif (not master):
-                print '[' + str(self._mpi_rank) + '/' + str(self._mpi_size) \
+                print '[' + str(self._rank) + '/' + str(self._size) \
                     + ']: ' + str(output)
                 sys.stdout.flush()
 
@@ -388,17 +413,17 @@ class MPIMessenger(Messenger):
         ## MPI namespace for common classes and methods
         self._mpi = MPI
 
-        ## Pointer to the MPI module (defaults to COMM_WORLD)
-        self._mpi_comm = MPI.COMM_WORLD
+        ## Pointer to the MPI intra-communicator (default: COMM_WORLD)
+        self._intracomm = MPI.COMM_WORLD
 
         ## The rank of the processor
-        self._mpi_rank = self._mpi_comm.Get_rank()
+        self._rank = self._intracomm.Get_rank()
 
         ## MPI Communicator size
-        self._mpi_size = self._mpi_comm.Get_size()
+        self._size = self._intracomm.Get_size()
 
         ## Whether this is the master process/rank
-        self._is_master = (self._mpi_rank == 0)
+        self._is_master = (self._rank == 0)
 
     def split(self, color):
         '''
@@ -411,14 +436,21 @@ class MPIMessenger(Messenger):
                 the same color.
         '''
         # Note, this is essentially a constructor...
-        newcomm = self._mpi_comm.Split(color, self._mpi_rank)
+        newcomm = self._intracomm.Split(color, self._rank)
         newmsgr = MPIMessenger()
-        newmsgr._mpi_comm = newcomm
-        newmsgr._mpi_rank = newmsgr._mpi_comm.Get_rank()
-        newmsgr._mpi_size = newmsgr._mpi_comm.Get_size()
-        newmsgr._is_master = (newmsgr._mpi_rank == 0)
-        newmsgr._parent = self
+        newmsgr._intracomm = newcomm
+        newmsgr._rank = newmsgr._intracomm.Get_rank()
+        newmsgr._size = newmsgr._intracomm.Get_size()
+        newmsgr._is_master = (newmsgr._rank == 0)
         newmsgr._color = color
+
+        # To allow push/pull operations, we need an intracomm between
+        # the subcommunicator masters ONLY
+        this_group = self._intracomm.Get_group()
+        master_flags = self._intracomm.allgather(newmsgr._rank == 0)
+        master_ranks = [rank for rank, flag in enumerate(master_flags) if flag]
+        master_group = this_group.Incl(master_ranks)
+        newmsgr._intercomm = self._intracomm.Create(master_group)
         return newmsgr
 
     def partition(self, global_items):
@@ -447,14 +479,14 @@ class MPIMessenger(Messenger):
         #      balance as well as could be done.  It is easy, though...
 
         # Return a subset of the list by striding though the list
-        return global_list[self._mpi_rank::self._mpi_size]
+        return global_list[self._rank::self._size]
 
     def sync(self):
         '''
         A wrapper on the MPI Barrier method.  Forces execution to wait for
         all other processors to get to this point in the code.
         '''
-        self._mpi_comm.Barrier()
+        self._intracomm.Barrier()
 
     def reduce(self, data, op='sum'):
         '''
@@ -495,7 +527,7 @@ class MPIMessenger(Messenger):
             total = Messenger.reduce(self, data, op=op)
             return self.reduce(total, op=op)
         else:
-            return self._mpi_comm.allreduce(data, op=getattr(self._mpi, op.upper()))
+            return self._intracomm.allreduce(data, op=getattr(self._mpi, op.upper()))
 
     def gather(self, data):
         '''
@@ -508,13 +540,13 @@ class MPIMessenger(Messenger):
                  all other ranks).
         '''
         if (self._is_ndarray(data)):
-            allshape = [self._mpi_size] + list(data.shape)
+            allshape = [self._size] + list(data.shape)
             alltype = data.dtype
             alldata = self._np.empty(allshape, dtype=alltype)
-            self._mpi_comm.Gather(data, alldata)
+            self._intracomm.Gather(data, alldata)
             return alldata
         else:
-            return self._mpi_comm.gather(data)
+            return self._intracomm.gather(data)
 
     def scatter(self, data):
         '''
@@ -529,16 +561,16 @@ class MPIMessenger(Messenger):
                  (i.e., the nth element of data on rank n)
         '''
         if (self._is_ndarray(data)):
-            if data.shape[0] != self._mpi_size:
+            if data.shape[0] != self._size:
                 raise IndexError('Shape[0] of scattered Numpy data must be ' \
                                  'equal to the size of the Messenger domain')
             subshape = data.shape[1:]
             subtype = data.dtype
             subdata = self._np.empty(subshape, dtype=subtype)
-            self._mpi_comm.Scatter(data, subdata)
+            self._intracomm.Scatter(data, subdata)
             return subdata
         else:
-            return self._mpi_comm.scatter(data)
+            return self._intracomm.scatter(data)
 
     def broadcast(self, data):
         '''
@@ -550,10 +582,10 @@ class MPIMessenger(Messenger):
         @return  The scattered data
         '''
         if (self._is_ndarray(data)):
-            self._mpi_comm.Bcast(data)
+            self._intracomm.Bcast(data)
             return data
         else:
-            return self._mpi_comm.bcast(data)
+            return self._intracomm.bcast(data)
 
     def sendrecv(self, data, source=0, dest=0):
         '''
@@ -571,27 +603,78 @@ class MPIMessenger(Messenger):
         @return  The received data (only on 'dest' rank, None on others)
         '''
         if source == dest:
-            if self._mpi_rank == dest:
+            if self._rank == dest:
                 return data
             else:
                 return None
 
         recvd = None
-        tag = 4 * source + 1
-        if self._mpi_rank == dest:
+        tag = 5 * source
+        if self._rank == dest:
             if (self._is_ndarray(data)):
-                msg = self._mpi_comm.recv(source=source, tag=tag)
-                self._mpi_comm.send("Received", dest=source, tag=tag + 1)
+                msg = self._intracomm.recv(source=source, tag=tag)
+                self._intracomm.send("Received", dest=source, tag=tag + 1)
                 recvd = self._np.empty((msg['shape']), dtype=msg['dtype'])
-                self._mpi_comm.Recv(recvd, source=source, tag=tag + 2)
+                self._intracomm.Recv(recvd, source=source, tag=tag + 2)
             else:
-                recvd = self._mpi_comm.recv(source=source, tag=tag + 3)
-        if self._mpi_rank == source:
+                recvd = self._intracomm.recv(source=source, tag=tag + 3)
+        if self._rank == source:
             if (self._is_ndarray(data)):
                 msg = {'shape': data.shape, 'dtype': data.dtype}
-                self._mpi_comm.send(msg, dest=dest, tag=tag)
-                dummy = self._mpi_comm.recv(source=dest, tag=tag + 1)
-                self._mpi_comm.Send(data, dest=dest, tag=tag + 2)
+                self._intracomm.send(msg, dest=dest, tag=tag)
+                dummy = self._intracomm.recv(source=dest, tag=tag + 1)
+                self._intracomm.Send(data, dest=dest, tag=tag + 2)
             else:
-                self._mpi_comm.send(data, dest=dest, tag=tag + 3)
+                self._intracomm.send(data, dest=dest, tag=tag + 3)
         return recvd
+
+    def push(self, data):
+        '''
+        Implements a point-to-point communication, sending data from the
+        master rank of this Messenger to the master rank of the parent's
+        Messenger.  If there is no parent, then it simply returns the data.
+
+        @param  data  The data to "push" up to the parent master rank from
+                      the child master rank.
+
+        @return  The data received on the parent master rank, or None.
+        '''
+        if self._intercomm is None:
+            return data
+        if self.is_master():
+            if (self._is_ndarray(data)):
+                allshape = [self._size] + list(data.shape)
+                alltype = data.dtype
+                alldata = self._np.empty(allshape, dtype=alltype)
+                self._intercomm.Gather(data, alldata)
+                return alldata
+            else:
+                return self._intercomm.gather(data)
+        return None
+
+    def pull(self, data):
+        '''
+        Implements a point-to-point communication, sending data from the
+        parent Messenger's master rank to this Messenger's master rank.
+        If there is no parent, then it simply returns the data.
+
+        @param  data  The data to "pull" down from the parent master rank to
+                      the child master rank.
+
+        @return  The data received on master rank, or None.
+        '''
+        if self._intercomm is None:
+            return data
+        if self.is_master():
+            if (self._is_ndarray(data)):
+                if data.shape[0] != self._size:
+                    raise IndexError('Shape[0] of pulled Numpy data must be ' \
+                                     'equal to the number of masters')
+                subshape = data.shape[1:]
+                subtype = data.dtype
+                subdata = self._np.empty(subshape, dtype=subtype)
+                self._intercomm.Scatter(data, subdata)
+                return subdata
+            else:
+                return self._intercomm.scatter(data)
+        return None

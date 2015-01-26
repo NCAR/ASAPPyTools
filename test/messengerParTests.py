@@ -37,13 +37,13 @@ class MessengerParallelTests(unittest.TestCase):
         msngr = messenger.MPIMessenger()
         self.assertIsInstance(msngr, messenger.Messenger,
                               'Failed to create class instance')
-        self.assertEqual(msngr._mpi_rank, MPI.COMM_WORLD.Get_rank(),
+        self.assertEqual(msngr._rank, MPI.COMM_WORLD.Get_rank(),
                          'Rank is wrong after initialization')
-        self.assertEqual(msngr._mpi_size, MPI.COMM_WORLD.Get_size(),
+        self.assertEqual(msngr._size, MPI.COMM_WORLD.Get_size(),
                          'Size is wrong after initialization')
         self.assertEqual(msngr._is_master, (0 == MPI.COMM_WORLD.Get_rank()),
                          'Is_master is wrong after initialization')
-        self.assertEqual(msngr._mpi_comm, MPI.COMM_WORLD,
+        self.assertEqual(msngr._intracomm, MPI.COMM_WORLD,
                          'MPI Comm is wrong after initialization')
         self.assertEqual(msngr.verbosity, 1,
                          'Verbosity is wrong after initialization')
@@ -281,6 +281,46 @@ class MessengerParallelTests(unittest.TestCase):
         else:
             self.assertEqual(recvd, None,
                          'Unexpected NDArray sendrecv result on other')
+
+    def test_push_int(self):
+        mastr = messenger.MPIMessenger()
+        rank = mastr.get_rank()
+        size = mastr.get_size()
+        color = rank / 2
+        slave = mastr.split(color)
+        data = 10 * rank
+        recvd = slave.push(data)
+        rslt = [10 * i for i in range(size) if i % 2 == 0]
+        msg = 'PUSH - data:' + str(data) + '--> return:' + str(recvd)
+        mastr.prinfo(msg, vlevel=0, master=False)
+        if mastr.is_master():
+            self.assertListEqual(recvd, rslt,
+                                 'Push int did not return expected results on master')
+        else:
+            self.assertIsNone(recvd,
+                              'Push int did not return expected results on slave')
+
+    def test_pull_int(self):
+        mastr = messenger.MPIMessenger()
+        rank = mastr.get_rank()
+        color = rank / 2
+        slave = mastr.split(color)
+        if mastr.is_master():
+            data = [6, 9]
+        else:
+            data = None
+        recvd = slave.pull(data)
+        msg = 'PULL - data:' + str(data) + '--> return:' + str(recvd)
+        mastr.prinfo(msg, vlevel=0, master=False)
+        if slave.is_master() and mastr.is_master():
+            self.assertEqual(recvd, 6,
+                             'Pull int did not return expected results on 1st master')
+        elif slave.is_master() and not mastr.is_master():
+            self.assertEqual(recvd, 9,
+                             'Pull int did not return expected results on 2nd master')
+        else:
+            self.assertIsNone(recvd,
+                              'Push int did not return expected results on slave')
 
     def test_print_once(self):
         msngr = messenger.MPIMessenger()
