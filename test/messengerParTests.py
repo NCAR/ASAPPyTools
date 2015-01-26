@@ -197,12 +197,13 @@ class MessengerParallelTests(unittest.TestCase):
         rank = msngr.get_rank()
         size = msngr.get_size()
         if msngr.is_master():
-            data = np.array([i ** 2 for i in range(size)])
+            data = np.array([i ** 2 for i in range(size)], dtype=np.float)
             data.shape = (size, 1)
         else:
-            data = np.empty((size, 1))
+            data = np.empty((size, 1), dtype=np.float)
         subdata = msngr.scatter(data)
-        np.testing.assert_array_equal(subdata, np.array([rank ** 2]),
+        rslt = np.array([rank ** 2], dtype=np.float)
+        np.testing.assert_array_equal(subdata, rslt,
                          'Unexpected NDArray scatter result')
 
     def test_bcast_int(self):

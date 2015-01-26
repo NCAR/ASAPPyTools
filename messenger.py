@@ -583,7 +583,7 @@ class MPIMessenger(Messenger):
         if self._mpi_rank == dest:
             if (self._is_ndarray(data)):
                 msg = self._mpi_comm.recv(source=source)
-                self._mpi_comm.send("Received request", dest=source, tag=tag + 1)
+                self._mpi_comm.send("Received", dest=source, tag=tag + 1)
                 recvd = self._np.empty((msg['shape']), dtype=msg['dtype'])
                 self._mpi_comm.Recv(recvd, source=source, tag=tag + 2)
             else:
