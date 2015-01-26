@@ -15,6 +15,7 @@ Created on Jan 7, 2015
 '''
 import unittest
 import messenger
+import numpy as np
 from mpi4py import MPI
 
 
@@ -70,6 +71,13 @@ class MessengerParallelTests(unittest.TestCase):
         self.assertDictEqual(smsngr.reduce(data, op='sum'), pmsngr.reduce(data, op='sum'),
                         'Parallel dict sum not the same as serial')
 
+    def test_sum_ndarray(self):
+        smsngr = messenger.Messenger()
+        pmsngr = messenger.MPIMessenger()
+        data = np.array([1, 2, 3, 4], dtype=np.int)
+        self.assertEqual(smsngr.reduce(data, op='sum'), pmsngr.reduce(data, op='sum'),
+                        'Parallel list NDArray sum not the same as serial')
+
     def test_max_list(self):
         smsngr = messenger.Messenger()
         pmsngr = messenger.MPIMessenger()
@@ -83,6 +91,13 @@ class MessengerParallelTests(unittest.TestCase):
         data = {'a': 1, 'b': [2, 7], 'c': 3}
         self.assertDictEqual(smsngr.reduce(data, op='max'), pmsngr.reduce(data, op='max'),
                         'Parallel dict max not the same as serial')
+
+    def test_max_ndarray(self):
+        smsngr = messenger.Messenger()
+        pmsngr = messenger.MPIMessenger()
+        data = np.array([1, 2, 3, 4], dtype=np.int)
+        self.assertEqual(smsngr.reduce(data, op='max'), pmsngr.reduce(data, op='max'),
+                        'Parallel list NDArray max not the same as serial')
 
     def test_split(self):
         smsngr = messenger.Messenger()
@@ -99,12 +114,26 @@ class MessengerParallelTests(unittest.TestCase):
         self.assertListEqual(smsngr.gather(i), pmsngr.gather(i),
                          'Parallel gather int not the same as serial')
 
+    def test_gather_ndarray(self):
+        smsngr = messenger.Messenger()
+        pmsngr = messenger.MPIMessenger()
+        data = np.array([5, 6, 7], dtype=np.int)
+        np.testing.assert_array_equal(smsngr.gather(data), pmsngr.gather(data),
+                         'Parallel gather NDarray not the same as serial')
+
     def test_scatter_int(self):
         smsngr = messenger.Messenger()
         pmsngr = messenger.MPIMessenger()
         d = [5]
         self.assertEqual(smsngr.scatter(d), pmsngr.scatter(d),
                          'Parallel scatter int not the same as serial')
+
+    def test_scatter_ndarray(self):
+        smsngr = messenger.Messenger()
+        pmsngr = messenger.MPIMessenger()
+        data = np.array([5], dtype=np.int)
+        np.testing.assert_array_equal(smsngr.scatter(data), pmsngr.scatter(data),
+                         'Parallel scatter NDArray not the same as serial')
 
     def test_bcast_int(self):
         smsngr = messenger.Messenger()
@@ -113,12 +142,26 @@ class MessengerParallelTests(unittest.TestCase):
         self.assertEqual(smsngr.broadcast(data), pmsngr.broadcast(data),
                          'Parallel broadcast int not the same as serial')
 
+    def test_bcast_ndarray(self):
+        smsngr = messenger.Messenger()
+        pmsngr = messenger.MPIMessenger()
+        data = np.array([10, 11, 12, 13], dtype=np.float)
+        np.testing.assert_array_equal(smsngr.broadcast(data), pmsngr.broadcast(data),
+                         'Parallel broadcast NDArray not the same as serial')
+
     def test_sendrecv_int(self):
         smsngr = messenger.Messenger()
         pmsngr = messenger.MPIMessenger()
         data = 5
         self.assertEqual(smsngr.sendrecv(data), pmsngr.sendrecv(data),
                          'Parallel sendrecv int not the same as serial')
+
+    def test_sendrecv_ndarray(self):
+        smsngr = messenger.Messenger()
+        pmsngr = messenger.MPIMessenger()
+        data = np.array([10, 11, 12, 13], dtype=np.float)
+        np.testing.assert_array_equal(smsngr.sendrecv(data), pmsngr.sendrecv(data),
+                         'Parallel sendrecv NDArray not the same as serial')
 
 
 

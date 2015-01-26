@@ -281,7 +281,7 @@ class Messenger(object):
         '''
         # In serial, just return the data unchanged
         if (self._is_ndarray(data)):
-            return data
+            return self._np.array([data])
         else:
             return [data]
 
@@ -570,8 +570,22 @@ class MPIMessenger(Messenger):
 
         @return  The received data (only on 'dest' rank, None on others)
         '''
+        if source == dest:
+            if self._mpi_rank == dest:
+                return data
+            else:
+                return None
+
         recvd = None
-        tag = 3 * source + 1
+        tag = 4 * source + 1
+        if self._mpi_rank == dest:
+            if (self._is_ndarray(data)):
+                msg = self._mpi_comm.recv(source=source, tag=tag)
+                self._mpi_comm.send("Received", dest=source, tag=tag + 1)
+                recvd = self._np.empty((msg['shape']), dtype=msg['dtype'])
+                self._mpi_comm.Recv(recvd, source=source, tag=tag + 2)
+            else:
+                recvd = self._mpi_comm.recv(source=source, tag=tag + 3)
         if self._mpi_rank == source:
             if (self._is_ndarray(data)):
                 msg = {'shape': data.shape, 'dtype': data.dtype}
@@ -579,13 +593,5 @@ class MPIMessenger(Messenger):
                 dummy = self._mpi_comm.recv(source=dest, tag=tag + 1)
                 self._mpi_comm.Send(data, dest=dest, tag=tag + 2)
             else:
-                self._mpi_comm.send(data, dest=dest, tag=tag)
-        if self._mpi_rank == dest:
-            if (self._is_ndarray(data)):
-                msg = self._mpi_comm.recv(source=source)
-                self._mpi_comm.send("Received", dest=source, tag=tag + 1)
-                recvd = self._np.empty((msg['shape']), dtype=msg['dtype'])
-                self._mpi_comm.Recv(recvd, source=source, tag=tag + 2)
-            else:
-                recvd = self._mpi_comm.recv(source=source, tag=tag)
+                self._mpi_comm.send(data, dest=dest, tag=tag + 3)
         return recvd

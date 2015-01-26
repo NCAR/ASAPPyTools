@@ -215,6 +215,15 @@ class MessengerParallelTests(unittest.TestCase):
         self.assertEqual(bcdata, size,
                          'Unexpected integer broadcast result')
 
+    def test_bcast_ndarray(self):
+        msngr = messenger.MPIMessenger()
+        rank = msngr.get_rank()
+        size = msngr.get_size()
+        data = np.array([size + rank ** 2], dtype=np.int)
+        bcdata = msngr.broadcast(data)
+        np.testing.assert_array_equal(bcdata, np.array([size], dtype=np.int),
+                         'Unexpected NDArray broadcast result')
+
     def test_sendrecv_int(self):
         msngr = messenger.MPIMessenger()
         rank = msngr.get_rank()
@@ -238,22 +247,40 @@ class MessengerParallelTests(unittest.TestCase):
     def test_sendrecv_int_self(self):
         msngr = messenger.MPIMessenger()
         rank = msngr.get_rank()
-        size = msngr.get_size()
-        data = None
-        dest = size - 1
-        source = size - 1
+        dest = 0
+        source = 0
         if rank == source:
             data = 5
-        recvd = msngr.sendrecv(data, source=source, dest=dest)
-        msg = 'SEND to Self (' + str(source) + '-->' \
-            + str(dest) + ') - data=' + str(data) + ' - recvd:' + str(recvd)
-        msngr.prinfo(msg, vlevel=0, master=False)
+        else:
+            data = None
+        rcvd = msngr.sendrecv(data, source=source, dest=dest)
         if rank == dest:
-            self.assertEqual(recvd, 5,
-                         'Unexpected integer sendrecv result on destination')
+            self.assertEqual(rcvd, 5,
+                         'Unexpected integer self sendrecv result on source/dest')
+        else:
+            self.assertEqual(rcvd, None,
+                         'Unexpected integer self sendrecv result on other')
+
+    def test_sendrecv_ndarray(self):
+        msngr = messenger.MPIMessenger()
+        rank = msngr.get_rank()
+        size = msngr.get_size()
+        dest = 0
+        source = size - 1
+        rslt = np.array([[5, 9, 11], [13, 21, 37]], dtype=np.int)
+        if rank == source:
+            data = rslt
+        elif rank == dest:
+            data = np.empty((6,), dtype=np.int)  # size same, shape not!
+        else:
+            data = None
+        recvd = msngr.sendrecv(data, source=source, dest=dest)
+        if rank == dest:
+            np.testing.assert_array_equal(recvd, rslt,
+                         'Unexpected NDArray sendrecv result on destination')
         else:
             self.assertEqual(recvd, None,
-                         'Unexpected integer sendrecv result on other')
+                         'Unexpected NDArray sendrecv result on other')
 
     def test_print_once(self):
         msngr = messenger.MPIMessenger()
