@@ -76,7 +76,7 @@ class SimpleComm(object):
         else:
             return op(self.comm.allgather(data))
 
-    def send(self, data, partitioner=None):
+    def send(self, data, part=None):
         '''
         Send data to 'neighbor' ranks.  If this MPI task is on the 'master'
         rank, then this sends the data to all of the 'slave' ranks.  If this
@@ -85,12 +85,17 @@ class SimpleComm(object):
 
         @param  data  The data to be sent
 
-        @param  partitioner  A two-argument function partitioning function
-                             (Only partitions when sending from the 'master')
+        @param  part  A three-argument partitioning function
+                      (Only partitions when sending from the 'master')
         '''
-        if self.is_master():
+        if self.is_master() and part is None:
             self.__buffer = data
             reqs = [self.comm.isend(data, dest=i)
+                    for i in xrange(1, self.get_size())]
+            self.mpi.Request.Waitall(reqs)
+        elif self.is_master() and part:
+            self.__buffer = part(data, 0, self.get_size())
+            reqs = [self.comm.isend(part(data, i, self.get_size()), dest=i)
                     for i in xrange(1, self.get_size())]
             self.mpi.Request.Waitall(reqs)
         else:
