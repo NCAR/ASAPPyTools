@@ -88,16 +88,17 @@ class SimpleComm(object):
         @param  part  A three-argument partitioning function
                       (Only partitions when sending from the 'master')
         '''
-        if self.is_master() and part is None:
-            self.__buffer = data
-            reqs = [self.comm.isend(data, dest=i)
-                    for i in xrange(1, self.get_size())]
-            self.mpi.Request.Waitall(reqs)
-        elif self.is_master() and part:
-            self.__buffer = part(data, 0, self.get_size())
-            reqs = [self.comm.isend(part(data, i, self.get_size()), dest=i)
-                    for i in xrange(1, self.get_size())]
-            self.mpi.Request.Waitall(reqs)
+        if self.is_master():
+            if part:
+                self.__buffer = part(data, 0, self.get_size())
+                reqs = [self.comm.isend(part(data, i, self.get_size()), dest=i)
+                        for i in xrange(1, self.get_size())]
+                self.mpi.Request.Waitall(reqs)
+            else:
+                self.__buffer = data
+                reqs = [self.comm.isend(data, dest=i)
+                        for i in xrange(1, self.get_size())]
+                self.mpi.Request.Waitall(reqs)
         else:
             req = self.comm.isend(data, dest=0)
             req.Wait()
