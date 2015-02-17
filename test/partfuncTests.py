@@ -9,6 +9,15 @@ import unittest
 import partfunc
 from os import linesep
 
+def test_info_msg(name, data, index, size, actual, expected):
+    spcr = ' ' * len(name)
+    msg = ''.join([linesep,
+                   name, ' - Data: ', str(data), linesep,
+                   spcr, ' - Index/Size: ', str(index), '/', str(size), linesep,
+                   spcr, ' - Actual:   ', str(actual), linesep,
+                   spcr, ' - Expected: ', str(expected)])
+    return msg
+
 
 class partfuncTests(unittest.TestCase):
     '''
@@ -34,13 +43,7 @@ class partfuncTests(unittest.TestCase):
         for inp in self.inputs:
             actual = partfunc.unity(*inp)
             expected = inp[0]
-            name = 'unity'
-            spcr = ' ' * len(name)
-            msg = ''.join([linesep,
-                           name, ' - Data: ', str(inp[0]), linesep,
-                           spcr, ' - Index/Size: ', str(inp[1]), '/', str(inp[2]), linesep,
-                           spcr, ' - Actual:   ', str(actual), linesep,
-                           spcr, ' - Expected: ', str(expected)])
+            msg = test_info_msg('unity', inp[0], inp[1], inp[2], actual, expected)
             print msg
             self.assertEqual(actual, expected, msg)
 
@@ -48,17 +51,11 @@ class partfuncTests(unittest.TestCase):
         for inp in self.inputs:
             actual = partfunc.equal_stride(*inp)
             expected = inp[0][inp[1]::inp[2]]
-            name = 'equal_stride'
-            spcr = ' ' * len(name)
-            msg = ''.join([linesep,
-                           name, ' - Data: ', str(inp[0]), linesep,
-                           spcr, ' - Index/Size: ', str(inp[1]), '/', str(inp[2]), linesep,
-                           spcr, ' - Actual:   ', str(actual), linesep,
-                           spcr, ' - Expected: ', str(expected)])
+            msg = test_info_msg('equal_stride', inp[0], inp[1], inp[2], actual, expected)
             print msg
             self.assertEqual(actual, expected, msg)
 
-    def testSortedStrid(self):
+    def testSortedStride(self):
         for inp in self.inputs:
             weights = [(20 - i) for i in inp[0]]
             actual = partfunc.sorted_stride(zip(inp[0], weights),
@@ -66,14 +63,7 @@ class partfuncTests(unittest.TestCase):
             expected = inp[0][:]
             expected.reverse()
             expected = expected[inp[1]::inp[2]]
-            name = 'sorted_stride'
-            spcr = ' ' * len(name)
-            msg = ''.join([linesep,
-                           name, ' - Data:    ', str(inp[0]), linesep,
-                           spcr, ' - Weights: ', str(weights), linesep,
-                           spcr, ' - Index/Size: ', str(inp[1]), '/', str(inp[2]), linesep,
-                           spcr, ' - Actual:   ', str(actual), linesep,
-                           spcr, ' - Expected: ', str(expected)])
+            msg = test_info_msg('sorted_stride', zip(inp[0], weights), inp[1], inp[2], actual, expected)
             print msg
             self.assertEqual(actual, expected, msg)
 
@@ -86,14 +76,7 @@ class partfuncTests(unittest.TestCase):
             actual = partfunc.sorted_stride(zip(inp[0], weights),
                                             inp[1], inp[2])
             expected = results[ii]
-            name = 'weight_balanced'
-            spcr = ' ' * len(name)
-            msg = ''.join([linesep,
-                           name, ' - Data:    ', str(inp[0]), linesep,
-                           spcr, ' - Weights: ', str(weights), linesep,
-                           spcr, ' - Index/Size: ', str(inp[1]), '/', str(inp[2]), linesep,
-                           spcr, ' - Actual:   ', str(actual), linesep,
-                           spcr, ' - Expected: ', str(expected)])
+            msg = test_info_msg('weight_balanced', zip(inp[0], weights), inp[1], inp[2], actual, expected)
             print msg
             self.assertEqual(actual, expected, msg)
 
