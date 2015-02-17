@@ -10,14 +10,15 @@ import unittest
 import simplecomm
 import numpy as np
 from mpi4py import MPI
+MPI_COMM_WORLD = MPI.COMM_WORLD
 
 
 class SimpleCommParTests(unittest.TestCase):
 
     def setUp(self):
         self.gcomm = simplecomm.SimpleComm()
-        self.size = MPI.COMM_WORLD.Get_size()
-        self.rank = MPI.COMM_WORLD.Get_rank()
+        self.size = MPI_COMM_WORLD.Get_size()
+        self.rank = MPI_COMM_WORLD.Get_rank()
 
     def tearDown(self):
         pass
@@ -162,20 +163,20 @@ class SimpleCommParTests(unittest.TestCase):
 
 if __name__ == "__main__":
     hline = '=' * 70
-    if MPI.COMM_WORLD.Get_rank() == 0:
+    if MPI_COMM_WORLD.Get_rank() == 0:
         print hline
         print 'STANDARD OUTPUT FROM ALL TESTS:'
         print hline
-    MPI.COMM_WORLD.Barrier()
+    MPI_COMM_WORLD.Barrier()
 
     from cStringIO import StringIO
     mystream = StringIO()
     tests = unittest.TestLoader().loadTestsFromTestCase(SimpleCommParTests)
     unittest.TextTestRunner(stream=mystream).run(tests)
-    MPI.COMM_WORLD.Barrier()
+    MPI_COMM_WORLD.Barrier()
 
-    results = MPI.COMM_WORLD.gather(mystream.getvalue())
-    if MPI.COMM_WORLD.Get_rank() == 0:
+    results = MPI_COMM_WORLD.gather(mystream.getvalue())
+    if MPI_COMM_WORLD.Get_rank() == 0:
         for rank, result in enumerate(results):
             print hline
             print 'TESTS RESULTS FOR RANK ' + str(rank) + ':'
