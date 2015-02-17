@@ -112,7 +112,7 @@ class SimpleComm(object):
         @return  The single value constituting the reduction of the input data.
                  (Same on all ranks in this communicator.)
         '''
-        if self.comm:
+        if self.comm and self.get_size() > 1:
             if hasattr(data, '__len__'):
                 return op(self.comm.allgather(op(data)))
             else:
