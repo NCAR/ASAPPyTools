@@ -31,8 +31,8 @@ def test_info_msg(name, data, sresult, presult):
 class SimpleCommP1STests(unittest.TestCase):
 
     def setUp(self):
-        self.scomm = simplecomm.SimpleComm(mpi=False)
-        self.pcomm = simplecomm.SimpleComm(mpi=True)
+        self.scomm = simplecomm.create_comm(serial=True)
+        self.pcomm = simplecomm.create_comm(serial=False)
         self.size = MPI_COMM_WORLD.Get_size()
         self.rank = MPI_COMM_WORLD.Get_rank()
 
@@ -73,6 +73,14 @@ class SimpleCommP1STests(unittest.TestCase):
         print msg
         self.assertEqual(sresult, presult, msg)
 
+    def testSumDict(self):
+        data = {'rank': self.rank, 'range': range(3 + self.rank)}
+        sresult = self.scomm.reduce(data)
+        presult = self.pcomm.reduce(data)
+        msg = test_info_msg('sum(list)', data, sresult, presult)
+        print msg
+        self.assertEqual(sresult, presult, msg)
+
     def testSumArray(self):
         data = np.arange(5)
         sresult = self.scomm.reduce(data)
@@ -94,6 +102,14 @@ class SimpleCommP1STests(unittest.TestCase):
         sresult = self.scomm.reduce(data, op=max)
         presult = self.pcomm.reduce(data, op=max)
         msg = test_info_msg('max(list)', data, sresult, presult)
+        print msg
+        self.assertEqual(sresult, presult, msg)
+
+    def testMaxDict(self):
+        data = {'rank': self.rank, 'range': range(3 + self.rank)}
+        sresult = self.scomm.reduce(data, op=max)
+        presult = self.pcomm.reduce(data, op=max)
+        msg = test_info_msg('max(dict)', data, sresult, presult)
         print msg
         self.assertEqual(sresult, presult, msg)
 

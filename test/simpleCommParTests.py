@@ -27,7 +27,7 @@ def test_info_msg(rank, size, name, data, actual, expected):
 class SimpleCommParTests(unittest.TestCase):
 
     def setUp(self):
-        self.gcomm = simplecomm.SimpleComm()
+        self.gcomm = simplecomm.create_comm()
         self.size = MPI_COMM_WORLD.Get_size()
         self.rank = MPI_COMM_WORLD.Get_rank()
 
@@ -64,6 +64,15 @@ class SimpleCommParTests(unittest.TestCase):
         print msg
         self.assertEqual(actual, expected, msg)
 
+    def testSumDict(self):
+        data = {'rank': self.rank, 'range': range(3 + self.rank)}
+        actual = self.gcomm.reduce(data, op=sum)
+        expected = {'rank': sum(range(self.size)),
+                    'range': sum([sum(range(3 + i)) for i in xrange(self.size)])}
+        msg = test_info_msg(self.rank, self.size, 'sum(dict)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
     def testSumArray(self):
         data = np.arange(5)
         actual = self.gcomm.reduce(data)
@@ -85,6 +94,14 @@ class SimpleCommParTests(unittest.TestCase):
         actual = self.gcomm.reduce(data, op=max)
         expected = (self.size - 1) + max(range(5))
         msg = test_info_msg(self.rank, self.size, 'max(list)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testMaxDict(self):
+        data = {'rank': self.rank, 'range': range(3 + self.rank)}
+        actual = self.gcomm.reduce(data, op=max)
+        expected = {'rank': self.size - 1, 'range': self.size + 1}
+        msg = test_info_msg(self.rank, self.size, 'max(dict)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
