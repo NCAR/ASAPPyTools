@@ -78,15 +78,9 @@ class partfuncTests(unittest.TestCase):
             self.assertEqual(actual, expected, msg)
 
     def testWeightBalanced(self):
-        results = [[2, 1, 0],
-                   [1],
-                   [],
-                   [3, 2, 4, 1, 0],
-                   [2, 0],
-                   [],
-                   [3, 2, 4, 1, 5, 0, 6],
-                   [2, 5],
-                   [0]]
+        results = [[2, 1, 0], [1], [],
+                   [3, 2, 4, 1, 0], [2, 0], [],
+                   [3, 2, 4, 1, 5, 0, 6], [2, 5], [0]]
         for (ii, inp) in enumerate(self.inputs):
             weights = [(3 - i) ** 2 for i in inp[0]]
             actual = partfunc.sorted_stride(zip(inp[0], weights),
