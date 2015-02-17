@@ -9,8 +9,19 @@ Created on Feb 4, 2015
 import unittest
 import simplecomm
 import numpy as np
+from partfunc import equal_stride
+from os import linesep
 from mpi4py import MPI
 MPI_COMM_WORLD = MPI.COMM_WORLD
+
+def test_info_msg(rank, size, name, data, actual, expected):
+    rknm = ''.join(['[', str(rank), '/', str(size), '] ', str(name)])
+    spcr = ' ' * len(rknm)
+    msg = ''.join([linesep,
+                   rknm, ' - Input: ', str(data), linesep,
+                   spcr, ' - Actual:   ', str(actual), linesep,
+                   spcr, ' - Expected: ', str(expected)])
+    return msg
 
 
 class SimpleCommParTests(unittest.TestCase):
@@ -26,139 +37,125 @@ class SimpleCommParTests(unittest.TestCase):
     def testGetSize(self):
         actual = self.gcomm.get_size()
         expected = self.size
-        err_msg = 'Communicator size (' + str(actual) + \
-                  ') is not what was expected (' + str(expected) + ')'
-        self.assertEqual(actual, expected, err_msg)
+        msg = test_info_msg(self.rank, self.size, 'get_size()', None, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
 
     def testIsMaster(self):
         actual = self.gcomm.is_master()
         expected = (self.rank == 0)
-        print ''.join(['RANK: ', str(self.rank), ' - is_master() = ',
-                       str(actual)])
-        self.assertEqual(actual, expected,
-                         ''.join(['is_master() - Expected: ', str(expected),
-                                  ', Actual: ', str(actual)]))
+        msg = test_info_msg(self.rank, self.size, 'is_master()', None, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
 
     def testSumInt(self):
         data = 5
         actual = self.gcomm.reduce(data)
         expected = self.size * 5
-        print ''.join(['RANK: ', str(self.rank), ' - sum(int) - '
-                       'Input: ', str(data), ' - Result: ', str(actual)])
-        self.assertEqual(actual, expected,
-                         ''.join(['sum(int) - Expected: ', str(expected),
-                                  ', Actual: ', str(actual)]))
+        msg = test_info_msg(self.rank, self.size, 'sum(int)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
 
     def testSumList(self):
         data = range(5)
         actual = self.gcomm.reduce(data)
         expected = self.size * sum(data)
-        print ''.join(['RANK: ', str(self.rank), ' - sum(list) - '
-                       'Input: ', str(data), ' - Result: ', str(actual)])
-        self.assertEqual(actual, expected,
-                         ''.join(['sum(list) - Expected: ', str(expected),
-                                  ', Actual: ', str(actual)]))
+        msg = test_info_msg(self.rank, self.size, 'sum(list)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
 
     def testSumArray(self):
         data = np.arange(5)
         actual = self.gcomm.reduce(data)
         expected = self.size * sum(data)
-        print ''.join(['RANK: ', str(self.rank), ' - sum(array) - '
-                       'Input: ', str(data), ' - Result: ', str(actual)])
-        self.assertEqual(actual, expected,
-                         ''.join(['sum(array) - Expected: ', str(expected),
-                                  ', Actual: ', str(actual)]))
+        msg = test_info_msg(self.rank, self.size, 'sum(array)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
 
     def testMaxInt(self):
         data = 13 + self.rank
         actual = self.gcomm.reduce(data, op=max)
         expected = 12 + self.size
-        print ''.join(['RANK: ', str(self.rank), ' - max(int) - '
-                       'Input: ', str(data), ' - Result: ', str(actual)])
-        self.assertEqual(actual, expected,
-                         ''.join(['max(int) - Expected: ', str(expected),
-                                  ', Actual: ', str(actual)]))
+        msg = test_info_msg(self.rank, self.size, 'max(int)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
 
     def testMaxList(self):
         data = range(5 + self.rank)
         actual = self.gcomm.reduce(data, op=max)
         expected = (self.size - 1) + max(range(5))
-        print ''.join(['RANK: ', str(self.rank), ' - max(list) - '
-                       'Input: ', str(data), ' - Result: ', str(actual)])
-        self.assertEqual(actual, expected,
-                         ''.join(['max(list) - Expected: ', str(expected),
-                                  ', Actual: ', str(actual)]))
+        msg = test_info_msg(self.rank, self.size, 'max(list)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
 
     def testMaxArray(self):
         data = np.arange(5 + self.rank)
         actual = self.gcomm.reduce(data, op=max)
         expected = (self.size - 1) + max(range(5))
-        print ''.join(['RANK: ', str(self.rank), ' - max(array) - '
-                       'Input: ', str(data), ' - Result: ', str(actual)])
-        self.assertEqual(actual, expected,
-                         ''.join(['max(array) - Expected: ', str(expected),
-                                  ', Actual: ', str(actual)]))
+        msg = test_info_msg(self.rank, self.size, 'max(array)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
 
-    def testTwoWayInt(self):
+    def testGatherInt(self):
         data = 10 + self.rank
-        self.gcomm.send(data)
-        actual = self.gcomm.receive()
+        actual = self.gcomm.gather(data)
         if self.gcomm.is_master():
             expected = [10 + i for i in xrange(self.size)]
         else:
+            expected = None
+        msg = test_info_msg(self.rank, self.size, 'Gather(int)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testGatherList(self):
+        data = range(2 + self.rank)
+        actual = self.gcomm.gather(data)
+        if self.gcomm.is_master():
+            expected = [range(2 + i) for i in xrange(self.size)]
+        else:
+            expected = None
+        msg = test_info_msg(self.rank, self.size, 'Gather(list)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testScatterInt(self):
+        if self.gcomm.is_master():
+            data = 10
+            actual = self.gcomm.scatter(data)
             expected = 10
-        print ''.join(['RANK: ', str(self.rank), ' - TwoWay(int) - '
-                       'Input: ', str(data), ' - Result: ', str(actual)])
-        self.assertEqual(actual, expected,
-                         ''.join(['TwoWay(int) - Expected: ',
-                                  str(expected), ', Actual: ', str(actual)]))
-
-    def testTwoWayList(self):
-        data = range(1 + self.rank)
-        self.gcomm.send(data)
-        actual = self.gcomm.receive()
-        if self.gcomm.is_master():
-            expected = [range(1 + i) for i in xrange(self.size)]
         else:
-            expected = [0]
-        print ''.join(['RANK: ', str(self.rank), ' - TwoWay(list) - '
-                       'Input: ', str(data), ' - Result: ', str(actual)])
-        self.assertEqual(actual, expected,
-                         ''.join(['TwoWay(list) - Expected: ',
-                                  str(expected), ', Actual: ', str(actual)]))
+            data = None
+            actual = self.gcomm.scatter()
+            expected = 10
+        msg = test_info_msg(self.rank, self.size, 'Scatter(int)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
 
-    def testSendOutInt(self):
+    def testScatterList(self):
         if self.gcomm.is_master():
-            data = 100
-            self.gcomm.send(data)
-            actual = None
+            data = range(10)
+            actual = self.gcomm.scatter(data, part=equal_stride)
+            expected = range(10)[0::self.size]
+        else:
+            data = None
+            actual = self.gcomm.scatter()
+            expected = range(10)[self.rank::self.size]
+        msg = test_info_msg(self.rank, self.size, 'Scatter(list)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testScatterListSkip(self):
+        if self.gcomm.is_master():
+            data = range(10)
+            actual = self.gcomm.scatter(data, part=equal_stride, skip=True)
             expected = None
         else:
             data = None
-            actual = self.gcomm.receive()
-            expected = 100
-        print ''.join(['RANK: ', str(self.rank), ' - SendOut(int) - '
-                       'Input: ', str(data), ' - Result: ', str(actual)])
-        self.assertEqual(actual, expected,
-                         ''.join(['SendOut(int) - Expected: ',
-                                  str(expected), ', Actual: ', str(actual)]))
-
-    def testSendInInt(self):
-        if not self.gcomm.is_master():
-            data = 100 + self.rank
-            self.gcomm.send(data)
-            actual = None
-            expected = None
-        else:
-            data = None
-            actual = self.gcomm.receive()
-            expected = [100 + i for i in xrange(self.size)]
-            expected[0] = None
-        print ''.join(['RANK: ', str(self.rank), ' - SendIn(int) - '
-                       'Input: ', str(data), ' - Result: ', str(actual)])
-        self.assertEqual(actual, expected,
-                         ''.join(['SendIn(int) - Expected: ',
-                                  str(expected), ', Actual: ', str(actual)]))
+            actual = self.gcomm.scatter()
+            expected = range(10)[self.rank - 1::self.size - 1]
+        msg = test_info_msg(self.rank, self.size, 'Scatter(list, skip)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
 
 
 if __name__ == "__main__":
