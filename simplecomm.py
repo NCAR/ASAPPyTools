@@ -55,6 +55,12 @@ class SimpleComm(object):
         ## Hold on to the Numpy module
         self.numpy = numpy
 
+        ## The communicator's assigned identifier (color)
+        self.color = None
+
+        ## Record the level in the "split" hierarchy
+        self.level = 0
+
     def __is_ndarray(self, data):
         '''
         Helper function to determing if a given data object is a Numpy
@@ -78,6 +84,23 @@ class SimpleComm(object):
                  (Same on all ranks in this communicator.)
         '''
         return 1
+
+    def get_color(self):
+        '''
+        Get the communicator's integer identifier (color).
+
+        @return  An integer color identifier
+        '''
+        return self.color
+
+    def get_level(self):
+        '''
+        Get the level of this SimpleComm object in the hierarchy created
+        by splitting the communicators
+
+        @return  An integer level of this SimpleComm in the hierarchy
+        '''
+        return self.level
 
     def is_master(self):
         '''
@@ -154,6 +177,54 @@ class SimpleComm(object):
         else:
             op = part if part else lambda *x: x[0]
             return op(data)
+
+    def split(self, sizes, minsize=2):
+        '''
+        Attempts to split the communicator into 'color' blocks of differing
+        sizes, given by a 'sizes' list.
+
+        Nominally, the number of colors generated will be equal to the length
+        of the sizes array, and the number of ranks given to each color will be
+        equal to the size given by the block.
+
+        This nominal condition will only be true if the sum of the 'sizes'
+        list is equal to the size of the communicator itself.  When this is
+        not the case, the split function will attempt to create the
+        distribution of work desired by the 'sizes' list.
+
+        @param  sizes  A list containing integer sizes indicating the desired
+                       number of ranks in each block
+
+        @param  minsize  The minimum size that any one color block can end
+                         up being after the split algorithm splits the current
+                         communicator domain
+
+        @return  A tuple containing 2 SimpleComm objects.  First, an
+                 'intracommunicator' serving communication with this rank
+                 and the other ranks of the same 'color', and an
+                 'intercommunicator' serving communication between the 'master'
+                 ranks of the different 'color' blocks and the 'master' rank
+                 of this communicator.
+        '''
+        if not hasattr(sizes, '__len__'):
+            raise TypeError('Sizes list must be an iterable')
+        if any([type(s) is not int for s in sizes]):
+            raise TypeError('Sizes list must contain only integers')
+        if minsize > self.get_size():
+            minsize = self.get_size()
+
+        # Create the intracomm object
+        intracomm = SimpleComm()
+        intracomm.color = 0
+        intracomm.level = self.get_level() + 1
+
+        # Create the intercomm object (has negative level)
+        intercomm = SimpleComm()
+        intercomm.color = 0
+        intercomm.level = -(self.get_level() + 1)
+
+        # Return references to this serial communicator
+        return intracomm, intercomm
 
 
 #==============================================================================
@@ -277,3 +348,92 @@ class SimpleCommMPI(SimpleComm):
                 return op(data, 0, self.get_size())
         else:
             return self.comm.recv(source=0)
+
+    def split(self, sizes, minsize=2):
+        '''
+        Attempts to split the communicator into 'color' blocks of differing
+        sizes, given by a 'sizes' list.
+
+        Nominally, the number of colors generated will be equal to the length
+        of the sizes array, and the number of ranks given to each color will be
+        equal to the size given by the block.
+
+        This nominal condition will only be true if the sum of the 'sizes'
+        list is equal to the size of the communicator itself.  When this is
+        not the case, the split function will attempt to create the
+        distribution of work desired by the 'sizes' list.
+
+        @param  sizes  A list containing integer sizes indicating the desired
+                       number of ranks in each block
+
+        @param  minsize  The minimum size that any one color block can end
+                         up being after the split algorithm splits the current
+                         communicator domain
+
+        @return  A tuple containing 2 SimpleComm objects.  First, an
+                 'intracommunicator' serving communication with this rank
+                 and the other ranks of the same 'color', and an
+                 'intercommunicator' serving communication between the 'master'
+                 ranks of the different 'color' blocks and the 'master' rank
+                 of this communicator.
+        '''
+        if not hasattr(sizes, '__len__'):
+            raise TypeError('Sizes list must be an iterable')
+        if any([type(s) is not int for s in sizes]):
+            raise TypeError('Sizes list must contain only integers')
+        if minsize > self.get_size():
+            minsize = self.get_size()
+
+        # Make a floating-point copy of the valid sizes (sizes > 0) list
+        newsizes = [float(s) for s in sizes if s > 0]
+
+        # If the maximum number of colors is greater than the number of ranks,
+        # then move the smallest block ranks to the remaining smallest blocks
+        while len(newsizes) > self.get_size():
+            sizemin = newsizes.pop(newsizes.index(min(newsizes)))
+            addamnt = sizemin / len(newsizes)
+            newsizes = [s + addamnt for s in newsizes]
+
+        # If the total number of requested ranks is greater than the number of
+        # ranks, then scale down all of the blocks sizes to fit in the space
+        scale = float(self.get_size()) / sum(newsizes)
+        newsizes = [s * scale for s in newsizes]
+
+        # If any of the new block sizes is less than 1, redistribute the work
+        while min(newsizes) < minsize:
+            sizemin = newsizes.pop(newsizes.index(min(newsizes)))
+            addamnt = sizemin / len(newsizes)
+            newsizes = [s + addamnt for s in newsizes]
+
+        # Convert the sizes to integers and add back the "lost" ranks
+        newsizes = [int(s) for s in newsizes]
+        numlost = self.get_size() - sum(newsizes)
+        for _ in xrange(numlost):
+            newsizes[newsizes.index(min(newsizes))] += 1
+
+        # Given the new color block sizes, compute the colors of each rank
+        colors = []
+        master_ranks = []
+        for (c, s) in enumerate(newsizes):
+            master_ranks.append(len(colors))
+            colors.extend([c] * s)
+        my_color = colors[self.comm.Get_rank()]
+
+        # Create a new SimpleComm object from the split MPI communicator
+        intracomm = SimpleCommMPI()
+        intracomm.comm = self.comm.Split(my_color)
+        intracomm.color = my_color
+        intracomm.level = self.get_level() + 1
+
+        # Generate the group of master ranks
+        this_group = self.comm.Get_group()
+        master_group = this_group.Incl(master_ranks)
+
+        # Create a new SimpleComm object for the master ranks
+        intercomm = SimpleCommMPI()
+        intercomm.comm = self.comm.Create(master_group)
+        intercomm.color = my_color
+        intracomm.level = -(self.get_level() + 1)
+
+        # Return the "intracomm" and the "intercomm"
+        return intracomm, intercomm
