@@ -58,8 +58,8 @@ class SimpleComm(object):
         ## The communicator's assigned identifier (color)
         self.color = None
 
-        ## Record the level in the "split" hierarchy
-        self.level = 0
+        ## Indicate whether this MPI process is included in the communicator
+        self.included = True
 
     def __is_ndarray(self, data):
         '''
@@ -92,15 +92,6 @@ class SimpleComm(object):
         @return  An integer color identifier
         '''
         return self.color
-
-    def get_level(self):
-        '''
-        Get the level of this SimpleComm object in the hierarchy created
-        by splitting the communicators
-
-        @return  An integer level of this SimpleComm in the hierarchy
-        '''
-        return self.level
 
     def is_master(self):
         '''
@@ -216,12 +207,10 @@ class SimpleComm(object):
         # Create the intracomm object
         intracomm = SimpleComm()
         intracomm.color = 0
-        intracomm.level = self.get_level() + 1
 
-        # Create the intercomm object (has negative level)
+        # Create the intercomm object
         intercomm = SimpleComm()
         intercomm.color = 0
-        intercomm.level = -(self.get_level() + 1)
 
         # Return references to this serial communicator
         return intracomm, intercomm
@@ -262,7 +251,10 @@ class SimpleCommMPI(SimpleComm):
         @return  The integer number of ranks in this communicator.
                  (Same on all ranks in this communicator.)
         '''
-        return self.comm.Get_size()
+        if self.included:
+            return self.comm.Get_size()
+        else:
+            return 0
 
     def is_master(self):
         '''
@@ -271,7 +263,10 @@ class SimpleCommMPI(SimpleComm):
 
         @return  True if this MPI task is on the master rank, False otherwise.
         '''
-        return (self.comm.Get_rank() == 0)
+        if self.included:
+            return (self.comm.Get_rank() == 0)
+        else:
+            return False
 
     def reduce(self, data, op=sum):
         '''
@@ -286,17 +281,20 @@ class SimpleCommMPI(SimpleComm):
         @param  op  A reduction operator/function
 
         @return  The single value constituting the reduction of the input data.
-                 (Same on all ranks in this communicator.)
+                 (None on the 'slave' ranks.)
         '''
-        if (isinstance(data, dict)):
-            totals = {}
-            for name in data:
-                totals[name] = self.reduce(data[name], op=op)
-            return totals
-        elif hasattr(data, '__len__'):
-            return self.reduce(SimpleComm.reduce(self, data, op=op), op=op)
+        if self.included:
+            if (isinstance(data, dict)):
+                totals = {}
+                for name in data:
+                    totals[name] = self.reduce(data[name], op=op)
+                return totals
+            elif hasattr(data, '__len__'):
+                return self.reduce(SimpleComm.reduce(self, data, op=op), op=op)
+            else:
+                return op(self.comm.allgather(data))
         else:
-            return op(self.comm.allgather(data))
+            return None
 
     def gather(self, data=None):
         '''
@@ -311,7 +309,10 @@ class SimpleCommMPI(SimpleComm):
         @return  A list of length equal to the communicator size containing
                  each rank's given data.
         '''
-        return self.comm.gather(data, root=0)
+        if self.included:
+            return self.comm.gather(data, root=0)
+        else:
+            return None
 
     def scatter(self, data=None, part=None, skip=False):
         '''
@@ -334,20 +335,23 @@ class SimpleCommMPI(SimpleComm):
         @return  A (possibly partitioned) subset of the data on the 'master'
                  rank
         '''
-        if self.is_master():
-            op = part if part else lambda *x: x[0]
-            j = int(skip)
-            if self.get_size() > 1:
-                reqs = [self.comm.isend(op(data, i - j, self.get_size() - j),
-                                        dest=i)
-                        for i in xrange(1, self.get_size())]
-                self.mpi.Request.Waitall(reqs)
-            if skip:
-                return None
+        if self.included:
+            if self.is_master():
+                op = part if part else lambda *x: x[0]
+                j = int(skip)
+                if self.get_size() > 1:
+                    reqs = [self.comm.isend(op(data, i - j, self.get_size() - j),
+                                            dest=i)
+                            for i in xrange(1, self.get_size())]
+                    self.mpi.Request.Waitall(reqs)
+                if skip:
+                    return None
+                else:
+                    return op(data, 0, self.get_size())
             else:
-                return op(data, 0, self.get_size())
+                return self.comm.recv(source=0)
         else:
-            return self.comm.recv(source=0)
+            return None
 
     def split(self, sizes, minsize=2):
         '''
@@ -384,6 +388,9 @@ class SimpleCommMPI(SimpleComm):
         if minsize > self.get_size():
             minsize = self.get_size()
 
+        if not self.included:
+            return self, self
+
         # Make a floating-point copy of the valid sizes (sizes > 0) list
         newsizes = [float(s) for s in sizes if s > 0]
 
@@ -412,28 +419,24 @@ class SimpleCommMPI(SimpleComm):
             newsizes[newsizes.index(min(newsizes))] += 1
 
         # Given the new color block sizes, compute the colors of each rank
-        colors = []
-        master_ranks = []
+        intra_colors = []
+        inter_colors = [self.mpi.UNDEFINED] * self.get_size()
         for (c, s) in enumerate(newsizes):
-            master_ranks.append(len(colors))
-            colors.extend([c] * s)
-        my_color = colors[self.comm.Get_rank()]
+            inter_colors[len(intra_colors)] = 0
+            intra_colors.extend([c] * s)
+        intra_color = intra_colors[self.comm.Get_rank()]
+        inter_color = inter_colors[self.comm.Get_rank()]
 
         # Create a new SimpleComm object from the split MPI communicator
         intracomm = SimpleCommMPI()
-        intracomm.comm = self.comm.Split(my_color)
-        intracomm.color = my_color
-        intracomm.level = self.get_level() + 1
-
-        # Generate the group of master ranks
-        this_group = self.comm.Get_group()
-        master_group = this_group.Incl(master_ranks)
+        intracomm.comm = self.comm.Split(intra_color)
+        intracomm.color = intra_color
 
         # Create a new SimpleComm object for the master ranks
         intercomm = SimpleCommMPI()
-        intercomm.comm = self.comm.Create(master_group)
-        intercomm.color = my_color
-        intracomm.level = -(self.get_level() + 1)
+        intercomm.comm = self.comm.Split(inter_color)
+        intercomm.color = intra_color
+        intercomm.included = (inter_color != self.mpi.UNDEFINED)
 
         # Return the "intracomm" and the "intercomm"
         return intracomm, intercomm

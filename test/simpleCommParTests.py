@@ -10,16 +10,16 @@ import unittest
 import simplecomm
 import numpy as np
 from partfunc import equal_stride
-from os import linesep
+from os import linesep as eol
 from mpi4py import MPI
 MPI_COMM_WORLD = MPI.COMM_WORLD
 
 def test_info_msg(rank, size, name, data, actual, expected):
     rknm = ''.join(['[', str(rank), '/', str(size), '] ', str(name)])
     spcr = ' ' * len(rknm)
-    msg = ''.join([linesep,
-                   rknm, ' - Input: ', str(data), linesep,
-                   spcr, ' - Actual:   ', str(actual), linesep,
+    msg = ''.join([eol,
+                   rknm, ' - Input: ', str(data), eol,
+                   spcr, ' - Actual:   ', str(actual), eol,
                    spcr, ' - Expected: ', str(expected)])
     return msg
 
@@ -171,6 +171,83 @@ class SimpleCommParTests(unittest.TestCase):
             actual = self.gcomm.scatter()
             expected = range(10)[self.rank - 1::self.size - 1]
         msg = test_info_msg(self.rank, self.size, 'Scatter(list, skip)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testSplitSumInt(self):
+        intracomm, intercomm = self.gcomm.split([1, 1], minsize=1)
+        data = 1
+        data2 = intracomm.reduce(data, op=sum)
+        actual = intercomm.reduce(data2, op=sum)
+        if intracomm.is_master():
+            expected = self.gcomm.get_size()
+        else:
+            expected = None
+        msg = test_info_msg(self.rank, self.size, 'SplitSum(int)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testSplitGatherInt(self):
+        intracomm, intercomm = self.gcomm.split([1, 1], minsize=1)
+        data = self.rank
+        ranks = intracomm.gather(data)
+        actual = intercomm.gather(ranks)
+        if self.gcomm.is_master():
+            if self.size == 1:
+                expected = [[0]]
+            else:
+                expected = [range(0, self.size / 2 + (self.size % 2)),
+                            range(self.size / 2 + (self.size % 2), self.size)]
+        else:
+            expected = None
+        msg = test_info_msg(self.rank, self.size, 'SplitGather(int)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testSplitScatterInt(self):
+        intracomm, intercomm = self.gcomm.split([1, 1], minsize=1)
+        if self.gcomm.is_master():
+            data = 10
+        else:
+            data = None
+        data2 = intercomm.scatter(data)
+        actual = intracomm.scatter(data2)
+        expected = 10
+        msg = test_info_msg(self.rank, self.size, 'SplitScatter(int)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testSplitScatterList(self):
+        intracomm, intercomm = self.gcomm.split([1, 1], minsize=1)
+        if self.gcomm.is_master():
+            data = range(10)
+        else:
+            data = None
+        data2 = intercomm.scatter(data, part=equal_stride)
+        actual = intracomm.scatter(data2, part=equal_stride)
+        if self.size == 1:
+            expected = range(0, 10)
+        else:
+            expected = range(intracomm.get_color(), 10, 2)
+            expected = expected[intracomm.comm.Get_rank()::intracomm.get_size()]
+        msg = test_info_msg(self.rank, self.size, 'SplitScatter(list)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testSplitScatterListSkip(self):
+        intracomm, intercomm = self.gcomm.split([1, 1], minsize=1)
+        if self.gcomm.is_master():
+            data = range(10)
+        else:
+            data = None
+        data2 = intercomm.scatter(data, part=equal_stride, skip=True)
+        actual = intracomm.scatter(data2, part=equal_stride, skip=True)
+        if intracomm.is_master():
+            expected = None
+        else:
+            expected = range(intracomm.get_color(), 10, 2)
+            expected = expected[intracomm.comm.Get_rank() - 1::intracomm.get_size() - 1]
+        msg = test_info_msg(self.rank, self.size, 'SplitScatter(list, skip)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
