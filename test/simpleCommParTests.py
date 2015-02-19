@@ -240,7 +240,7 @@ class SimpleCommParTests(unittest.TestCase):
             data = range(10)
         else:
             data = None
-        data2 = intercomm.scatter(data, part=equal_stride, skip=True)
+        data2 = intercomm.scatter(data, part=equal_stride)
         actual = intracomm.scatter(data2, part=equal_stride, skip=True)
         if intracomm.is_master():
             expected = None
