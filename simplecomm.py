@@ -10,6 +10,14 @@ Created on Feb 4, 2015
 @author: Kevin Paul <kpaul@ucar.edu>
 '''
 
+from functools import partial
+
+# Define a supported reduction operator map
+__OP_MAP = {'sum': sum,
+            'prod': partial(reduce, lambda x, y: x * y),
+            'max': max,
+            'min': min}
+
 #==============================================================================
 # create_comm - Simple Communicator Factory Function
 #==============================================================================
@@ -52,16 +60,10 @@ class SimpleComm(object):
         except:
             numpy = None
 
-        ## Hold on to the Numpy module
-        self.numpy = numpy
+        ## To the Numpy module, if found
+        self._numpy = numpy
 
-        ## The communicator's assigned identifier (color)
-        self.color = None
-
-        ## Indicate whether this MPI process is included in the communicator
-        self.included = True
-
-    def __is_ndarray(self, data):
+    def _is_ndarray(self, data):
         '''
         Helper function to determing if a given data object is a Numpy
         NDArray object or not.
@@ -70,8 +72,8 @@ class SimpleComm(object):
 
         @return  True if the data object is an NDarray, False otherwise.
         '''
-        if self.numpy:
-            return type(data) is self.numpy.ndarray
+        if self._numpy:
+            return type(data) is self._numpy.ndarray
         else:
             return False
 
@@ -85,13 +87,14 @@ class SimpleComm(object):
         '''
         return 1
 
-    def get_color(self):
+    def get_rank(self):
         '''
-        Get the communicator's integer identifier (color).
+        Get the integer rank of this MPI process in this communicator.
 
-        @return  An integer color identifier
+        @return  The integer rank of this MPI process
+                 (Unique to this MPI process)
         '''
-        return self.color
+        return 0
 
     def is_master(self):
         '''
@@ -102,7 +105,7 @@ class SimpleComm(object):
         '''
         return True
 
-    def reduce(self, data, op=sum):
+    def _allreduce(self, data, op):
         '''
         Reduction: Applies a function/operator to a collection of
         data values and reduces the data to a single value.  The 'sum'
@@ -112,7 +115,7 @@ class SimpleComm(object):
 
         @param  data  The data to be reduced
 
-        @param  op  A reduction operator/function
+        @param  op    A supported reduction operator/function name
 
         @return  The single value constituting the reduction of the input data.
                  (Same on all ranks in this communicator.)
@@ -120,14 +123,56 @@ class SimpleComm(object):
         if (isinstance(data, dict)):
             totals = {}
             for name in data:
-                totals[name] = self.reduce(data[name], op=op)
+                totals[name] = self._allreduce(data[name], op)
             return totals
+        elif self._is_ndarray(data):
+            return self._allreduce(getattr(self.numpy, op)(data), op)
         elif hasattr(data, '__len__'):
-            return op(data)
+            return self._allreduce(__OP_MAP[op](data), op)
         else:
             return data
 
-    def gather(self, data=None):
+    def allsum(self, data):
+        '''
+        Sum reduction across all ranks in the SimpleComm domain.
+
+        @param  data  The data to sum across all ranks
+
+        @return  The sum of the data across all ranks
+        '''
+        return self._allreduce(data, 'sum')
+
+    def allprod(self, data):
+        '''
+        Product reduction across all ranks in the SimpleComm domain.
+
+        @param  data  The data to multiply across all ranks
+
+        @return  The product of the data across all ranks
+        '''
+        self._allreduce(data, 'prod')
+
+    def allmax(self, data):
+        '''
+        Maximum reduction across all ranks in the SimpleComm domain.
+
+        @param  data  The data to search
+
+        @return  The maximum of the data across all ranks
+        '''
+        self._allreduce(data, 'max')
+
+    def allmin(self, data):
+        '''
+        Minimum reduction across all ranks in the SimpleComm domain.
+
+        @param  data  The data to search
+
+        @return  The minimum of the data across all ranks
+        '''
+        self._allreduce(data, 'min')
+
+    def gather(self, data):
         '''
         Send data into the 'master' rank from the 'slave' ranks.  If this
         MPI task is on the 'master' rank, then this receives the data from
@@ -135,14 +180,14 @@ class SimpleComm(object):
         If this MPI task is on a 'slave' rank, then this sends the data to the
         'master' rank and assumes that the 'master' rank will receive.
 
-        @param  data  The data to be gathered on the 'master' rank.
+        @param  dummy  The data to be gathered on the 'master' rank.
 
         @return  A list of length equal to the communicator size containing
                  each rank's given data.
         '''
         return [data]
 
-    def scatter(self, data=None, part=None, skip=False):
+    def scatter(self, data, part=None):
         '''
         Send data from the 'master' rank to the 'slave' ranks.  If this MPI
         task is on the 'master' rank, then this sends the data to all 'slave'
@@ -155,65 +200,44 @@ class SimpleComm(object):
         @param  part  A three-argument partitioning function.  Allowing the
                       data to be partitioned across the 'slave' ranks.
 
-        @param  skip  A boolean flag indicating that the 'master' rank should
-                      be "skipped" during the partitioning step.  (I.e., if
-                      the 'master' rank is skipped during partitioning, then
-                      the data is partitioned over the 'slaves' only.)
+        @return  A (possibly partitioned) subset of the data on the 'master'
+                 rank
+        '''
+        op = part if part else lambda *x: x[0]
+        return op(data, 0, 1)
+
+    def pull(self, data):
+        '''
+        Send data into the 'master' rank from the 'slave' ranks.  If this
+        MPI task is on the 'master' rank, then this receives the data from
+        the 'slave' ranks and assumes that all 'slave' ranks have sent data.
+        If this MPI task is on a 'slave' rank, then this sends the data to the
+        'master' rank and assumes that the 'master' rank will receive.
+
+        @param  data  The data to be gathered on the 'master' rank.
+
+        @return  A list of length equal to the communicator size containing
+                 each rank's given data.
+        '''
+        return self.gather(data)
+
+    def push(self, data, part=None):
+        '''
+        Send data from the 'master' rank to the 'slave' ranks.  If this MPI
+        task is on the 'master' rank, then this sends the data to all 'slave'
+        ranks and assumes that every 'slave' rank will receive the data.  If
+        this MPI task is on a 'slave' rank, then this receives the data from
+        the 'master' rank and assumes that the 'master' rank has sent the data.
+
+        @param  data  The data to be scattered from the 'master' rank.
+
+        @param  part  A three-argument partitioning function.  Allowing the
+                      data to be partitioned across the 'slave' ranks.
 
         @return  A (possibly partitioned) subset of the data on the 'master'
                  rank
         '''
-        if skip:
-            return None
-        else:
-            op = part if part else lambda *x: x[0]
-            return op(data)
-
-    def split(self, sizes, minsize=2):
-        '''
-        Attempts to split the communicator into 'color' blocks of differing
-        sizes, given by a 'sizes' list.
-
-        Nominally, the number of colors generated will be equal to the length
-        of the sizes array, and the number of ranks given to each color will be
-        equal to the size given by the block.
-
-        This nominal condition will only be true if the sum of the 'sizes'
-        list is equal to the size of the communicator itself.  When this is
-        not the case, the split function will attempt to create the
-        distribution of work desired by the 'sizes' list.
-
-        @param  sizes  A list containing integer sizes indicating the desired
-                       number of ranks in each block
-
-        @param  minsize  The minimum size that any one color block can end
-                         up being after the split algorithm splits the current
-                         communicator domain
-
-        @return  A tuple containing 2 SimpleComm objects.  First, an
-                 'intracommunicator' serving communication with this rank
-                 and the other ranks of the same 'color', and an
-                 'intercommunicator' serving communication between the 'master'
-                 ranks of the different 'color' blocks and the 'master' rank
-                 of this communicator.
-        '''
-        if not hasattr(sizes, '__len__'):
-            raise TypeError('Sizes list must be an iterable')
-        if any([type(s) is not int for s in sizes]):
-            raise TypeError('Sizes list must contain only integers')
-        if minsize > self.get_size():
-            minsize = self.get_size()
-
-        # Create the intracomm object
-        intracomm = SimpleComm()
-        intracomm.color = 0
-
-        # Create the intercomm object
-        intercomm = SimpleComm()
-        intercomm.color = 0
-
-        # Return references to this serial communicator
-        return intracomm, intercomm
+        return self.scatter(data, part)
 
 
 #==============================================================================
@@ -238,10 +262,13 @@ class SimpleCommMPI(SimpleComm):
             raise ImportError(err_msg)
 
         ## Hold on to the MPI module
-        self.mpi = MPI
+        self._mpi = MPI
 
-        ## Hold on to the MPI communicator (by default, COMM_WORLD)
-        self.comm = self.mpi.COMM_WORLD
+        ## The "internal" MPI communicator (by default, COMM_WORLD)
+        self._incomm = self._mpi.COMM_WORLD
+
+        ## The "external" MPI communicator (by default, COMM_NULL)
+        self._excomm = self._mpi.COMM_NULL
 
     def get_size(self):
         '''
@@ -251,10 +278,16 @@ class SimpleCommMPI(SimpleComm):
         @return  The integer number of ranks in this communicator.
                  (Same on all ranks in this communicator.)
         '''
-        if self.included:
-            return self.comm.Get_size()
-        else:
-            return 0
+        return self._incomm.Get_size()
+
+    def get_rank(self):
+        '''
+        Get the integer rank of this MPI process in this communicator.
+
+        @return  The integer rank of this MPI process
+                 (Unique to this MPI process)
+        '''
+        return self._incomm.Get_rank()
 
     def is_master(self):
         '''
@@ -263,12 +296,9 @@ class SimpleCommMPI(SimpleComm):
 
         @return  True if this MPI task is on the master rank, False otherwise.
         '''
-        if self.included:
-            return (self.comm.Get_rank() == 0)
-        else:
-            return False
+        return (self._incomm.Get_rank() == 0)
 
-    def reduce(self, data, op=sum):
+    def _allreduce(self, data, op):
         '''
         Reduction: Applies a function/operator to a collection of
         data values and reduces the data to a single value.  The 'sum'
@@ -278,25 +308,22 @@ class SimpleCommMPI(SimpleComm):
 
         @param  data  The data to be reduced
 
-        @param  op  A reduction operator/function
+        @param  op    A reduction operator/function
 
         @return  The single value constituting the reduction of the input data.
                  (None on the 'slave' ranks.)
         '''
-        if self.included:
-            if (isinstance(data, dict)):
-                totals = {}
-                for name in data:
-                    totals[name] = self.reduce(data[name], op=op)
-                return totals
-            elif hasattr(data, '__len__'):
-                return self.reduce(SimpleComm.reduce(self, data, op=op), op=op)
-            else:
-                return op(self.comm.allgather(data))
+        if (isinstance(data, dict)):
+            totals = {}
+            for name in data:
+                totals[name] = self._allreduce(data[name], op)
+            return totals
         else:
-            return None
+            return self.incomm.allreduce(
+                     SimpleComm._allreduce(self, data,
+                                           op=getattr(self._mpi, op.upper())))
 
-    def gather(self, data=None):
+    def gather(self, data):
         '''
         Send data into the 'master' rank from the 'slave' ranks.  If this
         MPI task is on the 'master' rank, then this receives the data from
@@ -309,12 +336,9 @@ class SimpleCommMPI(SimpleComm):
         @return  A list of length equal to the communicator size containing
                  each rank's given data.
         '''
-        if self.included:
-            return self.comm.gather(data, root=0)
-        else:
-            return None
+        return self._incomm.gather(data)
 
-    def scatter(self, data=None, part=None, skip=False):
+    def scatter(self, data, part=None):
         '''
         Send data from the 'master' rank to the 'slave' ranks.  If this MPI
         task is on the 'master' rank, then this sends the data to all 'slave'
@@ -327,116 +351,61 @@ class SimpleCommMPI(SimpleComm):
         @param  part  A three-argument partitioning function.  Allowing the
                       data to be partitioned across the 'slave' ranks.
 
-        @param  skip  A boolean flag indicating that the 'master' rank should
-                      be "skipped" during the partitioning step.  (I.e., if
-                      the 'master' rank is skipped during partitioning, then
-                      the data is partitioned over the 'slaves' only.)
+        @return  A (possibly partitioned) subset of the data on the 'master'
+                 rank
+        '''
+        if self.is_master():
+            op = part if part else lambda *x: x[0]
+            if self.get_size() > 1:
+                reqs = [self._incomm.isend(op(data, i, self.get_size()), dest=i)
+                        for i in xrange(1, self.get_size())]
+                self._mpi.Request.Waitall(reqs)
+            return op(data, 0, self.get_size())
+        else:
+            return self._incomm.recv(source=0)
+
+    def pull(self, data):
+        '''
+        Send data into the 'master' rank from the 'slave' ranks.  If this
+        MPI task is on the 'master' rank, then this receives the data from
+        the 'slave' ranks and assumes that all 'slave' ranks have sent data.
+        If this MPI task is on a 'slave' rank, then this sends the data to the
+        'master' rank and assumes that the 'master' rank will receive.
+
+        @param  data  The data to be gathered on the 'master' rank.
+
+        @return  A list of length equal to the communicator size containing
+                 each rank's given data.
+        '''
+        if self._excomm == self._mpi.COMM_NULL:
+            return SimpleComm.pull(self, data)
+        return self._excomm.gather(data)
+
+    def push(self, data, part=None):
+        '''
+        Send data from the 'master' rank to the 'slave' ranks.  If this MPI
+        task is on the 'master' rank, then this sends the data to all 'slave'
+        ranks and assumes that every 'slave' rank will receive the data.  If
+        this MPI task is on a 'slave' rank, then this receives the data from
+        the 'master' rank and assumes that the 'master' rank has sent the data.
+
+        @param  data  The data to be scattered from the 'master' rank.
+
+        @param  part  A three-argument partitioning function.  Allowing the
+                      data to be partitioned across the 'slave' ranks.
 
         @return  A (possibly partitioned) subset of the data on the 'master'
                  rank
         '''
-        if self.included:
-            if self.is_master():
-                op = part if part else lambda *x: x[0]
-                j = int(skip)
-                if self.get_size() > 1:
-                    reqs = [self.comm.isend(op(data, i - j, self.get_size() - j),
-                                            dest=i)
-                            for i in xrange(1, self.get_size())]
-                    self.mpi.Request.Waitall(reqs)
-                if skip:
-                    return None
-                else:
-                    return op(data, 0, self.get_size())
-            else:
-                return self.comm.recv(source=0)
+        if self._excomm == self._mpi.COMM_NULL:
+            return SimpleComm.push(self, data, part)
+        if self.is_master():
+            op = part if part else lambda *x: x[0]
+            if self.get_size() > 1:
+                reqs = [self._incomm.isend(op(data, i, self.get_size()), dest=i)
+                        for i in xrange(1, self.get_size())]
+                self._mpi.Request.Waitall(reqs)
+            return op(data, 0, self.get_size())
         else:
-            return None
+            return self._incomm.recv(source=0)
 
-    def split(self, sizes, minsize=2):
-        '''
-        Attempts to split the communicator into 'color' blocks of differing
-        sizes, given by a 'sizes' list.
-
-        Nominally, the number of colors generated will be equal to the length
-        of the sizes array, and the number of ranks given to each color will be
-        equal to the size given by the block.
-
-        This nominal condition will only be true if the sum of the 'sizes'
-        list is equal to the size of the communicator itself.  When this is
-        not the case, the split function will attempt to create the
-        distribution of work desired by the 'sizes' list.
-
-        @param  sizes  A list containing integer sizes indicating the desired
-                       number of ranks in each block
-
-        @param  minsize  The minimum size that any one color block can end
-                         up being after the split algorithm splits the current
-                         communicator domain
-
-        @return  A tuple containing 2 SimpleComm objects.  First, an
-                 'intracommunicator' serving communication with this rank
-                 and the other ranks of the same 'color', and an
-                 'intercommunicator' serving communication between the 'master'
-                 ranks of the different 'color' blocks and the 'master' rank
-                 of this communicator.
-        '''
-        if not hasattr(sizes, '__len__'):
-            raise TypeError('Sizes list must be an iterable')
-        if any([type(s) is not int for s in sizes]):
-            raise TypeError('Sizes list must contain only integers')
-        if minsize > self.get_size():
-            minsize = self.get_size()
-
-        if not self.included:
-            return self, self
-
-        # Make a floating-point copy of the valid sizes (sizes > 0) list
-        newsizes = [float(s) for s in sizes if s > 0]
-
-        # If the maximum number of colors is greater than the number of ranks,
-        # then move the smallest block ranks to the remaining smallest blocks
-        while len(newsizes) > self.get_size():
-            sizemin = newsizes.pop(newsizes.index(min(newsizes)))
-            addamnt = sizemin / len(newsizes)
-            newsizes = [s + addamnt for s in newsizes]
-
-        # If the total number of requested ranks is greater than the number of
-        # ranks, then scale down all of the blocks sizes to fit in the space
-        scale = float(self.get_size()) / sum(newsizes)
-        newsizes = [s * scale for s in newsizes]
-
-        # If any of the new block sizes is less than 1, redistribute the work
-        while min(newsizes) < minsize:
-            sizemin = newsizes.pop(newsizes.index(min(newsizes)))
-            addamnt = sizemin / len(newsizes)
-            newsizes = [s + addamnt for s in newsizes]
-
-        # Convert the sizes to integers and add back the "lost" ranks
-        newsizes = [int(s) for s in newsizes]
-        numlost = self.get_size() - sum(newsizes)
-        for _ in xrange(numlost):
-            newsizes[newsizes.index(min(newsizes))] += 1
-
-        # Given the new color block sizes, compute the colors of each rank
-        intra_colors = []
-        inter_colors = [self.mpi.UNDEFINED] * self.get_size()
-        for (c, s) in enumerate(newsizes):
-            inter_colors[len(intra_colors)] = 0
-            intra_colors.extend([c] * s)
-        intra_color = intra_colors[self.comm.Get_rank()]
-        inter_color = inter_colors[self.comm.Get_rank()]
-
-        # Create a new SimpleComm object from the split MPI communicator
-        intracomm = SimpleCommMPI()
-        intracomm.comm = self.comm.Split(intra_color)
-        intracomm.color = intra_color
-
-        # Create a new SimpleComm object for the master ranks
-        intercomm = SimpleCommMPI()
-        intercomm.comm = self.comm.Split(inter_color)
-        intercomm.color = intra_color
-        intercomm.included = (inter_color != self.mpi.UNDEFINED)
-
-        # Return the "intracomm" and the "intercomm"
-        return intracomm, intercomm
