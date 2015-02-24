@@ -237,7 +237,6 @@ class WeightBalanced(PartitionFunction):
                 if k == index:
                     partition.append(item)
                 weights[k] += weight
-                print weights
             return partition
         else:
             return EqualStride()(*args, **kwargs)
