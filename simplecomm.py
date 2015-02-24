@@ -166,6 +166,12 @@ class SimpleComm(object):
         ## To the Numpy module, if found
         self._numpy = numpy
 
+        ## The color ID associated with this communicator
+        self._color = None
+
+        ## The group ID associated with the color ID
+        self._group = None
+
     def _type_is_ndarray(self, dt):
         '''
         Helper function to determing if a given data object is a Numpy
@@ -215,7 +221,7 @@ class SimpleComm(object):
 
         @return  The integer color ID of this MPI communicator
         '''
-        return None
+        return self._color
 
     def get_group(self):
         '''
@@ -223,7 +229,7 @@ class SimpleComm(object):
 
         @return  The group ID of this communicator
         '''
-        return None
+        return self._group
 
     def allreduce(self, data, op):
         '''
@@ -354,12 +360,6 @@ class SimpleCommMPI(SimpleComm):
         ## The MPI communicator (by default, COMM_WORLD)
         self._comm = self._mpi.COMM_WORLD
 
-        ## The color ID associated with this communicator
-        self._color = None
-
-        ## The group ID associated with the color ID
-        self._group = None
-
     def get_size(self):
         '''
         Get the integer number of ranks in this communicator (including
@@ -378,22 +378,6 @@ class SimpleCommMPI(SimpleComm):
                  (Unique to this MPI process and communicator)
         '''
         return self._comm.Get_rank()
-
-    def get_color(self):
-        '''
-        Get the integer color ID of this MPI process in this communicator.
-
-        @return  The integer color ID of this MPI communicator
-        '''
-        return self._color
-
-    def get_group(self):
-        '''
-        Get the group ID associated with the color ID of this MPI communicator.
-
-        @return  The group ID of this communicator
-        '''
-        return self._group
 
     def allreduce(self, data, op):
         '''
