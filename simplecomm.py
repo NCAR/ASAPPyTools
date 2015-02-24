@@ -15,12 +15,12 @@ PARTITIONING:
 
 Within the SimpleComm paradigm, the 'manager' rank is assumed to be responsible
 for partitioning (or distributing) the necessary work to the 'worker' ranks.
-The *partition* mathod provides this functionality.  Using a *partition
-function*, the *partition* method takes data known on the 'manager' rank and
+The *partitioning* mathod provides this functionality.  Using a *partitioning
+function*, the *partitioning* method takes data known on the 'manager' rank and
 gives each 'worker' rank a part of the data according to the algorithm of the
-partition function.
+partitioning function.
 
-The *partition* method is *synchronous*, meaning that every rank (from the
+The *partitioning* method is *synchronous*, meaning that every rank (from the
 'manager' rank to all of the 'worker' ranks) must be in synch when the method
 is called.  This means that every rank must participate in the call, and
 every rank will wait until all of the data has been partitioned before
@@ -101,24 +101,23 @@ Created on Feb 4, 2015
 
 from functools import partial
 from collections import defaultdict
-from __builtin__ import None
 
 ## Define the supported reduction operators
 OPERATORS = ['sum', 'prod', 'max', 'min']
 
 ## Define the reduction operators map
-__OP_MAP = {'sum': {'py': sum,
-                    'np': 'sum',
-                    'mpi': 'SUM'},
-            'prod': {'py': partial(reduce, lambda x, y: x * y),
-                     'np': 'prod',
-                     'mpi': 'PROD'},
-            'max': {'py': max,
-                    'np': 'max',
-                    'mpi': 'MAX'},
-            'min': {'py': min,
-                    'np': 'min',
-                    'mpi': 'MIN'}}
+_OP_MAP = {'sum': {'py': sum,
+                   'np': 'sum',
+                   'mpi': 'SUM'},
+           'prod': {'py': partial(reduce, lambda x, y: x * y),
+                    'np': 'prod',
+                    'mpi': 'PROD'},
+           'max': {'py': max,
+                   'np': 'max',
+                   'mpi': 'MAX'},
+           'min': {'py': min,
+                   'np': 'min',
+                   'mpi': 'MIN'}}
 
 
 #==============================================================================
@@ -249,14 +248,14 @@ class SimpleComm(object):
         if (isinstance(data, dict)):
             totals = {}
             for k, v in data.items():
-                totals[k] = self.allreduce(v, op)
+                totals[k] = SimpleComm.allreduce(self, v, op)
             return totals
         elif self._type_is_ndarray(type(data)):
-            return self.allreduce(
-                getattr(self._numpy, __OP_MAP[op]['np'])(data), op)
+            return SimpleComm.allreduce(self,
+                getattr(self._numpy, _OP_MAP[op]['np'])(data), op)
         elif hasattr(data, '__len__'):
-            return self.allreduce(
-                __OP_MAP[op]['py'](data), op)
+            return SimpleComm.allreduce(self,
+                _OP_MAP[op]['py'](data), op)
         else:
             return data
 
@@ -265,13 +264,13 @@ class SimpleComm(object):
         Send data from the 'manager' rank to 'worker' ranks.  By default, the
         data is duplicated from the 'manager' rank onto every 'worker' rank.
 
-        If a partition function is supplied via the "func" argument, then the
+        If a partitioning function is supplied via the "func" argument, then the
         data will be partitioned across the 'worker' ranks, giving each
-        'worker' rank a different part of the data according to the partition
+        'worker' rank a different part of the data according to the partitioning
         function supplied.
 
         If the "involved" argument is True, then a part of the data (as
-        determined by the given partition function, if supplied) will be
+        determined by the given partitioning function, if supplied) will be
         returned on the 'manager' rank.  Otherwise, ("involved" argument is
         False) the data will be partitioned only across the 'worker' ranks.
 
@@ -281,7 +280,7 @@ class SimpleComm(object):
         @param  func  A PartitionFunction object (i.e., an object that has
                       three-argument __call__(data, index, size) method that
                       returns a part of the data given the index and assumed
-                      size of the partition)
+                      size of the partitioning)
 
         @param  involved  True, if a part of the data should be given to the
                           'manager' rank in addition to the 'worker' ranks.
@@ -404,26 +403,25 @@ class SimpleCommMPI(SimpleComm):
                 result = {}
                 for k, v in all_dict.items():
                     result[k] = SimpleComm.allreduce(self, v, op)
+                return self._comm.bcast(result)
             else:
-                result = None
-            return self.scatter(result)
+                return self._comm.bcast(None)
         else:
-            return self._comm.allreduce(
-                SimpleComm.allreduce(self, data,
-                                     op=getattr(self._mpi, op.upper())))
+            return self._comm.allreduce(SimpleComm.allreduce(self, data, op),
+                op=getattr(self._mpi, _OP_MAP[op]['mpi']))
 
     def partition(self, data=None, func=None, involved=False):
         '''
         Send data from the 'manager' rank to 'worker' ranks.  By default, the
         data is duplicated from the 'manager' rank onto every 'worker' rank.
 
-        If a partition function is supplied via the "func" argument, then the
+        If a partitioning function is supplied via the "func" argument, then the
         data will be partitioned across the 'worker' ranks, giving each
-        'worker' rank a different part of the data according to the partition
+        'worker' rank a different part of the data according to the partitioning
         function supplied.
 
         If the "involved" argument is True, then a part of the data (as
-        determined by the given partition function, if supplied) will be
+        determined by the given partitioning function, if supplied) will be
         returned on the 'manager' rank.  Otherwise, ("involved" argument is
         False) the data will be partitioned only across the 'worker' ranks.
 
@@ -433,7 +431,7 @@ class SimpleCommMPI(SimpleComm):
         @param  func  A PartitionFunction object (i.e., an object that has
                       three-argument __call__(data, index, size) method that
                       returns a part of the data given the index and assumed
-                      size of the partition)
+                      size of the partitioning)
 
         @param  involved  True, if a part of the data should be given to the
                           'manager' rank in addition to the 'worker' ranks.
@@ -468,9 +466,10 @@ class SimpleCommMPI(SimpleComm):
 
                 # If OK, send the data to the worker
                 if self._type_is_ndarray(type(part)):
-                    self._comm.Send(part, dest=i, tag=102)
+                    self._comm.Send(self._numpy.array(part), dest=i, tag=102)
                 else:
                     self._comm.send(part, dest=i, tag=103)
+
             if involved:
                 return op(data, 0, self.get_size())
             else:
@@ -493,7 +492,7 @@ class SimpleCommMPI(SimpleComm):
 
             # Receive the data
             if self._type_is_ndarray(msg['type']):
-                recvd = self._np.empty(msg['shape'], dtype=msg['dtype'])
+                recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
                 self._comm.Recv(recvd, source=0, tag=102)
             else:
                 recvd = self._comm.recv(source=0, tag=103)

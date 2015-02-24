@@ -9,7 +9,7 @@ Created on Feb 4, 2015
 import unittest
 import simplecomm
 import numpy as np
-from partfunc import equal_stride
+from partitioning import EqualStride
 from os import linesep as eol
 from mpi4py import MPI
 MPI_COMM_WORLD = MPI.COMM_WORLD
@@ -41,16 +41,16 @@ class SimpleCommParTests(unittest.TestCase):
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testIsMaster(self):
-        actual = self.gcomm.is_master()
+    def testIsManager(self):
+        actual = self.gcomm.is_manager()
         expected = (self.rank == 0)
-        msg = test_info_msg(self.rank, self.size, 'is_master()', None, actual, expected)
+        msg = test_info_msg(self.rank, self.size, 'is_manager()', None, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
     def testSumInt(self):
         data = 5
-        actual = self.gcomm.reduce(data)
+        actual = self.gcomm.allreduce(data, 'sum')
         expected = self.size * 5
         msg = test_info_msg(self.rank, self.size, 'sum(int)', data, actual, expected)
         print msg
@@ -58,198 +58,137 @@ class SimpleCommParTests(unittest.TestCase):
 
     def testSumList(self):
         data = range(5)
-        actual = self.gcomm.reduce(data)
+        actual = self.gcomm.allreduce(data, 'sum')
         expected = self.size * sum(data)
         msg = test_info_msg(self.rank, self.size, 'sum(list)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testSumDict(self):
-        data = {'rank': self.rank, 'range': range(3 + self.rank)}
-        actual = self.gcomm.reduce(data, op=sum)
-        expected = {'rank': sum(range(self.size)),
-                    'range': sum([sum(range(3 + i)) for i in xrange(self.size)])}
-        msg = test_info_msg(self.rank, self.size, 'sum(dict)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
     def testSumArray(self):
         data = np.arange(5)
-        actual = self.gcomm.reduce(data)
+        actual = self.gcomm.allreduce(data, 'sum')
         expected = self.size * sum(data)
         msg = test_info_msg(self.rank, self.size, 'sum(array)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
+    def testSumDict(self):
+        data = {'a': range(3), 'b': [5, 7]}
+        actual = self.gcomm.allreduce(data, 'sum')
+        expected = {'a': self.size * sum(range(3)), 'b': self.size * sum([5, 7])}
+        msg = test_info_msg(self.rank, self.size, 'sum(dict)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
     def testMaxInt(self):
-        data = 13 + self.rank
-        actual = self.gcomm.reduce(data, op=max)
-        expected = 12 + self.size
+        data = self.rank
+        actual = self.gcomm.allreduce(data, 'max')
+        expected = self.size - 1
         msg = test_info_msg(self.rank, self.size, 'max(int)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
     def testMaxList(self):
-        data = range(5 + self.rank)
-        actual = self.gcomm.reduce(data, op=max)
-        expected = (self.size - 1) + max(range(5))
+        data = range(2 + self.rank)
+        actual = self.gcomm.allreduce(data, 'max')
+        expected = self.size
         msg = test_info_msg(self.rank, self.size, 'max(list)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testMaxDict(self):
-        data = {'rank': self.rank, 'range': range(3 + self.rank)}
-        actual = self.gcomm.reduce(data, op=max)
-        expected = {'rank': self.size - 1, 'range': self.size + 1}
-        msg = test_info_msg(self.rank, self.size, 'max(dict)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
     def testMaxArray(self):
-        data = np.arange(5 + self.rank)
-        actual = self.gcomm.reduce(data, op=max)
-        expected = (self.size - 1) + max(range(5))
+        data = np.arange(2 + self.rank)
+        actual = self.gcomm.allreduce(data, 'max')
+        expected = self.size
         msg = test_info_msg(self.rank, self.size, 'max(array)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testGatherInt(self):
-        data = 10 + self.rank
-        actual = self.gcomm.gather(data)
-        if self.gcomm.is_master():
-            expected = [10 + i for i in xrange(self.size)]
-        else:
-            expected = None
-        msg = test_info_msg(self.rank, self.size, 'Gather(int)', data, actual, expected)
+    def testMaxDict(self):
+        data = {'rank': self.rank, 'range': range(2 + self.rank)}
+        actual = self.gcomm.allreduce(data, 'max')
+        expected = {'rank': self.size - 1, 'range': self.size}
+        msg = test_info_msg(self.rank, self.size, 'max(dict)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testGatherList(self):
-        data = range(2 + self.rank)
-        actual = self.gcomm.gather(data)
-        if self.gcomm.is_master():
-            expected = [range(2 + i) for i in xrange(self.size)]
-        else:
-            expected = None
-        msg = test_info_msg(self.rank, self.size, 'Gather(list)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
-    def testScatterInt(self):
-        if self.gcomm.is_master():
-            data = 10
-            actual = self.gcomm.scatter(data)
-            expected = 10
-        else:
-            data = None
-            actual = self.gcomm.scatter()
-            expected = 10
-        msg = test_info_msg(self.rank, self.size, 'Scatter(int)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
-    def testScatterList(self):
-        if self.gcomm.is_master():
-            data = range(10)
-            actual = self.gcomm.scatter(data, part=equal_stride)
-            expected = range(10)[0::self.size]
-        else:
-            data = None
-            actual = self.gcomm.scatter()
-            expected = range(10)[self.rank::self.size]
-        msg = test_info_msg(self.rank, self.size, 'Scatter(list)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
-    def testScatterListSkip(self):
-        if self.gcomm.is_master():
-            data = range(10)
-            actual = self.gcomm.scatter(data, part=equal_stride, skip=True)
-            expected = None
-        else:
-            data = None
-            actual = self.gcomm.scatter()
-            expected = range(10)[self.rank - 1::self.size - 1]
-        msg = test_info_msg(self.rank, self.size, 'Scatter(list, skip)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
-    def testSplitSumInt(self):
-        intracomm, intercomm = self.gcomm.split([1, 1], minsize=1)
-        data = 1
-        data2 = intracomm.reduce(data, op=sum)
-        actual = intercomm.reduce(data2, op=sum)
-        if intracomm.is_master():
-            expected = self.gcomm.get_size()
-        else:
-            expected = None
-        msg = test_info_msg(self.rank, self.size, 'SplitSum(int)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
-    def testSplitGatherInt(self):
-        intracomm, intercomm = self.gcomm.split([1, 1], minsize=1)
-        data = self.rank
-        ranks = intracomm.gather(data)
-        actual = intercomm.gather(ranks)
-        if self.gcomm.is_master():
-            if self.size == 1:
-                expected = [[0]]
-            else:
-                expected = [range(0, self.size / 2 + (self.size % 2)),
-                            range(self.size / 2 + (self.size % 2), self.size)]
-        else:
-            expected = None
-        msg = test_info_msg(self.rank, self.size, 'SplitGather(int)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
-    def testSplitScatterInt(self):
-        intracomm, intercomm = self.gcomm.split([1, 1], minsize=1)
-        if self.gcomm.is_master():
+    def testPartitionInt(self):
+        if self.gcomm.is_manager():
             data = 10
         else:
             data = None
-        data2 = intercomm.scatter(data)
-        actual = intracomm.scatter(data2)
+        actual = self.gcomm.partition(data)
+        if self.gcomm.is_manager():
+            expected = None
+        else:
+            expected = 10
+        msg = test_info_msg(self.rank, self.size, 'partition(int)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testPartitionIntInvolved(self):
+        if self.gcomm.is_manager():
+            data = 10
+        else:
+            data = None
+        actual = self.gcomm.partition(data, involved=True)
         expected = 10
-        msg = test_info_msg(self.rank, self.size, 'SplitScatter(int)', data, actual, expected)
+        msg = test_info_msg(self.rank, self.size, 'partition(int, T)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testSplitScatterList(self):
-        intracomm, intercomm = self.gcomm.split([1, 1], minsize=1)
-        if self.gcomm.is_master():
+    def testPartitionList(self):
+        if self.gcomm.is_manager():
             data = range(10)
         else:
             data = None
-        data2 = intercomm.scatter(data, part=equal_stride)
-        actual = intracomm.scatter(data2, part=equal_stride)
-        if self.size == 1:
-            expected = range(0, 10)
-        else:
-            expected = range(intracomm.get_color(), 10, 2)
-            expected = expected[intracomm.comm.Get_rank()::intracomm.get_size()]
-        msg = test_info_msg(self.rank, self.size, 'SplitScatter(list)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
-    def testSplitScatterListSkip(self):
-        intracomm, intercomm = self.gcomm.split([1, 1], minsize=1)
-        if self.gcomm.is_master():
-            data = range(10)
-        else:
-            data = None
-        data2 = intercomm.scatter(data, part=equal_stride)
-        actual = intracomm.scatter(data2, part=equal_stride, skip=True)
-        if intracomm.is_master():
+        actual = self.gcomm.partition(data, func=EqualStride())
+        if self.gcomm.is_manager():
             expected = None
         else:
-            expected = range(intracomm.get_color(), 10, 2)
-            expected = expected[intracomm.comm.Get_rank() - 1::intracomm.get_size() - 1]
-        msg = test_info_msg(self.rank, self.size, 'SplitScatter(list, skip)', data, actual, expected)
+            expected = range(self.rank - 1, 10, self.size - 1)
+        msg = test_info_msg(self.rank, self.size, 'partition(list)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
+
+    def testPartitionListInvolved(self):
+        if self.gcomm.is_manager():
+            data = range(10)
+        else:
+            data = None
+        actual = self.gcomm.partition(data, func=EqualStride(), involved=True)
+        expected = range(self.rank, 10, self.size)
+        msg = test_info_msg(self.rank, self.size, 'partition(list, T)', data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testPartitionArray(self):
+        if self.gcomm.is_manager():
+            data = np.arange(10)
+        else:
+            data = None
+        actual = self.gcomm.partition(data, func=EqualStride())
+        if self.gcomm.is_manager():
+            expected = None
+        else:
+            expected = np.arange(self.rank - 1, 10, self.size - 1)
+        msg = test_info_msg(self.rank, self.size, 'partition(array)', data, actual, expected)
+        print msg
+        if self.gcomm.is_manager():
+            self.assertEqual(actual, expected, msg)
+        else:
+            np.testing.assert_array_equal(actual, expected, msg)
+
+    def testPartitionArrayInvolved(self):
+        if self.gcomm.is_manager():
+            data = np.arange(10)
+        else:
+            data = None
+        actual = self.gcomm.partition(data, func=EqualStride(), involved=True)
+        expected = np.arange(self.rank, 10, self.size)
+        msg = test_info_msg(self.rank, self.size, 'partition(array, T)', data, actual, expected)
+        print msg
+        np.testing.assert_array_equal(actual, expected, msg)
 
 
 if __name__ == "__main__":
