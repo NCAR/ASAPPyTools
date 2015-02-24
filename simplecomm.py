@@ -6,58 +6,58 @@ communication strategy using the MPI4Py module.
 
 To accomplish this task, the SimpleComm object provides a single communication
 pattern with a simple, light-weight API.  The communication pattern is a
-common 'master'/'slave' pattern, with the 0th rank assumed to be the 'master'
-rank.  The SimpleComm API provides a way of sending data out from the 'master'
-rank to the 'slave' ranks, and for collecting the data from the 'slave' ranks
-back on the 'master' rank.
+common 'manager'/'worker' pattern, with the 0th rank assumed to be the
+'manager' rank.  The SimpleComm API provides a way of sending data out from the
+'manager' rank to the 'worker' ranks, and for collecting the data from the
+'worker' ranks back on the 'manager' rank.
 
 PARTITIONING:
 
-Within the SimpleComm paradigm, the 'master' rank is assumed to be responsible
-for partitioning (or distributing) the necessary work to the 'slave' ranks.
+Within the SimpleComm paradigm, the 'manager' rank is assumed to be responsible
+for partitioning (or distributing) the necessary work to the 'worker' ranks.
 The *partition* mathod provides this functionality.  Using a *partition
-function*, the *partition* method takes data known on the 'master' rank and
-gives each 'slave' rank a part of the data according to the algorithm of the
+function*, the *partition* method takes data known on the 'manager' rank and
+gives each 'worker' rank a part of the data according to the algorithm of the
 partition function.
 
 The *partition* method is *synchronous*, meaning that every rank (from the
-'master' rank to all of the 'slave' ranks) must be in synch when the method
+'manager' rank to all of the 'worker' ranks) must be in synch when the method
 is called.  This means that every rank must participate in the call, and
 every rank will wait until all of the data has been partitioned before
-continuing.  Remember, whenever the 'master' rank speaks, all of the
-'slave' ranks listen!  And they continue to listen until dismissed by the
-'master' rank.
+continuing.  Remember, whenever the 'manager' rank speaks, all of the
+'worker' ranks listen!  And they continue to listen until dismissed by the
+'manager' rank.
 
-Additionally, the 'master' rank can be considered *involved* or *uninvolved*
-in the partitioning process.  If the 'master' rank is *involved*, then the
-master will take a part of the data for itself.  If the 'master' is
-*uninvolved*, then the data will be partitioned only across the 'slave' ranks.
+Additionally, the 'manager' rank can be considered *involved* or *uninvolved*
+in the partitioning process.  If the 'manager' rank is *involved*, then the
+master will take a part of the data for itself.  If the 'manager' is
+*uninvolved*, then the data will be partitioned only across the 'worker' ranks.
 
 COLLECTING:
 
-Once each 'slave' has received its assigned part of the data, the 'slave'
+Once each 'worker' has received its assigned part of the data, the 'worker'
 will perform some work pertaining to the data it received.  In such a case,
-the 'slave' may (though not necessarily) return one or more results back to
-the 'master'.  The *collect* method provides this functionality.
+the 'worker' may (though not necessarily) return one or more results back to
+the 'manager'.  The *collect* method provides this functionality.
 
 The *collect* method is *asynchronous*, meaning that each slave can send
-its data back to the master at any time and in any order.  Since the 'master'
-rank does not care where the data came from, the 'master' rank simply receives
-the result from the 'slave' rank and processes it.  Hence, all that matters
-is that for every *collect* call made by all of the 'slave' ranks, a *collect*
-call must also be made by the 'master' rank.
+its data back to the master at any time and in any order.  Since the 'manager'
+rank does not care where the data came from, the 'manager' rank simply receives
+the result from the 'worker' rank and processes it.  Hence, all that matters
+is that for every *collect* call made by all of the 'worker' ranks, a *collect*
+call must also be made by the 'manager' rank.
 
-The *collect* method is a *handshake* method, meaning that while the 'master'
-rank doesn't care which 'slave' rank sends it data, the 'master' rank does
-acknowledge the 'slave' rank and record the 'slave' rank's identity.
+The *collect* method is a *handshake* method, meaning that while the 'manager'
+rank doesn't care which 'worker' rank sends it data, the 'manager' rank does
+acknowledge the 'worker' rank and record the 'worker' rank's identity.
 
 REDUCING:
 
-In general, it is assumed that each 'slave' rank works independently from the
-other 'slave' ranks.  However, it may be occasionally necessary for the 'slave'
-ranks to know something about the work being done on (or the data given to)
-each of the other ranks.  The only allowed communication of this type is
-provided by the *allreduce* method.
+In general, it is assumed that each 'worker' rank works independently from the
+other 'worker' ranks.  However, it may be occasionally necessary for the
+'worker' ranks to know something about the work being done on (or the data
+given to) each of the other ranks.  The only allowed communication of this
+type is provided by the *allreduce* method.
 
 The *allreduce* method allows for *reductions* of the data distributed across
 all of the ranks to be made available to every rank.  Reductions are operations
@@ -65,19 +65,19 @@ such as 'max', 'min', 'sum', and 'prod', which compute and distribute to the
 ranks the 'maximum', 'minimum', 'sum', or 'product' of the data distributed
 across the ranks.  Since the *reduction* computes a reduced quantity of data
 distributed across all ranks, the *allreduce* method is a *synchronous* method
-(i.e., all ranks must participate in the call, including the 'master').
+(i.e., all ranks must participate in the call, including the 'manager').
 
 DIVIDING:
 
-It can be occasionally useful to subdivide the 'slave' ranks into different
+It can be occasionally useful to subdivide the 'worker' ranks into different
 groups to perform different tasks in each group.  When this is necessary, the
-'master' rank will assign itself and each 'slave' rank a *color* ID.  Then,
-the 'master' will assign each rank (including itself) to 2 new groups:
+'manager' rank will assign itself and each 'worker' rank a *color* ID.  Then,
+the 'manager' will assign each rank (including itself) to 2 new groups:
 
     (1) Each rank with the same color ID will be assigned to the same group,
         and within this new *color* group, each rank will be given a new rank
-        ID ranging from 0 (identifying the color group's 'master' rank) to
-        the number of 'slave' ranks in the color group.  This is called the
+        ID ranging from 0 (identifying the color group's 'manager' rank) to
+        the number of 'worker' ranks in the color group.  This is called the
         *monocolor* grouping.
 
     (2) Each rank with the same new rank ID across all color groups will be
@@ -101,7 +101,7 @@ Created on Feb 4, 2015
 
 from functools import partial
 from collections import defaultdict
-from numpy import rank
+from __builtin__ import None
 
 ## Define the supported reduction operators
 OPERATORS = ['sum', 'prod', 'max', 'min']
@@ -166,17 +166,17 @@ class SimpleComm(object):
         ## To the Numpy module, if found
         self._numpy = numpy
 
-    def _is_ndarray(self, data):
+    def _type_is_ndarray(self, dt):
         '''
         Helper function to determing if a given data object is a Numpy
         NDArray object or not.
 
-        @param  data  The data object to be tested
+        @param  dt  The type of the data object to be tested
 
         @return  True if the data object is an NDarray, False otherwise.
         '''
         if self._numpy:
-            return type(data) is self._numpy.ndarray
+            return dt is self._numpy.ndarray
         else:
             return False
 
@@ -199,15 +199,15 @@ class SimpleComm(object):
         '''
         return 0
 
-    def is_master(self):
+    def is_manager(self):
         '''
-        Simple check to determine if this MPI process is on the 'master' rank
+        Simple check to determine if this MPI process is on the 'manager' rank
         (i.e., if the rank ID is 0).
 
         @return  True if this MPI process is on the master rank, False
                  otherwise.
         '''
-        return True
+        return self.get_rank() == 0
 
     def get_color(self):
         '''
@@ -245,7 +245,7 @@ class SimpleComm(object):
             for k, v in data.items():
                 totals[k] = self.allreduce(v, op)
             return totals
-        elif self._is_ndarray(data):
+        elif self._type_is_ndarray(type(data)):
             return self.allreduce(
                 getattr(self._numpy, __OP_MAP[op]['np'])(data), op)
         elif hasattr(data, '__len__'):
@@ -256,18 +256,18 @@ class SimpleComm(object):
 
     def partition(self, data=None, func=None, involved=False):
         '''
-        Send data from the 'master' rank to 'slave' ranks.  By default, the
-        data is duplicated from the 'master' rank onto every 'slave' rank.
+        Send data from the 'manager' rank to 'worker' ranks.  By default, the
+        data is duplicated from the 'manager' rank onto every 'worker' rank.
 
         If a partition function is supplied via the "func" argument, then the
-        data will be partitioned across the 'slave' ranks, giving each 'slave'
-        rank a different part of the data according to the partition function
-        supplied.
+        data will be partitioned across the 'worker' ranks, giving each
+        'worker' rank a different part of the data according to the partition
+        function supplied.
 
         If the "involved" argument is True, then a part of the data (as
         determined by the given partition function, if supplied) will be
-        returned on the 'master' rank.  Otherwise, ("involved" argument is
-        False) the data will be partitioned only across the 'slave' ranks.
+        returned on the 'manager' rank.  Otherwise, ("involved" argument is
+        False) the data will be partitioned only across the 'worker' ranks.
 
         @param  data  The data to be partitioned across the ranks in the
                       communicator.
@@ -278,28 +278,32 @@ class SimpleComm(object):
                       size of the partition)
 
         @param  involved  True, if a part of the data should be given to the
-                          'master' rank in addition to the 'slave' ranks.
+                          'manager' rank in addition to the 'worker' ranks.
                           False, otherwise.
 
         @return  A (possibly partitioned) subset (i.e., part) of the data
         '''
         op = func if func else lambda *x: x[0]
-        return op(data, 0, 1)
+        if involved:
+            return op(data, 0, 1)
+        else:
+            return None
 
     def collect(self, data=None):
         '''
-        Send data from a 'slave' rank to the 'master' rank.  If the calling
-        MPI process is the 'master' rank, then it receives and returns the
-        data sent from the 'slave'.  If the calling MPI process is a 'slave'
-        rank, then it sends the data to the 'master' rank.
+        Send data from a 'worker' rank to the 'manager' rank.  If the calling
+        MPI process is the 'manager' rank, then it receives and returns the
+        data sent from the 'worker'.  If the calling MPI process is a 'worker'
+        rank, then it sends the data to the 'manager' rank.
 
-        NOTE: This method cannot be used for communication between the 'master'
-        rank and itself.  Attempting this will cause the code to hang.
+        NOTE: This method cannot be used for communication between the
+        'manager' rank and itself.  Attempting this will cause the code to
+        hang.
 
-        @param  data  The data to be collected asynchronously on the 'master'
+        @param  data  The data to be collected asynchronously on the 'manager'
                       rank.
 
-        @return  On the 'master' rank, a dictionary containing the source
+        @return  On the 'manager' rank, a dictionary containing the source
                  rank ID and the the data collected.  None on all other ranks.
         '''
         err_msg = 'Collection cannot be used in serial operation'
@@ -375,16 +379,6 @@ class SimpleCommMPI(SimpleComm):
         '''
         return self._comm.Get_rank()
 
-    def is_master(self):
-        '''
-        Simple check to determine if this MPI process is on the 'master' rank
-        (i.e., if the rank ID is 0).
-
-        @return  True if this MPI process is on the master rank, False
-                 otherwise.
-        '''
-        return (self._comm.Get_rank() == 0)
-
     def get_color(self):
         '''
         Get the integer color ID of this MPI process in this communicator.
@@ -418,7 +412,7 @@ class SimpleCommMPI(SimpleComm):
         '''
         if (isinstance(data, dict)):
             all_list = self._comm.gather(SimpleComm.allreduce(self, data, op))
-            if self.is_master():
+            if self.is_manager():
                 all_dict = defaultdict(list)
                 for d in all_list:
                     for k, v in d.items():
@@ -430,24 +424,24 @@ class SimpleCommMPI(SimpleComm):
                 result = None
             return self.scatter(result)
         else:
-            return self.comm.allreduce(
+            return self._comm.allreduce(
                 SimpleComm.allreduce(self, data,
                                      op=getattr(self._mpi, op.upper())))
 
     def partition(self, data=None, func=None, involved=False):
         '''
-        Send data from the 'master' rank to 'slave' ranks.  By default, the
-        data is duplicated from the 'master' rank onto every 'slave' rank.
+        Send data from the 'manager' rank to 'worker' ranks.  By default, the
+        data is duplicated from the 'manager' rank onto every 'worker' rank.
 
         If a partition function is supplied via the "func" argument, then the
-        data will be partitioned across the 'slave' ranks, giving each 'slave'
-        rank a different part of the data according to the partition function
-        supplied.
+        data will be partitioned across the 'worker' ranks, giving each
+        'worker' rank a different part of the data according to the partition
+        function supplied.
 
         If the "involved" argument is True, then a part of the data (as
         determined by the given partition function, if supplied) will be
-        returned on the 'master' rank.  Otherwise, ("involved" argument is
-        False) the data will be partitioned only across the 'slave' ranks.
+        returned on the 'manager' rank.  Otherwise, ("involved" argument is
+        False) the data will be partitioned only across the 'worker' ranks.
 
         @param  data  The data to be partitioned across the ranks in the
                       communicator.
@@ -458,39 +452,132 @@ class SimpleCommMPI(SimpleComm):
                       size of the partition)
 
         @param  involved  True, if a part of the data should be given to the
-                          'master' rank in addition to the 'slave' ranks.
+                          'manager' rank in addition to the 'worker' ranks.
                           False, otherwise.
 
         @return  A (possibly partitioned) subset (i.e., part) of the data
         '''
-        if self.is_master():
+        if self.is_manager():
             op = func if func else lambda *x: x[0]
-            if self.get_size() > 1:
-                reqs = [self._comm.isend(op(data, i, self.get_size()), dest=i)
-                        for i in xrange(1, self.get_size())]
-                self._mpi.Request.Waitall(reqs)
-            return op(data, 0, self.get_size())
+            j = int(not involved)
+            for i in xrange(1, self.get_size()):
+
+                # Get the part of the data to send to rank i
+                part = op(data, i - j, self.get_size() - j)
+
+                # Create the handshake message
+                msg = {}
+                msg['rank'] = self.get_rank()
+                msg['type'] = type(part)
+                msg['shape'] = part.shape if hasattr(part, 'shape') else None
+                msg['dtype'] = part.dtype if hasattr(part, 'dtype') else None
+
+                # Send the handshake message to the worker rank
+                self._comm.send(msg, dest=i, tag=100)
+
+                # Receive the acknowledgement from the worker
+                ack = self._comm.recv(source=i, tag=101)
+
+                # Check the acknowledgement, if bad skip this rank
+                if not ack:
+                    continue
+
+                # If OK, send the data to the worker
+                if self._type_is_ndarray(type(part)):
+                    self._comm.Send(part, dest=i, tag=102)
+                else:
+                    self._comm.send(part, dest=i, tag=103)
+            if involved:
+                return op(data, 0, self.get_size())
+            else:
+                return None
         else:
-            return self._comm.recv(source=0)
+
+            # Get the data message from the manager
+            msg = self._comm.recv(source=0, tag=100)
+
+            # Check the message content
+            ack = type(msg) is dict and \
+                all([key in msg for key in ['rank', 'type', 'shape', 'dtype']])
+
+            # If the message is good, acknowledge
+            self._comm.send(ack, dest=0, tag=101)
+
+            # if acknowledgement is bad, skip
+            if not ack:
+                return None
+
+            # Receive the data
+            if self._type_is_ndarray(msg['type']):
+                recvd = self._np.empty(msg['shape'], dtype=msg['dtype'])
+                self._comm.Recv(recvd, source=0, tag=102)
+            else:
+                recvd = self._comm.recv(source=0, tag=103)
+            return recvd
 
     def collect(self, data=None):
         '''
-        Send data from a 'slave' rank to the 'master' rank.  If the calling
-        MPI process is the 'master' rank, then it receives and returns the
-        data sent from the 'slave'.  If the calling MPI process is a 'slave'
-        rank, then it sends the data to the 'master' rank.
+        Send data from a 'worker' rank to the 'manager' rank.  If the calling
+        MPI process is the 'manager' rank, then it receives and returns the
+        data sent from the 'worker'.  If the calling MPI process is a 'worker'
+        rank, then it sends the data to the 'manager' rank.
 
-        @param  data  The data to be collected asynchronously on the 'master'
+        @param  data  The data to be collected asynchronously on the 'manager'
                       rank.
 
-        @return  On the 'master' rank, a dictionary containing the source
+        @return  On the 'manager' rank, a dictionary containing the source
                  rank ID and the the data collected.  None on all other ranks.
         '''
         if self.get_size() > 1:
-            if self.is_master():
-                return self._comm.recv(source=self._mpi.ANY_SOURCE, tag=111)
+            if self.is_manager():
+
+                # Receive the message from the worker
+                msg = self._comm.recv(source=self._mpi.ANY_SOURCE, tag=200)
+
+                # Check the message content
+                ack = type(msg) is dict and \
+                    all([key in msg for key in ['rank', 'type',
+                                                'shape', 'dtype']])
+
+                # Send acknowledgement back to the worker
+                self._comm.send(ack, dest=msg['rank'], tag=201)
+
+                # If acknowledgement is bad, don't receive
+                if not ack:
+                    return None
+
+                # Receive the data
+                if self._type_is_ndarray(msg['type']):
+                    recvd = self._np.empty(msg['shape'], dtype=msg['dtype'])
+                    self._comm.Recv(recvd, source=msg['rank'], tag=202)
+                else:
+                    recvd = self._comm.recv(source=msg['rank'], tag=203)
+                return recvd
+
             else:
-                self._comm.send(data, dest=0, tag=111)
+
+                # Create the handshake message
+                msg = {}
+                msg['rank'] = self.get_rank()
+                msg['type'] = type(data)
+                msg['shape'] = data.shape if hasattr(data, 'shape') else None
+                msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
+
+                # Send the handshake message to the manager
+                self._comm.send(msg, dest=0, tag=200)
+
+                # Receive the acknowledgement from the manager
+                ack = self._comm.recv(source=0, tag=201)
+
+                # Check the acknowledgement, if not OK skip
+                if not ack:
+                    return
+
+                # If OK, send the data to the manager
+                if self._type_is_ndarray(type(data)):
+                    self._comm.Send(data, dest=0, tag=202)
+                else:
+                    self._comm.send(data, dest=0, tag=203)
         else:
             err_msg = 'Collection cannot be used in a 1-rank communicator'
             raise RuntimeError(err_msg)
