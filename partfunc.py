@@ -19,71 +19,82 @@ from operator import itemgetter
 
 
 #==============================================================================
-# Common Partitioning Function Interface
+# PartitioningFunction -
+# Base class for all partitioning functions
 #==============================================================================
-def __part_func_ifc(data, index=0, size=1):
+class PartitioningFunction(object):
     '''
-    Define the common interface for all partitioning functions.  Checks the
-    input for correct format and returns the input if everything is correct.
+    The base-class for all Partitioning Function objects.
 
-    @param  data  The data to be partitioned
-
-    @param  index  A partition index into a part of the data
-
-    @param  size  The largest number of partitions allowed
-
-    @return  If correct, it returns the input
+    A PartitioningFunction object is one with a '__call__' method that takes
+    three arguments: the data to be partitioned, the index of the partition
+    (or part) requested, and the number of partitions to assume when dividing
+    the data.
     '''
-    if type(index) is not int:
-        raise TypeError('Partition index must be an integer')
-    if type(size) is not int:
-        raise TypeError('Partition size must be an integer')
-    if size < 1:
-        raise TypeError('Partition size less than 1 is invalid')
-    if index > size - 1 or index < 0:
-        raise IndexError('Partition index out of bounds')
-    return data, index, size
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+
+    @staticmethod
+    def _ifc(data, index=0, size=1):
+        '''
+        Define the common interface for all partitioning functions.  Checks the
+        input for correct format and returns the input if everything is
+        correct.
+
+        @param  data  The data to be partitioned
+
+        @param  index  A partition index into a part of the data
+
+        @param  size  The largest number of partitions allowed
+
+        @return  If correct, it returns the input
+        '''
+        if type(index) is not int:
+            raise TypeError('Partition index must be an integer')
+        if type(size) is not int:
+            raise TypeError('Partition size must be an integer')
+        if size < 1:
+            raise TypeError('Partition size less than 1 is invalid')
+        if index > size - 1 or index < 0:
+            raise IndexError('Partition index out of bounds')
+        return data, index, size
+
+    @staticmethod
+    def _is_indexable(data):
+        '''
+        Check if the data object is indexable
+        '''
+        if hasattr(data, '__len__') and hasattr(data, '__getitem__'):
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def _are_pairs(data):
+        '''
+        Check if the data object is an indexable list of pairs
+        '''
+        if PartitioningFunction._is_indexable(data):
+            return all(map(lambda i: PartitioningFunction._is_indexable(i)
+                           and len(i) == 2, data))
+        else:
+            return False
+
+    def __call__(self, *args, **kwargs):
+        '''
+        Partition the data given
+        '''
+        return PartitioningFunction._ifc(*args, **kwargs)[0]
 
 
 #==============================================================================
-# Iterable data checking
+# EqualStride Partitioning Function -
+# Grab parts of a list-like object with equal lengths
 #==============================================================================
-def __is_indexable(data):
-    '''
-    Check if the data object is indexable
-    '''
-    if hasattr(data, '__len__') and hasattr(data, '__getitem__'):
-        return True
-    else:
-        return False
-
-
-#==============================================================================
-# Pair-type data checking
-#==============================================================================
-def __are_pairs(data):
-    '''
-    Check if the data object is an indexable list of pairs
-    '''
-    if __is_indexable(data):
-        return all(map(lambda i: __is_indexable(i) and len(i) == 2, data))
-    else:
-        return False
-
-#==============================================================================
-# unity - Leave data unchanged
-#==============================================================================
-def unity(*params, **keywords):
-    '''
-    The unity partitioning function returns the data unchanged.
-    '''
-    return __part_func_ifc(*params, **keywords)[0]
-
-
-#==============================================================================
-# equal_stride - Grab parts of a list-like object with equal lengths
-#==============================================================================
-def equal_stride(*params, **keywords):
+class EqualStride(PartitioningFunction):
     '''
     Partition an indexable object into sublists of equal (or roughly equal)
     length by striding through the data with a fixed stride.
@@ -93,24 +104,31 @@ def equal_stride(*params, **keywords):
     indexable, then it will return the data for index=0 only, and an empty
     list otherwise.
     '''
-    data, index, size = __part_func_ifc(*params, **keywords)
-    if __is_indexable(data):
-        if index < len(data):
-            return data[index::size]
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+
+    def __call__(self, *args, **kwargs):
+        data, index, size = PartitioningFunction._ifc(*args, **kwargs)
+        if PartitioningFunction._is_indexable(data):
+            if index < len(data):
+                return data[index::size]
+            else:
+                return []
         else:
-            return []
-    else:
-        if index == 0:
-            return [data]
-        else:
-            return []
+            if index == 0:
+                return [data]
+            else:
+                return []
 
 
 #==============================================================================
-# sorted_stride - Grab parts of an indexable object with equal length
-#                 after sorting by weights
+# SortedStride PartitioningFunction -
+# Grab parts of an indexable object with equal length  after sorting by weights
 #==============================================================================
-def sorted_stride(*params, **keywords):
+class SortedStride(PartitioningFunction):
     '''
     Partition an indexable list of pairs.  The first index of each pair is
     assumed to be an item of data (which will be partitioned), and the second
@@ -121,20 +139,30 @@ def sorted_stride(*params, **keywords):
     The results are partitions of roughly equal length and roughly equal
     total weight.  Equal length is prioritized over total weight.
     '''
-    data, index, size = __part_func_ifc(*params, **keywords)
-    if __are_pairs(data):
-        subdata = [q[0] for q in sorted(data, key=itemgetter(1))]
-        return equal_stride(subdata, index=index, size=size)
-    else:
-        return equal_stride(data, index=index, size=size)
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+
+    def __call__(self, *args, **kwargs):
+        '''
+        Partition the data given
+        '''
+        data, index, size = PartitioningFunction._ifc(*args, **kwargs)
+        if PartitioningFunction._are_pairs(data):
+            subdata = [q[0] for q in sorted(data, key=itemgetter(1))]
+            return EqualStride(subdata, index=index, size=size)
+        else:
+            return EqualStride(data, index=index, size=size)
 
 
 #==============================================================================
-# weight_balanced - Grab parts of an indexable object that have equal
-#                   (or roughly equal) total weight, though not necessarily
-#                   equal length
+# WeightBalanced PartitioningFunction -
+# Grab parts of an indexable object that have equal (or roughly equal)
+# total weight, though not necessarily equal length
 #==============================================================================
-def weight_balanced(*params, **keywords):
+class WeightBalanced(PartitioningFunction):
     '''
     Partition an indexable list of pairs.  The first index of each pair is
     assumed to be an item of data (which will be partitioned), and the second
@@ -144,17 +172,27 @@ def weight_balanced(*params, **keywords):
     total weight.  Equal total weight is prioritized over length.
 
     '''
-    data, index, size = __part_func_ifc(*params, **keywords)
-    if __are_pairs(data):
-        sorted_pairs = sorted(data, key=itemgetter(1), reverse=True)
-        partition = []
-        weights = [0] * size
-        for (item, weight) in sorted_pairs:
-            k = min(enumerate(weights), key=itemgetter(1))[0]
-            if k == index:
-                partition.append(item)
-            weights[k] += weight
-        print weights
-        return partition
-    else:
-        return equal_stride(*params, **keywords)
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+
+    def __call__(self, *args, **kwargs):
+        '''
+        Partition the data given
+        '''
+        data, index, size = PartitioningFunction._ifc(*args, **kwargs)
+        if PartitioningFunction._are_pairs(data):
+            sorted_pairs = sorted(data, key=itemgetter(1), reverse=True)
+            partition = []
+            weights = [0] * size
+            for (item, weight) in sorted_pairs:
+                k = min(enumerate(weights), key=itemgetter(1))[0]
+                if k == index:
+                    partition.append(item)
+                weights[k] += weight
+            print weights
+            return partition
+        else:
+            return EqualStride(*args, **kwargs)
