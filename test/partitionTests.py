@@ -1,12 +1,12 @@
 '''
-These are the unit tests for the partition module functions
+These are the unit tests for the partitioning module functions
 _______________________________________________________________________________
 Created on Feb 4, 2015
 
 @author: Kevin Paul <kpaul@ucar.edu>
 '''
 import unittest
-import partition
+import partitioning
 from os import linesep
 
 def test_info_msg(name, data, index, size, actual, expected):
@@ -21,7 +21,7 @@ def test_info_msg(name, data, index, size, actual, expected):
 
 class partitionTests(unittest.TestCase):
     '''
-    Unit tests for the partition module
+    Unit tests for the partitioning module
     '''
 
     def setUp(self):
@@ -36,12 +36,12 @@ class partitionTests(unittest.TestCase):
         pass
 
     def testOutOfBounds(self):
-        self.assertRaises(IndexError, partition.PartitionFunction(), [1, 2, 3], 3, 3)
-        self.assertRaises(IndexError, partition.PartitionFunction(), [1, 2, 3], 7, 3)
+        self.assertRaises(IndexError, partitioning.PartitionFunction(), [1, 2, 3], 3, 3)
+        self.assertRaises(IndexError, partitioning.PartitionFunction(), [1, 2, 3], 7, 3)
 
     def testPartitionFunction(self):
         for inp in self.inputs:
-            pfunc = partition.PartitionFunction()
+            pfunc = partitioning.PartitionFunction()
             actual = pfunc(*inp)
             expected = inp[0]
             msg = test_info_msg('PartitionFunction', inp[0], inp[1], inp[2], actual, expected)
@@ -53,7 +53,7 @@ class partitionTests(unittest.TestCase):
                    range(5), [2, 3], [],
                    range(7), [3, 4], [5]]
         for (ii, inp) in enumerate(self.inputs):
-            pfunc = partition.EqualLength()
+            pfunc = partitioning.EqualLength()
             actual = pfunc(*inp)
             expected = results[ii]
             msg = test_info_msg('EqualLength', inp[0], inp[1], inp[2], actual, expected)
@@ -62,7 +62,7 @@ class partitionTests(unittest.TestCase):
 
     def testEqualStride(self):
         for inp in self.inputs:
-            pfunc = partition.EqualStride()
+            pfunc = partitioning.EqualStride()
             actual = pfunc(*inp)
             expected = inp[0][inp[1]::inp[2]]
             msg = test_info_msg('EqualStride', inp[0], inp[1], inp[2], actual, expected)
@@ -72,7 +72,7 @@ class partitionTests(unittest.TestCase):
     def testSortedStride(self):
         for inp in self.inputs:
             weights = [(20 - i) for i in inp[0]]
-            pfunc = partition.SortedStride()
+            pfunc = partitioning.SortedStride()
             actual = pfunc(zip(inp[0], weights), inp[1], inp[2])
             expected = inp[0][:]
             expected.reverse()
@@ -87,7 +87,7 @@ class partitionTests(unittest.TestCase):
                    {3, 2, 4, 1, 5, 0, 6}, {3, 6}, {4}]
         for (ii, inp) in enumerate(self.inputs):
             weights = [(3 - i) ** 2 for i in inp[0]]
-            pfunc = partition.WeightBalanced()
+            pfunc = partitioning.WeightBalanced()
             actual = set(pfunc(zip(inp[0], weights), inp[1], inp[2]))
             expected = results[ii]
             msg = test_info_msg('WeightBalanced', zip(inp[0], weights), inp[1], inp[2], actual, expected)
