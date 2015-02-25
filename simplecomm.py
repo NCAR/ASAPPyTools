@@ -105,17 +105,22 @@ from collections import defaultdict
 ## Define the supported reduction operators
 OPERATORS = ['sum', 'prod', 'max', 'min']
 
-## Define the reduction operators map
-_OP_MAP = {'sum': {'py': sum,
+## Define the reduction operators map (Maps names to function names.
+## The 'py' function names are passed to 'eval(*)' and executed as python code.
+## The 'np' function names are passed to 'getattr(numpy,*)' and executed as
+## numpy code.  The 'mpi' function names are passed to 'getattr(mpi4py,*)'
+## and return an MPI operator object which is passed as an argument to MPI
+## reduce functions.
+_OP_MAP = {'sum': {'py': 'sum',
                    'np': 'sum',
                    'mpi': 'SUM'},
-           'prod': {'py': partial(reduce, lambda x, y: x * y),
+           'prod': {'py': 'partial(reduce, lambda x, y: x * y)',
                     'np': 'prod',
                     'mpi': 'PROD'},
-           'max': {'py': max,
+           'max': {'py': 'max',
                    'np': 'max',
                    'mpi': 'MAX'},
-           'min': {'py': min,
+           'min': {'py': 'min',
                    'np': 'min',
                    'mpi': 'MIN'}}
 
@@ -125,15 +130,32 @@ _OP_MAP = {'sum': {'py': sum,
 #==============================================================================
 def create_comm(serial=False):
     '''
-    This is a factory function for SimpleComm objects.  Depending on the
-    argument given, it returns an instance of a serial or parallel SimpleComm
-    object.
+    This is a factory function for creating SimpleComm objects.
 
-    @param  serial  A boolean flag with True indicating the desire for a
-                    serial SimpleComm instance, and False incidicating the
-                    desire for a parallel SimpleComm instance.
+    Depending on the argument given, it returns an instance of a serial or
+    parallel SimpleComm object.
 
-    @return  An instance of a SimpleComm object, either serial or parallel
+    Kwargs:
+        serial: A boolean flag with True indicating the desire for a
+                serial SimpleComm instance, and False incidicating the
+                desire for a parallel SimpleComm instance.
+
+    Returns:
+        An instance of a SimpleComm object, either serial (if 'serial==True')
+        or parallel (if 'serial==False')
+
+    Raises:
+        TypeError, if the 'serial' argument is not a bool.
+
+    Examples:
+
+        >>> sercomm = create_comm(serial=True)
+        >>> type(sercomm)
+        <class 'simplecomm.SimpleComm'>
+
+        >>> parcomm = create_comm()
+        >>> type(parcomm)
+        <class 'simplecomm.SimpleCommMPI'>
     '''
     if type(serial) is not bool:
         raise TypeError('Serial parameter must be a bool')
@@ -152,9 +174,6 @@ class SimpleComm(object):
     '''
 
     def __init__(self):
-        '''
-        Constructor
-        '''
 
         # Try importing the Numpy module
         try:
@@ -173,12 +192,27 @@ class SimpleComm(object):
 
     def _type_is_ndarray(self, dt):
         '''
-        Helper function to determing if a given data object is a Numpy
-        NDArray object or not.
+        Helper function to determing if an object is a Numpy NDArray
 
-        @param  dt  The type of the data object to be tested
+        Args:
+            dt: The type of the data object to be tested
 
-        @return  True if the data object is an NDarray, False otherwise.
+        Returns:
+            True, if the object is a Numpy NDArray.  Folse, if otherwise or
+            the Numpy module was not found during the SimpleComm constructor.
+
+        Examples:
+
+            >>> _type_is_ndarray(type(1))
+            False
+
+            >>> alist = [1,2,3,4]
+            >>> _type_is_ndarray(type(alist))
+            False
+
+            >>> aarray = numpy.array(alist)
+            >>> _type_is_ndarray(type(aarray))
+            True
         '''
         if self._numpy:
             return dt is self._numpy.ndarray
@@ -187,30 +221,35 @@ class SimpleComm(object):
 
     def get_size(self):
         '''
-        Get the integer number of ranks in this communicator (including
-        the master rank).
+        Get the integer number of ranks in this communicator
 
-        @return  The integer number of ranks in this communicator.
-                 (Same on all ranks in this communicator.)
+        The size includes the 'manager' rank.
+
+        Returns:
+            The integer number of ranks in this communicator.
         '''
         return 1
 
     def get_rank(self):
         '''
-        Get the integer rank ID of this MPI process in this communicator.
+        Get the integer rank ID of this MPI process in this communicator
 
-        @return  The integer rank ID of this MPI process
-                 (Unique to this MPI process and communicator)
+        This call can be made independently from other ranks.
+
+        Returns:
+            The integer rank ID of this MPI process
         '''
         return 0
 
     def is_manager(self):
         '''
-        Simple check to determine if this MPI process is on the 'manager' rank
-        (i.e., if the rank ID is 0).
+        Check if this MPI process is on the 'manager' rank (i.e., rank 0).
 
-        @return  True if this MPI process is on the master rank, False
-                 otherwise.
+        This call can be made independently from other ranks.
+
+        Returns:
+            True, if this MPI process is on the master rank (or rank 0).
+            False, otherwise.
         '''
         return self.get_rank() == 0
 
@@ -218,38 +257,60 @@ class SimpleComm(object):
         '''
         Get the integer color ID of this MPI process in this communicator.
 
-        @return  The integer color ID of this MPI communicator
+        By default, a communicator's color is None, but a communicator can
+        be divided into color groups using the 'divide' method.
+
+        This call can be made independently from other ranks.
+
+        Returns:
+            The integer color ID of this MPI communicator
         '''
         return self._color
 
     def get_group(self):
         '''
-        Get the group ID associated with the color ID of this MPI communicator.
+        Get the group ID of this MPI communicator
 
-        @return  The group ID of this communicator
+        The group ID is the argument passed to the 'divide' method, and it
+        represents a unique identifier for all ranks in the same color group.
+        It can be any type of object (e.g., a string name).
+
+        This call can be made independently from other ranks.
+
+        Returns:
+            The group ID of this communicator
         '''
         return self._group
 
     def sync(self):
         '''
-        Synchronize all MPI processes at the point of this call.
+        Synchronize all MPI processes at the point of this call
+
+        Immediately after this method is called, you can guarantee that all
+        ranks in this communicator will be synchronized.
+
+        This call must be made by all ranks.
         '''
         return
 
     def allreduce(self, data, op):
         '''
-        An AllReduction operation.
+        Perform an MPI AllReduction operation.
 
-        The data is "reduced" across all ranks in the communicator.  The
-        data reduction is returned to all ranks in the communicator.  (Reduce
+        The data is "reduced" across all ranks in the communicator, and the
+        result is returned to all ranks in the communicator.  (Reduce
         operations such as 'sum', 'prod', 'min', and 'max' are allowed.)
 
-        @param  data  The data to be reduced
+        This call must be made by all ranks.
 
-        @param  op    A string identifier for a reduce operation
+        Args:
+            data:   The data to be reduced
+            op:     A string identifier for a reduce operation (any string
+                    found in the OPERATORS list)
 
-        @return  The single value constituting the reduction of the input data.
-                 (Same on all ranks in this communicator.)
+        Returns:
+            The single value constituting the reduction of the input data.
+            The same value is returned on all ranks in this communicator.
         '''
         if (isinstance(data, dict)):
             totals = {}
@@ -261,38 +322,41 @@ class SimpleComm(object):
                 getattr(self._numpy, _OP_MAP[op]['np'])(data), op)
         elif hasattr(data, '__len__'):
             return SimpleComm.allreduce(self,
-                _OP_MAP[op]['py'](data), op)
+                eval(_OP_MAP[op]['py'])(data), op)
         else:
             return data
 
     def partition(self, data=None, func=None, involved=False):
         '''
-        Send data from the 'manager' rank to 'worker' ranks.  By default, the
-        data is duplicated from the 'manager' rank onto every 'worker' rank.
+        Partition and send data from the 'manager' rank to 'worker' ranks.
 
-        If a partitioning function is supplied via the "func" argument, then the
-        data will be partitioned across the 'worker' ranks, giving each
-        'worker' rank a different part of the data according to the partitioning
-        function supplied.
+        By default, the data is duplicated from the 'manager' rank onto every
+        'worker' rank.  If a partitioning function is supplied via the 'func'
+        argument, then the data will be partitioned across the 'worker' ranks,
+        giving each 'worker' rank a different part of the data according to
+        the algorithm used by partitioning function supplied.
 
-        If the "involved" argument is True, then a part of the data (as
+        If the 'involved' argument is True, then a part of the data (as
         determined by the given partitioning function, if supplied) will be
-        returned on the 'manager' rank.  Otherwise, ("involved" argument is
+        returned on the 'manager' rank.  Otherwise, ('involved' argument is
         False) the data will be partitioned only across the 'worker' ranks.
 
-        @param  data  The data to be partitioned across the ranks in the
-                      communicator.
+        This call must be made by all ranks.
 
-        @param  func  A PartitionFunction object (i.e., an object that has
-                      three-argument __call__(data, index, size) method that
-                      returns a part of the data given the index and assumed
-                      size of the partitioning)
+        Kwargs:
+            data:       The data to be partitioned across the ranks in the
+                        communicator.
+            func:       A PartitionFunction object/function that returns a part
+                        of the data given the index and assumed size of the
+                        partition
+            involved:   True, if a part of the data should be given to the
+                        'manager' rank in addition to the 'worker' ranks.
+                        False, otherwise.
 
-        @param  involved  True, if a part of the data should be given to the
-                          'manager' rank in addition to the 'worker' ranks.
-                          False, otherwise.
-
-        @return  A (possibly partitioned) subset (i.e., part) of the data
+        Returns:
+            A (possibly partitioned) subset (i.e., part) of the data.
+            Depending on the PartitionFunction used (or if it is used at all),
+            this method may return a different part on each rank.
         '''
         op = func if func else lambda *x: x[0]
         if involved:
@@ -302,37 +366,59 @@ class SimpleComm(object):
 
     def collect(self, data=None):
         '''
-        Send data from a 'worker' rank to the 'manager' rank.  If the calling
-        MPI process is the 'manager' rank, then it receives and returns the
-        data sent from the 'worker'.  If the calling MPI process is a 'worker'
-        rank, then it sends the data to the 'manager' rank.
+        Send data from a 'worker' rank to the 'manager' rank.
+
+        If the calling MPI process is the 'manager' rank, then it will
+        receive and return the data sent from the 'worker'.  If the calling
+        MPI process is a 'worker' rank, then it will send the data to the
+        'manager' rank.
+
+        For each call to this function on a given 'worker' rank, there must
+        be a matching call to this function made on the 'manager' rank.
 
         NOTE: This method cannot be used for communication between the
         'manager' rank and itself.  Attempting this will cause the code to
         hang.
 
-        @param  data  The data to be collected asynchronously on the 'manager'
-                      rank.
+        Kwargs:
+            data:   The data to be collected asynchronously on the 'manager'
+                    rank.
 
-        @return  On the 'manager' rank, a dictionary containing the source
-                 rank ID and the the data collected.  None on all other ranks.
+        Returns:
+            On the 'manager' rank, a tuple containing the source rank ID
+            and the the data collected.  None on all other ranks.
+
+        Raises:
+            RuntimeError, if executed during a serial or 1-rank parallel run
         '''
         err_msg = 'Collection cannot be used in serial operation'
         raise RuntimeError(err_msg)
 
     def divide(self, group):
         '''
-        Divide this communicator's ranks into 2 kinds of groups: (1) groups
-        with ranks of the same color ID but different rank IDs, and (2) groups
-        with ranks of the same rank ID but different color IDs.
+        Divide this communicator's ranks into groups
 
-        @param  group  A unique group ID to which will be assigned an integer
-                       color ID ranging from 0 to the number of group ID's
-                       supplied across all ranks
+        Creates and returns two (2) kinds of groups:
 
-        @return  A tuple containing (first) the SimpleComm for ranks with the
-                 same color ID and (second) the SimpleComm for ranks with the
-                 same rank ID (but different colors)
+            (1) groups with ranks of the same color ID but different rank IDs
+                (called a "monocolor" group), and
+
+            (2) groups with ranks of the same rank ID but different color IDs
+                (called a "multicolor" group).
+
+        Args:
+            group:  A unique group ID to which will be assigned an integer
+                    color ID ranging from 0 to the number of group ID's
+                    supplied across all ranks
+
+        Returns:
+            A tuple containing (first) the "monocolor" SimpleComm for ranks
+            with the same color ID (but different rank IDs) and (second) the
+            "multicolor" SimpleComm for ranks with the same rank ID (but
+            different color IDs)
+
+        Raises:
+            RuntimeError, if executed during a serial or 1-rank parallel run
         '''
         err_msg = 'Division cannot be done on a serial communicator'
         raise RuntimeError(err_msg)
@@ -347,9 +433,6 @@ class SimpleCommMPI(SimpleComm):
     '''
 
     def __init__(self):
-        '''
-        Constructor
-        '''
         super(SimpleCommMPI, self).__init__()
 
         # Try importing the MPI4Py MPI module
@@ -367,43 +450,55 @@ class SimpleCommMPI(SimpleComm):
 
     def get_size(self):
         '''
-        Get the integer number of ranks in this communicator (including
-        the master rank).
+        Get the integer number of ranks in this communicator
 
-        @return  The integer number of ranks in this communicator.
-                 (Same on all ranks in this communicator.)
+        The size includes the 'manager' rank.
+
+        Returns:
+            The integer number of ranks in this communicator.
         '''
         return self._comm.Get_size()
 
     def get_rank(self):
         '''
-        Get the integer rank ID of this MPI process in this communicator.
+        Get the integer rank ID of this MPI process in this communicator
 
-        @return  The integer rank ID of this MPI process
-                 (Unique to this MPI process and communicator)
+        This call can be made independently from other ranks.
+
+        Returns:
+            The integer rank ID of this MPI process
         '''
         return self._comm.Get_rank()
 
     def sync(self):
         '''
-        Synchronize all MPI processes at the point of this call.
+        Synchronize all MPI processes at the point of this call
+
+        Immediately after this method is called, you can guarantee that all
+        ranks in this communicator will be synchronized.
+
+        This call must be made by all ranks.
         '''
         self._comm.Barrier()
 
     def allreduce(self, data, op):
         '''
-        An AllReduction operation.
+        Perform an MPI AllReduction operation.
 
-        The data is "reduced" across all ranks in the communicator.  The
-        data reduction is returned to all ranks in the communicator.  (Reduce
+        The data is "reduced" across all ranks in the communicator, and the
+        result is returned to all ranks in the communicator.  (Reduce
         operations such as 'sum', 'prod', 'min', and 'max' are allowed.)
 
-        @param  data  The data to be reduced
+        This call must be made by all ranks.
 
-        @param  op    A string identifier for a reduce operation
+        Args:
+            data:   The data to be reduced
+            op:     A string identifier for a reduce operation (any string
+                    found in the OPERATORS list)
 
-        @return  The single value constituting the reduction of the input data.
-                 (Same on all ranks in this communicator.)
+        Returns:
+            The single value constituting the reduction of the input data.
+            The same value is returned on all ranks in this communicator.
         '''
         if (isinstance(data, dict)):
             all_list = self._comm.gather(SimpleComm.allreduce(self, data, op))
@@ -424,32 +519,35 @@ class SimpleCommMPI(SimpleComm):
 
     def partition(self, data=None, func=None, involved=False):
         '''
-        Send data from the 'manager' rank to 'worker' ranks.  By default, the
-        data is duplicated from the 'manager' rank onto every 'worker' rank.
+        Partition and send data from the 'manager' rank to 'worker' ranks.
 
-        If a partitioning function is supplied via the "func" argument, then the
-        data will be partitioned across the 'worker' ranks, giving each
-        'worker' rank a different part of the data according to the partitioning
-        function supplied.
+        By default, the data is duplicated from the 'manager' rank onto every
+        'worker' rank.  If a partitioning function is supplied via the 'func'
+        argument, then the data will be partitioned across the 'worker' ranks,
+        giving each 'worker' rank a different part of the data according to
+        the algorithm used by partitioning function supplied.
 
-        If the "involved" argument is True, then a part of the data (as
+        If the 'involved' argument is True, then a part of the data (as
         determined by the given partitioning function, if supplied) will be
-        returned on the 'manager' rank.  Otherwise, ("involved" argument is
+        returned on the 'manager' rank.  Otherwise, ('involved' argument is
         False) the data will be partitioned only across the 'worker' ranks.
 
-        @param  data  The data to be partitioned across the ranks in the
-                      communicator.
+        This call must be made by all ranks.
 
-        @param  func  A PartitionFunction object (i.e., an object that has
-                      three-argument __call__(data, index, size) method that
-                      returns a part of the data given the index and assumed
-                      size of the partitioning)
+        Kwargs:
+            data:       The data to be partitioned across the ranks in the
+                        communicator.
+            func:       A PartitionFunction object/function that returns a part
+                        of the data given the index and assumed size of the
+                        partition
+            involved:   True, if a part of the data should be given to the
+                        'manager' rank in addition to the 'worker' ranks.
+                        False, otherwise.
 
-        @param  involved  True, if a part of the data should be given to the
-                          'manager' rank in addition to the 'worker' ranks.
-                          False, otherwise.
-
-        @return  A (possibly partitioned) subset (i.e., part) of the data
+        Returns:
+            A (possibly partitioned) subset (i.e., part) of the data.
+            Depending on the PartitionFunction used (or if it is used at all),
+            this method may return a different part on each rank.
         '''
         if self.is_manager():
             op = func if func else lambda *x: x[0]
@@ -512,16 +610,30 @@ class SimpleCommMPI(SimpleComm):
 
     def collect(self, data=None):
         '''
-        Send data from a 'worker' rank to the 'manager' rank.  If the calling
-        MPI process is the 'manager' rank, then it receives and returns the
-        data sent from the 'worker'.  If the calling MPI process is a 'worker'
-        rank, then it sends the data to the 'manager' rank.
+        Send data from a 'worker' rank to the 'manager' rank.
 
-        @param  data  The data to be collected asynchronously on the 'manager'
-                      rank.
+        If the calling MPI process is the 'manager' rank, then it will
+        receive and return the data sent from the 'worker'.  If the calling
+        MPI process is a 'worker' rank, then it will send the data to the
+        'manager' rank.
 
-        @return  On the 'manager' rank, a dictionary containing the source
-                 rank ID and the the data collected.  None on all other ranks.
+        For each call to this function on a given 'worker' rank, there must
+        be a matching call to this function made on the 'manager' rank.
+
+        NOTE: This method cannot be used for communication between the
+        'manager' rank and itself.  Attempting this will cause the code to
+        hang.
+
+        Kwargs:
+            data:   The data to be collected asynchronously on the 'manager'
+                    rank.
+
+        Returns:
+            On the 'manager' rank, a tuple containing the source rank ID
+            and the the data collected.  None on all other ranks.
+
+        Raises:
+            RuntimeError, if executed during a serial or 1-rank parallel run
         '''
         if self.get_size() > 1:
             if self.is_manager():
@@ -579,17 +691,29 @@ class SimpleCommMPI(SimpleComm):
 
     def divide(self, group):
         '''
-        Divide this communicator's ranks into 2 kinds of groups: (1) groups
-        with ranks of the same color ID but different rank IDs, and (2) groups
-        with ranks of the same rank ID but different color IDs.
+        Divide this communicator's ranks into groups
 
-        @param  group  A unique group ID to which will be assigned an integer
-                       color ID ranging from 0 to the number of group ID's
-                       supplied across all ranks
+        Creates and returns two (2) kinds of groups:
 
-        @return  A tuple containing (first) the SimpleComm for ranks with the
-                 same color ID and (second) the SimpleComm for ranks with the
-                 same rank ID (but different colors)
+            (1) groups with ranks of the same color ID but different rank IDs
+                (called a "monocolor" group), and
+
+            (2) groups with ranks of the same rank ID but different color IDs
+                (called a "multicolor" group).
+
+        Args:
+            group:  A unique group ID to which will be assigned an integer
+                    color ID ranging from 0 to the number of group ID's
+                    supplied across all ranks
+
+        Returns:
+            A tuple containing (first) the "monocolor" SimpleComm for ranks
+            with the same color ID (but different rank IDs) and (second) the
+            "multicolor" SimpleComm for ranks with the same rank ID (but
+            different color IDs)
+
+        Raises:
+            RuntimeError, if executed during a serial or 1-rank parallel run
         '''
         if self.get_size() > 1:
             allgroups = list(set(self._comm.allgather(group)))
