@@ -241,6 +241,43 @@ class SimpleCommParTests(unittest.TestCase):
         else:
             self.assertEqual(actual, expected, msg)
 
+    def testRationInt(self):
+        if self.gcomm.is_manager():
+            data = range(1, self.size)
+            actual = [self.gcomm.ration(d) for d in data]
+            expected = [None] * (self.size - 1)
+        else:
+            data = None
+            actual = self.gcomm.ration()
+            expected = range(1, self.size)
+        self.gcomm.sync()
+        msg = test_info_msg(self.rank, self.size, 'ration(int)', data, actual, expected)
+        print msg
+        if self.gcomm.is_manager():
+            self.assertEqual(actual, expected, msg)
+        else:
+            self.assertIn(actual, expected, msg)
+
+    def testRationArray(self):
+        if self.gcomm.is_manager():
+            data = np.arange(3 * self.size)
+            actual = [self.gcomm.ration(data[3 * i:3 * (i + 1)]) for i in range(1, self.size)]
+            expected = [None] * (self.size - 1)
+        else:
+            data = None
+            actual = self.gcomm.ration()
+            expected = np.arange(3 * self.size)
+        self.gcomm.sync()
+        msg = test_info_msg(self.rank, self.size, 'ration(array)', data, actual, expected)
+        print msg
+        if self.gcomm.is_manager():
+            self.assertEqual(actual, expected, msg)
+        else:
+            contained = any([np.all(actual == expected[i:i + actual.size])
+                             for i in range(expected.size - actual.size + 1)])
+            self.assertTrue(contained, msg)
+
+
 if __name__ == "__main__":
     hline = '=' * 70
     if MPI_COMM_WORLD.Get_rank() == 0:
