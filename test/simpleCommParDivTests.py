@@ -54,10 +54,17 @@ class SimpleCommParDivTests(unittest.TestCase):
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testIsManager(self):
-        actual = self.gcomm.is_manager()
-        expected = (self.rank == 0)
-        msg = test_info_msg(self.rank, self.size, 'is_manager()', None, actual, expected)
+    def testIsManagerMono(self):
+        actual = self.monocomm.is_manager()
+        expected = (self.monocomm.get_rank() == 0)
+        msg = test_info_msg(self.rank, self.size, 'mono.is_manager()', None, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testIsManagerMulti(self):
+        actual = self.multicomm.is_manager()
+        expected = (self.multicomm.get_rank() == 0)
+        msg = test_info_msg(self.rank, self.size, 'multi.is_manager()', None, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
