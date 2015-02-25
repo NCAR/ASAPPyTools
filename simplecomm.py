@@ -547,7 +547,7 @@ class SimpleCommMPI(SimpleComm):
                     self._comm.Recv(recvd, source=msg['rank'], tag=202)
                 else:
                     recvd = self._comm.recv(source=msg['rank'], tag=203)
-                return recvd
+                return msg['rank'], recvd
 
             else:
 

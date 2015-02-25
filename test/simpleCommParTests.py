@@ -194,7 +194,7 @@ class SimpleCommParTests(unittest.TestCase):
         if self.gcomm.is_manager():
             data = None
             actual = [self.gcomm.collect() for _ in xrange(1, self.size)]
-            expected = range(1, self.size)
+            expected = [i for i in enumerate(range(1, self.size), 1)]
         else:
             data = self.rank
             actual = self.gcomm.collect(data)
@@ -211,7 +211,7 @@ class SimpleCommParTests(unittest.TestCase):
         if self.gcomm.is_manager():
             data = None
             actual = [self.gcomm.collect() for _ in xrange(1, self.size)]
-            expected = [range(i) for i in xrange(1, self.size)]
+            expected = [(i, range(i)) for i in xrange(1, self.size)]
         else:
             data = range(self.rank)
             actual = self.gcomm.collect(data)
@@ -227,8 +227,8 @@ class SimpleCommParTests(unittest.TestCase):
     def testCollectArray(self):
         if self.gcomm.is_manager():
             data = None
-            actual = [list(self.gcomm.collect()) for _ in xrange(1, self.size)]
-            expected = [list(np.arange(self.size) + i) for i in xrange(1, self.size)]
+            actual = [(i, list(x)) for (i, x) in [self.gcomm.collect() for _ in xrange(1, self.size)]]
+            expected = [(i, list(np.arange(self.size) + i)) for i in xrange(1, self.size)]
         else:
             data = np.arange(self.size) + self.rank
             actual = self.gcomm.collect(data)
