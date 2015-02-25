@@ -364,6 +364,35 @@ class SimpleComm(object):
         else:
             return None
 
+    def ration(self, data=None):
+        '''
+        Send a single piece of data from the 'manager' rank to a 'worker' rank
+
+        If this method is called on a 'worker' rank, the worker will send a
+        "request" for data to the 'manager' rank.  When the 'manager' receives
+        this request, the 'manager' rank sends a single piece of data back to
+        the requesting 'worker' rank.
+
+        For each call to this function on a given 'worker' rank, there must
+        be a matching call to this function made on the 'manager' rank.
+
+        NOTE: This method cannot be used for communication between the
+        'manager' rank and itself.  Attempting this will cause the code to
+        hang.
+
+        Kwargs:
+            data:   The data to be asynchronously sent to the 'worker' rank/
+
+        Returns:
+            On the 'worker' rank, the data sent by the manager.  On the
+            'manager' rank, None.
+
+        Raises:
+            RuntimeError, if executed during a serial or 1-rank parallel run
+        '''
+        err_msg = 'Rationing cannot be used in serial operation'
+        raise RuntimeError(err_msg)
+
     def collect(self, data=None):
         '''
         Send data from a 'worker' rank to the 'manager' rank.
@@ -386,7 +415,7 @@ class SimpleComm(object):
 
         Returns:
             On the 'manager' rank, a tuple containing the source rank ID
-            and the the data collected.  None on all other ranks.
+            and the data collected.  None on all other ranks.
 
         Raises:
             RuntimeError, if executed during a serial or 1-rank parallel run
@@ -607,6 +636,89 @@ class SimpleCommMPI(SimpleComm):
             else:
                 recvd = self._comm.recv(source=0, tag=103)
             return recvd
+
+    def ration(self, data=None):
+        '''
+        Send a single piece of data from the 'manager' rank to a 'worker' rank
+
+        If this method is called on a 'worker' rank, the worker will send a
+        "request" for data to the 'manager' rank.  When the 'manager' receives
+        this request, the 'manager' rank sends a single piece of data back to
+        the requesting 'worker' rank.
+
+        For each call to this function on a given 'worker' rank, there must
+        be a matching call to this function made on the 'manager' rank.
+
+        NOTE: This method cannot be used for communication between the
+        'manager' rank and itself.  Attempting this will cause the code to
+        hang.
+
+        Kwargs:
+            data:   The data to be asynchronously sent to the 'worker' rank/
+
+        Returns:
+            On the 'worker' rank, the data sent by the manager.  On the
+            'manager' rank, None.
+
+        Raises:
+            RuntimeError, if executed during a serial or 1-rank parallel run
+        '''
+        if self.get_size() > 1:
+            if self.is_manager():
+
+                # Listen for a requesting worker rank
+                rank = self._comm.recv(source=self._mpi.ANY_SOURCE, tag=300)
+
+                # Create the handshake message
+                msg = {}
+                msg['type'] = type(data)
+                msg['shape'] = data.shape if hasattr(data, 'shape') else None
+                msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
+
+                # Send the handshake message to the requesting worker
+                self._comm.send(msg, dest=rank, tag=301)
+
+                # Receive the acknowledgement from the requesting worker
+                ack = self._comm.recv(source=rank, tag=302)
+
+                # Check the acknowledgement, if not OK skip
+                if not ack:
+                    return
+
+                # If OK, send the data to the requesting worker
+                if self._type_is_ndarray(type(data)):
+                    self._comm.Send(data, dest=rank, tag=303)
+                else:
+                    self._comm.send(data, dest=rank, tag=304)
+            else:
+
+                # Send a request for data to the manager
+                self._comm.send(self.get_rank(), dest=0, tag=300)
+
+                # Receive the handshake message from the manager
+                msg = self._comm.recv(source=0, tag=301)
+
+                # Check the message content
+                ack = type(msg) is dict and \
+                    all([key in msg for key in ['type', 'shape', 'dtype']])
+
+                # Send acknowledgement back to the manager
+                self._comm.send(ack, dest=0, tag=302)
+
+                # If acknowledgement is bad, don't receive
+                if not ack:
+                    return None
+
+                # Receive the data from the manager
+                if self._type_is_ndarray(msg['type']):
+                    recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
+                    self._comm.Recv(recvd, source=0, tag=303)
+                else:
+                    recvd = self._comm.recv(source=0, tag=304)
+                return recvd
+        else:
+            err_msg = 'Rationing cannot be used in 1-rank parallel operation'
+            raise RuntimeError(err_msg)
 
     def collect(self, data=None):
         '''
