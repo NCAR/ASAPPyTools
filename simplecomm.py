@@ -230,6 +230,12 @@ class SimpleComm(object):
         '''
         return self._group
 
+    def sync(self):
+        '''
+        Synchronize all MPI processes at the point of this call.
+        '''
+        return
+
     def allreduce(self, data, op):
         '''
         An AllReduction operation.
@@ -377,6 +383,12 @@ class SimpleCommMPI(SimpleComm):
                  (Unique to this MPI process and communicator)
         '''
         return self._comm.Get_rank()
+
+    def sync(self):
+        '''
+        Synchronize all MPI processes at the point of this call.
+        '''
+        self._comm.Barrier()
 
     def allreduce(self, data, op):
         '''
@@ -531,7 +543,7 @@ class SimpleCommMPI(SimpleComm):
 
                 # Receive the data
                 if self._type_is_ndarray(msg['type']):
-                    recvd = self._np.empty(msg['shape'], dtype=msg['dtype'])
+                    recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
                     self._comm.Recv(recvd, source=msg['rank'], tag=202)
                 else:
                     recvd = self._comm.recv(source=msg['rank'], tag=203)
