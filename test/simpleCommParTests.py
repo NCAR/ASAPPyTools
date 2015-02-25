@@ -190,6 +190,56 @@ class SimpleCommParTests(unittest.TestCase):
         print msg
         np.testing.assert_array_equal(actual, expected, msg)
 
+    def testCollectInt(self):
+        if self.gcomm.is_manager():
+            data = None
+            actual = [self.gcomm.collect() for _ in xrange(1, self.size)]
+            expected = range(1, self.size)
+        else:
+            data = self.rank
+            actual = self.gcomm.collect(data)
+            expected = None
+        self.gcomm.sync()
+        msg = test_info_msg(self.rank, self.size, 'collect(int)', data, actual, expected)
+        print msg
+        if self.gcomm.is_manager():
+            self.assertItemsEqual(actual, expected, msg)
+        else:
+            self.assertEqual(actual, expected, msg)
+
+    def testCollectList(self):
+        if self.gcomm.is_manager():
+            data = None
+            actual = [self.gcomm.collect() for _ in xrange(1, self.size)]
+            expected = [range(i) for i in xrange(1, self.size)]
+        else:
+            data = range(self.rank)
+            actual = self.gcomm.collect(data)
+            expected = None
+        self.gcomm.sync()
+        msg = test_info_msg(self.rank, self.size, 'collect(list)', data, actual, expected)
+        print msg
+        if self.gcomm.is_manager():
+            self.assertItemsEqual(actual, expected, msg)
+        else:
+            self.assertEqual(actual, expected, msg)
+
+    def testCollectArray(self):
+        if self.gcomm.is_manager():
+            data = None
+            actual = [list(self.gcomm.collect()) for _ in xrange(1, self.size)]
+            expected = [list(np.arange(self.size) + i) for i in xrange(1, self.size)]
+        else:
+            data = np.arange(self.size) + self.rank
+            actual = self.gcomm.collect(data)
+            expected = None
+        self.gcomm.sync()
+        msg = test_info_msg(self.rank, self.size, 'collect(array)', data, actual, expected)
+        print msg
+        if self.gcomm.is_manager():
+            self.assertItemsEqual(actual, expected, msg)
+        else:
+            self.assertEqual(actual, expected, msg)
 
 if __name__ == "__main__":
     hline = '=' * 70
