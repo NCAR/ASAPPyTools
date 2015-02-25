@@ -169,6 +169,15 @@ class SimpleCommP1STests(unittest.TestCase):
         print msg
         np.testing.assert_array_equal(sresult, presult, msg)
 
+    def testRationError(self):
+        data = 10
+        self.assertRaises(RuntimeError, self.scomm.ration, data)
+        self.assertRaises(RuntimeError, self.pcomm.ration, data)
+
+    def testCollectError(self):
+        data = 10
+        self.assertRaises(RuntimeError, self.scomm.collect, data)
+        self.assertRaises(RuntimeError, self.pcomm.collect, data)
 
 
 if __name__ == "__main__":
