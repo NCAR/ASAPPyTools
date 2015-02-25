@@ -31,26 +31,28 @@ class SimpleCommParDivTests(unittest.TestCase):
         self.size = MPI_COMM_WORLD.Get_size()
         self.rank = MPI_COMM_WORLD.Get_rank()
         self.groups = ['a', 'b', 'c']
-        self.color = self.rank % len(self.groups)
-        self.group = self.groups[self.color]
-        self.monocomm, self.multicomm = self.gcomm.divide(self.group)
+        self.my_color = self.rank % len(self.groups)
+        self.my_group = self.groups[self.my_color]
+        self.all_colors = [i % len(self.groups) for i in xrange(self.size)]
+        self.all_groups = [self.groups[i] for i in self.all_colors]
+        self.monocomm, self.multicomm = self.gcomm.divide(self.my_group)
 
     def tearDown(self):
         pass
 
     def testGetSizeMono(self):
         actual = self.monocomm.get_size()
-        expected = self.size / len(self.groups) + int(self.rank % len(self.groups) > 0)
+        expected = self.all_colors.count(self.my_color)
         msg = test_info_msg(self.rank, self.size, 'mono.get_size()', None, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-#    def testGetSizeMulti(self):
-#        actual = self.multicomm.get_size()
-#        expected =
-#        msg = test_info_msg(self.rank, self.size, 'multi.get_size()', None, actual, expected)
-#        print msg
-#        self.assertEqual(actual, expected, msg)
+    def testGetSizeMulti(self):
+        actual = self.multicomm.get_size()
+        expected = self.all_colors.count(self.my_color)
+        msg = test_info_msg(self.rank, self.size, 'multi.get_size()', None, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
 
     def testIsManager(self):
         actual = self.gcomm.is_manager()
