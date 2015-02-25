@@ -99,6 +99,7 @@ Created on Feb 4, 2015
 @author: Kevin Paul <kpaul@ucar.edu>
 '''
 
+from sys import getrefcount
 from functools import partial
 from collections import defaultdict
 
@@ -477,6 +478,10 @@ class SimpleCommMPI(SimpleComm):
         ## The MPI communicator (by default, COMM_WORLD)
         self._comm = self._mpi.COMM_WORLD
 
+    def __del__(self):
+        if self._comm != self._mpi.COMM_WORLD and getrefcount(self._comm) < 2:
+            self._comm.Free()
+
     def get_size(self):
         '''
         Get the integer number of ranks in this communicator
@@ -833,13 +838,13 @@ class SimpleCommMPI(SimpleComm):
             monocomm = SimpleCommMPI()
             monocomm._color = color
             monocomm._group = group
-            monocomm._comm = self._comm.split(color)
+            monocomm._comm = self._comm.Split(color)
 
             rank = monocomm.get_rank()
             multicomm = SimpleCommMPI()
             multicomm._color = rank
             multicomm._group = rank
-            multicomm._comm = self._comm.split(rank)
+            multicomm._comm = self._comm.Split(rank)
 
             return monocomm, multicomm
         else:
