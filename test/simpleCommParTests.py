@@ -9,7 +9,7 @@ Created on Feb 4, 2015
 import unittest
 import simplecomm
 import numpy as np
-from partitioning import EqualStride
+from partition import EqualStride
 from os import linesep as eol
 from mpi4py import MPI
 MPI_COMM_WORLD = MPI.COMM_WORLD

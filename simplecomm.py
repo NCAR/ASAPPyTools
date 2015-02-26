@@ -14,13 +14,13 @@ common 'manager'/'worker' pattern, with the 0th rank assumed to be the
 PARTITIONING:
 
 Within the SimpleComm paradigm, the 'manager' rank is assumed to be responsible
-for partitioning (or distributing) the necessary work to the 'worker' ranks.
-The *partitioning* mathod provides this functionality.  Using a *partitioning
-function*, the *partitioning* method takes data known on the 'manager' rank and
+for partition (or distributing) the necessary work to the 'worker' ranks.
+The *partition* mathod provides this functionality.  Using a *partition
+function*, the *partition* method takes data known on the 'manager' rank and
 gives each 'worker' rank a part of the data according to the algorithm of the
-partitioning function.
+partition function.
 
-The *partitioning* method is *synchronous*, meaning that every rank (from the
+The *partition* method is *synchronous*, meaning that every rank (from the
 'manager' rank to all of the 'worker' ranks) must be in synch when the method
 is called.  This means that every rank must participate in the call, and
 every rank will wait until all of the data has been partitioned before
@@ -29,7 +29,7 @@ continuing.  Remember, whenever the 'manager' rank speaks, all of the
 'manager' rank.
 
 Additionally, the 'manager' rank can be considered *involved* or *uninvolved*
-in the partitioning process.  If the 'manager' rank is *involved*, then the
+in the partition process.  If the 'manager' rank is *involved*, then the
 master will take a part of the data for itself.  If the 'manager' is
 *uninvolved*, then the data will be partitioned only across the 'worker' ranks.
 
@@ -89,7 +89,7 @@ the 'manager' will assign each rank (including itself) to 2 new groups:
 
 The *divide* method provides this functionality, and it returns 2 new
 SimpleComm objects for each of the 2 groupings described above.  This means
-that within each group, the same *partitioning*, *collecting*, and *reducing*
+that within each group, the same *partition*, *collecting*, and *reducing*
 operations can be performed in the same way as described above for the *global*
 group.
 
@@ -336,13 +336,13 @@ class SimpleComm(object):
         Partition and send data from the 'manager' rank to 'worker' ranks.
 
         By default, the data is duplicated from the 'manager' rank onto every
-        'worker' rank.  If a partitioning function is supplied via the 'func'
+        'worker' rank.  If a partition function is supplied via the 'func'
         argument, then the data will be partitioned across the 'worker' ranks,
         giving each 'worker' rank a different part of the data according to
-        the algorithm used by partitioning function supplied.
+        the algorithm used by partition function supplied.
 
         If the 'involved' argument is True, then a part of the data (as
-        determined by the given partitioning function, if supplied) will be
+        determined by the given partition function, if supplied) will be
         returned on the 'manager' rank.  Otherwise, ('involved' argument is
         False) the data will be partitioned only across the 'worker' ranks.
 
@@ -562,13 +562,13 @@ class SimpleCommMPI(SimpleComm):
         Partition and send data from the 'manager' rank to 'worker' ranks.
 
         By default, the data is duplicated from the 'manager' rank onto every
-        'worker' rank.  If a partitioning function is supplied via the 'func'
+        'worker' rank.  If a partition function is supplied via the 'func'
         argument, then the data will be partitioned across the 'worker' ranks,
         giving each 'worker' rank a different part of the data according to
-        the algorithm used by partitioning function supplied.
+        the algorithm used by partition function supplied.
 
         If the 'involved' argument is True, then a part of the data (as
-        determined by the given partitioning function, if supplied) will be
+        determined by the given partition function, if supplied) will be
         returned on the 'manager' rank.  Otherwise, ('involved' argument is
         False) the data will be partitioned only across the 'worker' ranks.
 
