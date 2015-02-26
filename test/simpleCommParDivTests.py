@@ -8,11 +8,11 @@ Created on Feb 4, 2015
 '''
 import unittest
 import simplecomm
-import numpy as np
 from partitioning import EqualStride
 from os import linesep as eol
 from mpi4py import MPI
 MPI_COMM_WORLD = MPI.COMM_WORLD
+
 
 def test_info_msg(rank, size, name, data, actual, expected):
     rknm = ''.join(['[', str(rank), '/', str(size), '] ', str(name)])
@@ -27,275 +27,361 @@ def test_info_msg(rank, size, name, data, actual, expected):
 class SimpleCommParDivTests(unittest.TestCase):
 
     def setUp(self):
+        # COMM_WORLD Communicator and its size and
+        # this MPI process's world rank
         self.gcomm = simplecomm.create_comm()
-        self.size = MPI_COMM_WORLD.Get_size()
-        self.rank = MPI_COMM_WORLD.Get_rank()
+        self.gsize = MPI_COMM_WORLD.Get_size()
+        self.grank = MPI_COMM_WORLD.Get_rank()
+
+        # The group names to assume when dividing COMM_WORLD
         self.groups = ['a', 'b', 'c']
-        self.my_color = self.rank % len(self.groups)
-        self.my_group = self.groups[self.my_color]
-        self.all_colors = [i % len(self.groups) for i in xrange(self.size)]
+
+        # This MPI process's rank, color, and group after division
+        self.rank = self.grank / len(self.groups)
+        self.color = self.grank % len(self.groups)
+        self.group = self.groups[self.color]
+
+        # The divided communicators (monocolor and multicolor)
+        self.monocomm, self.multicomm = self.gcomm.divide(self.group)
+
+        # Every MPI process's color, group, and grank after division
+        self.all_colors = [i % len(self.groups) for i in xrange(self.gsize)]
         self.all_groups = [self.groups[i] for i in self.all_colors]
-        self.monocomm, self.multicomm = self.gcomm.divide(self.my_group)
+        self.all_ranks = [i / len(self.groups) for i in xrange(self.gsize)]
 
     def tearDown(self):
         pass
 
-    def testGetSizeMono(self):
+    def testMonoGetRank(self):
+        actual = self.monocomm.get_rank()
+        expected = self.rank
+        msg = test_info_msg(self.grank, self.gsize, 'mono.get_rank()',
+                            None, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testMultiGetRank(self):
+        actual = self.multicomm.get_rank()
+        expected = self.color
+        msg = test_info_msg(self.grank, self.gsize, 'multi.get_rank()',
+                            None, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testMonoGetSize(self):
         actual = self.monocomm.get_size()
-        expected = self.all_colors.count(self.my_color)
-        msg = test_info_msg(self.rank, self.size, 'mono.get_size()', None, actual, expected)
+        expected = self.all_colors.count(self.color)
+        msg = test_info_msg(self.grank, self.gsize, 'mono.get_size()',
+                            None, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testGetSizeMulti(self):
+    def testMultiGetSize(self):
         actual = self.multicomm.get_size()
-        expected = self.all_colors.count(self.my_color)
-        msg = test_info_msg(self.rank, self.size, 'multi.get_size()', None, actual, expected)
+        expected = self.all_ranks.count(self.rank)
+        msg = test_info_msg(self.grank, self.gsize, 'multi.get_size()',
+                            None, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testIsManagerMono(self):
+    def testMonoIsManager(self):
         actual = self.monocomm.is_manager()
-        expected = (self.monocomm.get_rank() == 0)
-        msg = test_info_msg(self.rank, self.size, 'mono.is_manager()', None, actual, expected)
+        expected = (self.rank == 0)
+        msg = test_info_msg(self.grank, self.gsize, 'mono.is_manager()',
+                            None, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testIsManagerMulti(self):
+    def testMultiIsManager(self):
         actual = self.multicomm.is_manager()
-        expected = (self.multicomm.get_rank() == 0)
-        msg = test_info_msg(self.rank, self.size, 'multi.is_manager()', None, actual, expected)
+        expected = (self.color == 0)
+        msg = test_info_msg(self.grank, self.gsize, 'multi.is_manager()',
+                            None, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testSumInt(self):
-        data = 5
-        actual = self.gcomm.allreduce(data, 'sum')
-        expected = self.size * 5
-        msg = test_info_msg(self.rank, self.size, 'sum(int)', data, actual, expected)
+    def testMonoSumInt(self):
+        data = self.color + 1
+        actual = self.monocomm.allreduce(data, 'sum')
+        expected = self.monocomm.get_size() * data
+        msg = test_info_msg(self.grank, self.gsize, 'mono.sum(int)',
+                            data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testSumList(self):
+    def testMultiSumInt(self):
+        data = (self.rank + 1)
+        actual = self.multicomm.allreduce(data, 'sum')
+        expected = self.multicomm.get_size() * data
+        msg = test_info_msg(self.grank, self.gsize, 'multi.sum(int)',
+                            data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testMonoSumList(self):
         data = range(5)
-        actual = self.gcomm.allreduce(data, 'sum')
-        expected = self.size * sum(data)
-        msg = test_info_msg(self.rank, self.size, 'sum(list)', data, actual, expected)
+        actual = self.monocomm.allreduce(data, 'sum')
+        expected = self.monocomm.get_size() * sum(data)
+        msg = test_info_msg(self.grank, self.gsize, 'mono.sum(list)',
+                            data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testSumArray(self):
-        data = np.arange(5)
-        actual = self.gcomm.allreduce(data, 'sum')
-        expected = self.size * sum(data)
-        msg = test_info_msg(self.rank, self.size, 'sum(array)', data, actual, expected)
+    def testMultiSumList(self):
+        data = range(5)
+        actual = self.multicomm.allreduce(data, 'sum')
+        expected = self.multicomm.get_size() * sum(data)
+        msg = test_info_msg(self.grank, self.gsize, 'multi.sum(list)',
+                            data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testSumDict(self):
+    def testMonoSumDict(self):
         data = {'a': range(3), 'b': [5, 7]}
-        actual = self.gcomm.allreduce(data, 'sum')
-        expected = {'a': self.size * sum(range(3)), 'b': self.size * sum([5, 7])}
-        msg = test_info_msg(self.rank, self.size, 'sum(dict)', data, actual, expected)
+        actual = self.monocomm.allreduce(data, 'sum')
+        expected = {'a': self.monocomm.get_size() * sum(range(3)),
+                    'b': self.monocomm.get_size() * sum([5, 7])}
+        msg = test_info_msg(self.grank, self.gsize, 'mono.sum(dict)',
+                            data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testMaxInt(self):
-        data = self.rank
-        actual = self.gcomm.allreduce(data, 'max')
-        expected = self.size - 1
-        msg = test_info_msg(self.rank, self.size, 'max(int)', data, actual, expected)
+    def testMultiSumDict(self):
+        data = {'a': range(3), 'b': [5, 7]}
+        actual = self.multicomm.allreduce(data, 'sum')
+        expected = {'a': self.multicomm.get_size() * sum(range(3)),
+                    'b': self.multicomm.get_size() * sum([5, 7])}
+        msg = test_info_msg(self.grank, self.gsize, 'multi.sum(dict)',
+                            data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testMaxList(self):
-        data = range(2 + self.rank)
-        actual = self.gcomm.allreduce(data, 'max')
-        expected = self.size
-        msg = test_info_msg(self.rank, self.size, 'max(list)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
-    def testMaxArray(self):
-        data = np.arange(2 + self.rank)
-        actual = self.gcomm.allreduce(data, 'max')
-        expected = self.size
-        msg = test_info_msg(self.rank, self.size, 'max(array)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
-    def testMaxDict(self):
-        data = {'rank': self.rank, 'range': range(2 + self.rank)}
-        actual = self.gcomm.allreduce(data, 'max')
-        expected = {'rank': self.size - 1, 'range': self.size}
-        msg = test_info_msg(self.rank, self.size, 'max(dict)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
-    def testPartitionInt(self):
-        if self.gcomm.is_manager():
-            data = 10
-        else:
-            data = None
-        actual = self.gcomm.partition(data)
-        if self.gcomm.is_manager():
+    def testMonoPartitionInt(self):
+        data = self.grank
+        actual = self.monocomm.partition(data)
+        if self.monocomm.is_manager():
             expected = None
         else:
-            expected = 10
-        msg = test_info_msg(self.rank, self.size, 'partition(int)', data, actual, expected)
+            expected = self.color  # By chance!
+        msg = test_info_msg(self.grank, self.gsize, 'mono.partition(int)',
+                            data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testPartitionIntInvolved(self):
-        if self.gcomm.is_manager():
-            data = 10
-        else:
-            data = None
-        actual = self.gcomm.partition(data, involved=True)
-        expected = 10
-        msg = test_info_msg(self.rank, self.size, 'partition(int, T)', data, actual, expected)
-        print msg
-        self.assertEqual(actual, expected, msg)
-
-    def testPartitionList(self):
-        if self.gcomm.is_manager():
-            data = range(10)
-        else:
-            data = None
-        actual = self.gcomm.partition(data, func=EqualStride())
-        if self.gcomm.is_manager():
+    def testMultiPartitionInt(self):
+        data = self.grank
+        actual = self.multicomm.partition(data)
+        if self.multicomm.is_manager():
             expected = None
         else:
-            expected = range(self.rank - 1, 10, self.size - 1)
-        msg = test_info_msg(self.rank, self.size, 'partition(list)', data, actual, expected)
+            expected = self.rank * len(self.groups)
+        msg = test_info_msg(self.grank, self.gsize, 'multi.partition(int)',
+                            data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testPartitionListInvolved(self):
-        if self.gcomm.is_manager():
-            data = range(10)
-        else:
-            data = None
-        actual = self.gcomm.partition(data, func=EqualStride(), involved=True)
-        expected = range(self.rank, 10, self.size)
-        msg = test_info_msg(self.rank, self.size, 'partition(list, T)', data, actual, expected)
+    def testMonoPartitionIntInvolved(self):
+        data = self.grank
+        actual = self.monocomm.partition(data, involved=True)
+        expected = self.color  # By chance!
+        msg = test_info_msg(self.grank, self.gsize, 'mono.partition(int,T)',
+                            data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
 
-    def testPartitionArray(self):
-        if self.gcomm.is_manager():
-            data = np.arange(10)
+    def testMultiPartitionIntInvolved(self):
+        data = self.grank
+        actual = self.multicomm.partition(data, involved=True)
+        expected = self.rank * len(self.groups)
+        msg = test_info_msg(self.grank, self.gsize, 'multi.partition(int,T)',
+                            data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testMonoPartitionList(self):
+        if self.monocomm.is_manager():
+            data = range(10 + self.grank)
         else:
             data = None
-        actual = self.gcomm.partition(data, func=EqualStride())
-        if self.gcomm.is_manager():
+        actual = self.monocomm.partition(data, func=EqualStride())
+        if self.monocomm.is_manager():
             expected = None
         else:
-            expected = np.arange(self.rank - 1, 10, self.size - 1)
-        msg = test_info_msg(self.rank, self.size, 'partition(array)', data, actual, expected)
+            expected = range(self.rank - 1, 10 + self.color,
+                             self.monocomm.get_size() - 1)
+        msg = test_info_msg(self.grank, self.gsize, 'mono.partition(list)',
+                            data, actual, expected)
         print msg
-        if self.gcomm.is_manager():
-            self.assertEqual(actual, expected, msg)
-        else:
-            np.testing.assert_array_equal(actual, expected, msg)
+        self.assertEqual(actual, expected, msg)
 
-    def testPartitionArrayInvolved(self):
-        if self.gcomm.is_manager():
-            data = np.arange(10)
+    def testMultiPartitionList(self):
+        if self.multicomm.is_manager():
+            data = range(10 + self.grank)
         else:
             data = None
-        actual = self.gcomm.partition(data, func=EqualStride(), involved=True)
-        expected = np.arange(self.rank, 10, self.size)
-        msg = test_info_msg(self.rank, self.size, 'partition(array, T)', data, actual, expected)
-        print msg
-        np.testing.assert_array_equal(actual, expected, msg)
-
-    def testCollectInt(self):
-        if self.gcomm.is_manager():
-            data = None
-            actual = [self.gcomm.collect() for _ in xrange(1, self.size)]
-            expected = [i for i in enumerate(range(1, self.size), 1)]
-        else:
-            data = self.rank
-            actual = self.gcomm.collect(data)
+        actual = self.multicomm.partition(data, func=EqualStride())
+        if self.multicomm.is_manager():
             expected = None
-        self.gcomm.sync()
-        msg = test_info_msg(self.rank, self.size, 'collect(int)', data, actual, expected)
+        else:
+            expected = range(self.color - 1, 10 + self.rank * len(self.groups),
+                             self.multicomm.get_size() - 1)
+        msg = test_info_msg(self.grank, self.gsize, 'multi.partition(list)',
+                            data, actual, expected)
         print msg
-        if self.gcomm.is_manager():
+        self.assertEqual(actual, expected, msg)
+
+    def testMonoPartitionListInvolved(self):
+        if self.monocomm.is_manager():
+            data = range(10 + self.grank)
+        else:
+            data = None
+        actual = self.monocomm.partition(data, func=EqualStride(),
+                                         involved=True)
+        expected = range(self.rank, 10 + self.color, self.monocomm.get_size())
+        msg = test_info_msg(self.grank, self.gsize, 'mono.partition(list,T)',
+                            data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testMultiPartitionListInvolved(self):
+        if self.multicomm.is_manager():
+            data = range(10 + self.grank)
+        else:
+            data = None
+        actual = self.multicomm.partition(data, func=EqualStride(),
+                                          involved=True)
+        expected = range(self.color, 10 + self.rank * len(self.groups),
+                         self.multicomm.get_size())
+        msg = test_info_msg(self.grank, self.gsize, 'multi.partition(list,T)',
+                            data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testMonoCollectInt(self):
+        if self.monocomm.is_manager():
+            data = None
+            actual = [self.monocomm.collect()
+                      for _ in xrange(1, self.monocomm.get_size())]
+            expected = [i for i in
+                        enumerate(range(len(self.groups) + self.color,
+                                        self.gsize,
+                                        len(self.groups)), 1)]
+        else:
+            data = self.grank
+            actual = self.monocomm.collect(data)
+            expected = None
+        self.monocomm.sync()
+        msg = test_info_msg(self.grank, self.gsize, 'mono.collect(int)',
+                            data, actual, expected)
+        print msg
+        if self.monocomm.is_manager():
             self.assertItemsEqual(actual, expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
 
-    def testCollectList(self):
-        if self.gcomm.is_manager():
+    def testMultiCollectInt(self):
+        if self.multicomm.is_manager():
             data = None
-            actual = [self.gcomm.collect() for _ in xrange(1, self.size)]
-            expected = [(i, range(i)) for i in xrange(1, self.size)]
+            actual = [self.multicomm.collect()
+                      for _ in xrange(1, self.multicomm.get_size())]
+            expected = [i for i in
+                        enumerate([j + self.rank * len(self.groups) for j in
+                                   range(1, self.multicomm.get_size())], 1)]
         else:
-            data = range(self.rank)
-            actual = self.gcomm.collect(data)
+            data = self.grank
+            actual = self.multicomm.collect(data)
             expected = None
-        self.gcomm.sync()
-        msg = test_info_msg(self.rank, self.size, 'collect(list)', data, actual, expected)
+        self.multicomm.sync()
+        msg = test_info_msg(self.grank, self.gsize, 'multi.collect(int)',
+                            data, actual, expected)
         print msg
-        if self.gcomm.is_manager():
+        if self.multicomm.is_manager():
             self.assertItemsEqual(actual, expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
 
-    def testCollectArray(self):
-        if self.gcomm.is_manager():
+    def testMonoCollectList(self):
+        if self.monocomm.is_manager():
             data = None
-            actual = [(i, list(x)) for (i, x) in [self.gcomm.collect() for _ in xrange(1, self.size)]]
-            expected = [(i, list(np.arange(self.size) + i)) for i in xrange(1, self.size)]
+            actual = [self.monocomm.collect()
+                      for _ in xrange(1, self.monocomm.get_size())]
+            expected = [(i, range(x)) for i, x in
+                        enumerate(range(len(self.groups) + self.color,
+                                        self.gsize,
+                                        len(self.groups)), 1)]
         else:
-            data = np.arange(self.size) + self.rank
-            actual = self.gcomm.collect(data)
+            data = range(self.grank)
+            actual = self.monocomm.collect(data)
             expected = None
-        self.gcomm.sync()
-        msg = test_info_msg(self.rank, self.size, 'collect(array)', data, actual, expected)
+        self.monocomm.sync()
+        msg = test_info_msg(self.grank, self.gsize, 'mono.collect(list)',
+                            data, actual, expected)
         print msg
-        if self.gcomm.is_manager():
+        if self.monocomm.is_manager():
             self.assertItemsEqual(actual, expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
 
-    def testRationInt(self):
-        if self.gcomm.is_manager():
-            data = range(1, self.size)
-            actual = [self.gcomm.ration(d) for d in data]
-            expected = [None] * (self.size - 1)
+    def testMultiCollectList(self):
+        if self.multicomm.is_manager():
+            data = None
+            actual = [self.multicomm.collect()
+                      for _ in xrange(1, self.multicomm.get_size())]
+            expected = [(i, range(x)) for (i, x) in
+                        enumerate([j + self.rank * len(self.groups) for j in
+                                   range(1, self.multicomm.get_size())], 1)]
+        else:
+            data = range(self.grank)
+            actual = self.multicomm.collect(data)
+            expected = None
+        self.multicomm.sync()
+        msg = test_info_msg(self.grank, self.gsize, 'multi.collect(list)',
+                            data, actual, expected)
+        print msg
+        if self.multicomm.is_manager():
+            self.assertItemsEqual(actual, expected, msg)
+        else:
+            self.assertEqual(actual, expected, msg)
+
+    def testMonoRationInt(self):
+        if self.monocomm.is_manager():
+            data = [100 * self.color + i
+                    for i in range(1, self.monocomm.get_size())]
+            actual = [self.monocomm.ration(d) for d in data]
+            expected = [None] * (self.monocomm.get_size() - 1)
         else:
             data = None
-            actual = self.gcomm.ration()
-            expected = range(1, self.size)
-        self.gcomm.sync()
-        msg = test_info_msg(self.rank, self.size, 'ration(int)', data, actual, expected)
+            actual = self.monocomm.ration()
+            expected = [100 * self.color + i
+                        for i in range(1, self.monocomm.get_size())]
+        self.monocomm.sync()
+        msg = test_info_msg(self.grank, self.gsize, 'mono.ration(int)',
+                            data, actual, expected)
         print msg
-        if self.gcomm.is_manager():
+        if self.monocomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
             self.assertIn(actual, expected, msg)
 
-    def testRationArray(self):
-        if self.gcomm.is_manager():
-            data = np.arange(3 * self.size)
-            actual = [self.gcomm.ration(data[3 * i:3 * (i + 1)]) for i in range(1, self.size)]
-            expected = [None] * (self.size - 1)
+    def testMultiRationInt(self):
+        if self.multicomm.is_manager():
+            data = [100 * self.rank + i
+                    for i in range(1, self.multicomm.get_size())]
+            actual = [self.multicomm.ration(d) for d in data]
+            expected = [None] * (self.multicomm.get_size() - 1)
         else:
             data = None
-            actual = self.gcomm.ration()
-            expected = np.arange(3 * self.size)
-        self.gcomm.sync()
-        msg = test_info_msg(self.rank, self.size, 'ration(array)', data, actual, expected)
+            actual = self.multicomm.ration()
+            expected = [100 * self.rank + i
+                        for i in range(1, self.multicomm.get_size())]
+        self.multicomm.sync()
+        msg = test_info_msg(self.grank, self.gsize, 'multi.ration(int)',
+                            data, actual, expected)
         print msg
-        if self.gcomm.is_manager():
+        if self.multicomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
-            contained = any([np.all(actual == expected[i:i + actual.size])
-                             for i in range(expected.size - actual.size + 1)])
-            self.assertTrue(contained, msg)
+            self.assertIn(actual, expected, msg)
 
 
 if __name__ == "__main__":
