@@ -170,6 +170,7 @@ def create_comm(serial=False):
 # SimpleComm - Simple Communicator
 #==============================================================================
 class SimpleComm(object):
+
     '''
     Simple Communicator for serial operation
     '''
@@ -320,10 +321,13 @@ class SimpleComm(object):
             return totals
         elif self._type_is_ndarray(type(data)):
             return SimpleComm.allreduce(self,
-                getattr(self._numpy, _OP_MAP[op]['np'])(data), op)
+                                        getattr(self._numpy,
+                                                _OP_MAP[op]['np'])(data),
+                                        op)
         elif hasattr(data, '__len__'):
             return SimpleComm.allreduce(self,
-                eval(_OP_MAP[op]['py'])(data), op)
+                                        eval(_OP_MAP[op]['py'])(data),
+                                        op)
         else:
             return data
 
@@ -458,6 +462,7 @@ class SimpleComm(object):
 # SimpleCommMPI - Simple Communicator using MPI
 #==============================================================================
 class SimpleCommMPI(SimpleComm):
+
     '''
     Simple Communicator using MPI
     '''
@@ -549,7 +554,8 @@ class SimpleCommMPI(SimpleComm):
                 return self._comm.bcast(None)
         else:
             return self._comm.allreduce(SimpleComm.allreduce(self, data, op),
-                op=getattr(self._mpi, _OP_MAP[op]['mpi']))
+                                        op=getattr(self._mpi,
+                                                   _OP_MAP[op]['mpi']))
 
     def partition(self, data=None, func=None, involved=False):
         '''
@@ -850,4 +856,3 @@ class SimpleCommMPI(SimpleComm):
         else:
             err_msg = 'Division cannot be done on a 1-rank communicator'
             raise RuntimeError(err_msg)
-
