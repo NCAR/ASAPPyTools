@@ -36,15 +36,15 @@ class partitionTests(unittest.TestCase):
         pass
 
     def testOutOfBounds(self):
-        self.assertRaises(IndexError, partition.PartitionFunction(), [1, 2, 3], 3, 3)
-        self.assertRaises(IndexError, partition.PartitionFunction(), [1, 2, 3], 7, 3)
+        self.assertRaises(IndexError, partition.EqualLength(), [1, 2, 3], 3, 3)
+        self.assertRaises(IndexError, partition.EqualLength(), [1, 2, 3], 7, 3)
 
-    def testPartitionFunction(self):
+    def testDuplicate(self):
         for inp in self.inputs:
-            pfunc = partition.PartitionFunction()
+            pfunc = partition.Duplicate()
             actual = pfunc(*inp)
             expected = inp[0]
-            msg = test_info_msg('PartitionFunction', inp[0], inp[1], inp[2], actual, expected)
+            msg = test_info_msg('Duplicate', inp[0], inp[1], inp[2], actual, expected)
             print msg
             self.assertEqual(actual, expected, msg)
 

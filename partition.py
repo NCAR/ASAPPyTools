@@ -83,6 +83,21 @@ class PartitionFunction(object):
         else:
             return False
 
+
+#==============================================================================
+# Duplicate Partitioning Function -
+# Grab parts of a list-like object with equal lengths
+#==============================================================================
+class Duplicate(PartitionFunction):
+    '''
+    Return a copy of the original input data in each partition
+    '''
+
+    def __init__(self):
+        '''
+        Constructor
+        '''
+
     def __call__(self, *args, **kwargs):
         '''
         Partition the data given
