@@ -383,6 +383,48 @@ class SimpleCommParDivTests(unittest.TestCase):
         else:
             self.assertIn(actual, expected, msg)
 
+    def testTreeScatterInt(self):
+        if self.gcomm.is_manager():
+            data = 10
+        else:
+            data = None
+
+        if self.monocomm.is_manager():
+            mydata = self.multicomm.partition(data, func=Duplicate(), involved=True)
+        else:
+            mydata = None
+
+        actual = self.monocomm.partition(mydata, func=Duplicate(), involved=True)
+        expected = 10
+        msg = test_info_msg(self.grank, self.gsize, 'TreeScatter(int)',
+                            data, actual, expected)
+        print msg
+        self.assertEqual(actual, expected, msg)
+
+    def testTreeGatherInt(self):
+        data = self.grank
+
+        if self.monocomm.is_manager():
+            mydata = [data]
+            for _ in range(1, self.monocomm.get_size()):
+                mydata.append(self.monocomm.collect()[1])
+        else:
+            mydata = self.monocomm.collect(data)
+
+        if self.gcomm.is_manager():
+            actual = [mydata]
+            for _ in xrange(1, self.multicomm.get_size()):
+                actual.append(self.multicomm.collect()[1])
+        elif self.monocomm.is_manager():
+            actual = self.multicomm.collect(mydata)
+        else:
+            actual = None
+
+        expected = 10
+        msg = test_info_msg(self.grank, self.gsize, 'TreeGather(int)',
+                            data, actual, expected)
+        print msg
+
 
 if __name__ == "__main__":
     hline = '=' * 70
