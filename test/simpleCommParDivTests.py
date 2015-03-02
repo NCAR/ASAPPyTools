@@ -8,7 +8,7 @@ Created on Feb 4, 2015
 '''
 import unittest
 import simplecomm
-from partition import EqualStride
+from partition import EqualStride, Duplicate
 from os import linesep as eol
 from mpi4py import MPI
 MPI_COMM_WORLD = MPI.COMM_WORLD
@@ -158,7 +158,7 @@ class SimpleCommParDivTests(unittest.TestCase):
 
     def testMonoPartitionInt(self):
         data = self.grank
-        actual = self.monocomm.partition(data)
+        actual = self.monocomm.partition(data, func=Duplicate())
         if self.monocomm.is_manager():
             expected = None
         else:
@@ -170,7 +170,7 @@ class SimpleCommParDivTests(unittest.TestCase):
 
     def testMultiPartitionInt(self):
         data = self.grank
-        actual = self.multicomm.partition(data)
+        actual = self.multicomm.partition(data, func=Duplicate())
         if self.multicomm.is_manager():
             expected = None
         else:
@@ -182,7 +182,7 @@ class SimpleCommParDivTests(unittest.TestCase):
 
     def testMonoPartitionIntInvolved(self):
         data = self.grank
-        actual = self.monocomm.partition(data, involved=True)
+        actual = self.monocomm.partition(data, func=Duplicate(), involved=True)
         expected = self.color  # By chance!
         msg = test_info_msg(self.grank, self.gsize, 'mono.partition(int,T)',
                             data, actual, expected)
@@ -191,7 +191,7 @@ class SimpleCommParDivTests(unittest.TestCase):
 
     def testMultiPartitionIntInvolved(self):
         data = self.grank
-        actual = self.multicomm.partition(data, involved=True)
+        actual = self.multicomm.partition(data, func=Duplicate(), involved=True)
         expected = self.rank * len(self.groups)
         msg = test_info_msg(self.grank, self.gsize, 'multi.partition(int,T)',
                             data, actual, expected)
@@ -203,7 +203,7 @@ class SimpleCommParDivTests(unittest.TestCase):
             data = range(10 + self.grank)
         else:
             data = None
-        actual = self.monocomm.partition(data, func=EqualStride())
+        actual = self.monocomm.partition(data)
         if self.monocomm.is_manager():
             expected = None
         else:
@@ -219,7 +219,7 @@ class SimpleCommParDivTests(unittest.TestCase):
             data = range(10 + self.grank)
         else:
             data = None
-        actual = self.multicomm.partition(data, func=EqualStride())
+        actual = self.multicomm.partition(data)
         if self.multicomm.is_manager():
             expected = None
         else:

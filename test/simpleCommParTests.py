@@ -9,7 +9,7 @@ Created on Feb 4, 2015
 import unittest
 import simplecomm
 import numpy as np
-from partition import EqualStride
+from partition import EqualStride, Duplicate
 from os import linesep as eol
 from mpi4py import MPI
 MPI_COMM_WORLD = MPI.COMM_WORLD
@@ -117,7 +117,7 @@ class SimpleCommParTests(unittest.TestCase):
             data = 10
         else:
             data = None
-        actual = self.gcomm.partition(data)
+        actual = self.gcomm.partition(data, func=Duplicate())
         if self.gcomm.is_manager():
             expected = None
         else:
@@ -131,7 +131,7 @@ class SimpleCommParTests(unittest.TestCase):
             data = 10
         else:
             data = None
-        actual = self.gcomm.partition(data, involved=True)
+        actual = self.gcomm.partition(data, func=Duplicate(), involved=True)
         expected = 10
         msg = test_info_msg(self.rank, self.size, 'partition(int, T)', data, actual, expected)
         print msg
@@ -142,7 +142,7 @@ class SimpleCommParTests(unittest.TestCase):
             data = range(10)
         else:
             data = None
-        actual = self.gcomm.partition(data, func=EqualStride())
+        actual = self.gcomm.partition(data)
         if self.gcomm.is_manager():
             expected = None
         else:
@@ -156,7 +156,7 @@ class SimpleCommParTests(unittest.TestCase):
             data = range(10)
         else:
             data = None
-        actual = self.gcomm.partition(data, func=EqualStride(), involved=True)
+        actual = self.gcomm.partition(data, involved=True)
         expected = range(self.rank, 10, self.size)
         msg = test_info_msg(self.rank, self.size, 'partition(list, T)', data, actual, expected)
         print msg

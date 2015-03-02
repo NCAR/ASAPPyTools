@@ -363,7 +363,7 @@ class SimpleComm(object):
             Depending on the PartitionFunction used (or if it is used at all),
             this method may return a different part on each rank.
         '''
-        op = func if func else lambda *x: x[0]
+        op = func if func else lambda *x: x[0][x[1]::x[2]]
         if involved:
             return op(data, 0, 1)
         else:
@@ -590,7 +590,7 @@ class SimpleCommMPI(SimpleComm):
             this method may return a different part on each rank.
         '''
         if self.is_manager():
-            op = func if func else lambda *x: x[0]
+            op = func if func else lambda *x: x[0][x[1]::x[2]]
             j = int(not involved)
             for i in xrange(1, self.get_size()):
 

@@ -14,7 +14,7 @@ Created on Feb 17, 2015
 import unittest
 import simplecomm
 import numpy as np
-from partition import EqualStride
+from partition import EqualStride, Duplicate
 from os import linesep
 from mpi4py import MPI
 MPI_COMM_WORLD = MPI.COMM_WORLD
@@ -123,16 +123,16 @@ class SimpleCommP1STests(unittest.TestCase):
 
     def testPartitionInt(self):
         data = 13 + self.rank
-        sresult = self.scomm.partition(data)
-        presult = self.pcomm.partition(data)
+        sresult = self.scomm.partition(data, func=Duplicate())
+        presult = self.pcomm.partition(data, func=Duplicate())
         msg = test_info_msg('partition(int)', data, sresult, presult)
         print msg
         self.assertEqual(sresult, presult, msg)
 
     def testPartitionIntInvolved(self):
         data = 13 + self.rank
-        sresult = self.scomm.partition(data, involved=True)
-        presult = self.pcomm.partition(data, involved=True)
+        sresult = self.scomm.partition(data, func=Duplicate(), involved=True)
+        presult = self.pcomm.partition(data, func=Duplicate(), involved=True)
         msg = test_info_msg('partition(int, T)', data, sresult, presult)
         print msg
         self.assertEqual(sresult, presult, msg)
