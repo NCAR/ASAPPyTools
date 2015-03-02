@@ -335,11 +335,13 @@ class SimpleComm(object):
         '''
         Partition and send data from the 'manager' rank to 'worker' ranks.
 
-        By default, the data is duplicated from the 'manager' rank onto every
-        'worker' rank.  If a partition function is supplied via the 'func'
+        By default, the data is partitioned using an "equal stride" across the
+        data, with the stride equal to the number of ranks involved in the
+        partitioning.  If a partition function is supplied via the 'func'
         argument, then the data will be partitioned across the 'worker' ranks,
         giving each 'worker' rank a different part of the data according to
         the algorithm used by partition function supplied.
+
 
         If the 'involved' argument is True, then a part of the data (as
         determined by the given partition function, if supplied) will be
@@ -561,8 +563,9 @@ class SimpleCommMPI(SimpleComm):
         '''
         Partition and send data from the 'manager' rank to 'worker' ranks.
 
-        By default, the data is duplicated from the 'manager' rank onto every
-        'worker' rank.  If a partition function is supplied via the 'func'
+        By default, the data is partitioned using an "equal stride" across the
+        data, with the stride equal to the number of ranks involved in the
+        partitioning.  If a partition function is supplied via the 'func'
         argument, then the data will be partitioned across the 'worker' ranks,
         giving each 'worker' rank a different part of the data according to
         the algorithm used by partition function supplied.
