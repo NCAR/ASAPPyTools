@@ -16,10 +16,17 @@ class TimeKeeper(object):
     Class to keep timing recordings, start/stop/reset timers.
     '''
 
-    def __init__(self):
+    def __init__(self, time=time.time):
         '''
         Constructor
+
+        Args:
+            time:   The function to use for measuring the time.  By default,
+                    it is the Python 'time.time()' method.
         '''
+
+        ## The method to use for time measurements
+        self._time = time
 
         ## Dictionary of start times associated with a string name
         self._start_times = {}
@@ -45,7 +52,7 @@ class TimeKeeper(object):
         if (name not in self._added_order):
             self._added_order.append(name)
         self._accumulated_times[name] = 0.0
-        self._start_times[name] = time.time()
+        self._start_times[name] = self._time()
 
     def start(self, name):
         '''
@@ -60,7 +67,7 @@ class TimeKeeper(object):
         if (name not in self._accumulated_times):
             self.reset(name)
         else:
-            self._start_times[name] = time.time()
+            self._start_times[name] = self._time()
 
     def stop(self, name):
         '''
@@ -77,7 +84,7 @@ class TimeKeeper(object):
             self.reset(name)
         else:
             self._accumulated_times[name] += \
-                time.time() - self._start_times[name]
+                self._time() - self._start_times[name]
 
     def get_order(self):
         '''
