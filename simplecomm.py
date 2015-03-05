@@ -120,7 +120,6 @@ Created on Feb 4, 2015
 @author: Kevin Paul <kpaul@ucar.edu>
 '''
 
-from sys import getrefcount
 from functools import partial
 from collections import defaultdict
 
@@ -507,7 +506,7 @@ class SimpleCommMPI(SimpleComm):
         self._comm = self._mpi.COMM_WORLD
 
     def __del__(self):
-        if self._comm != self._mpi.COMM_WORLD and getrefcount(self._comm) < 2:
+        if self._comm != self._mpi.COMM_WORLD:
             self._comm.Free()
 
     def get_size(self):
