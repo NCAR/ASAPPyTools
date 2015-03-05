@@ -33,6 +33,27 @@ in the partition process.  If the 'manager' rank is *involved*, then the
 master will take a part of the data for itself.  If the 'manager' is
 *uninvolved*, then the data will be partitioned only across the 'worker' ranks.
 
+*Partitioning* is a *synchronous* communication call that implements a
+*static partitioning* algorithm.
+
+RATIONING:
+
+An alternative approach to the *partitioning* communication method is the
+*rationing* communication method.  This method involves the individual
+'worker' ranks requesting data to work on.  In this approach, each 'worker'
+rank, when the 'worker' rank is ready, asks the 'manager' rank for a new
+piece of data on which to work.  The 'manager' rank receives the request
+and gives the next piece of data for processing out to the requesting
+'worker' rank.  It doesn't matter what order the ranks request data, and
+they do not all have to request data at the same time.  However, it is
+critical to understand that if a 'worker' requests data when the 'manager'
+rank does not listen for the request, or the 'manager' expects a 'worker'
+to request work but the 'worker' never makes the request, the entire
+process will hang and wait forever!
+
+*Rationing* is an *asynchronous* communication call that allows the 'manager'
+to implement a *dynamic partitioning* algorithm.
+
 COLLECTING:
 
 Once each 'worker' has received its assigned part of the data, the 'worker'
