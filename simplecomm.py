@@ -489,6 +489,22 @@ class SimpleCommMPI(SimpleComm):
     Simple Communicator using MPI
     '''
 
+    PART_MSG_TAG = 100  # Partition Message Tag
+    PART_ACK_TAG = 101  # Partition Acknowledgement Tag
+    PART_NPY_TAG = 102  # Partition Numpy Send/Recv Tag
+    PART_PYT_TAG = 103  # Partition Python Send/Recv Tag
+
+    RATN_REQ_TAG = 200  # Ration Request Tag
+    RATN_MSG_TAG = 201  # Ration Message Tag
+    RATN_ACK_TAG = 202  # Ration Acknowledgement Tag
+    RATN_NPY_TAG = 203  # Ration Numpy Send/Recv Tag
+    RATN_PYT_TAG = 204  # Ration Python Send/Recv Tag
+
+    CLCT_MSG_TAG = 301  # Collect Message Tag
+    CLCT_ACK_TAG = 302  # Collect Acknowledgement Tag
+    CLCT_NPY_TAG = 303  # Collect Numpy Send/Recv Tag
+    CLCT_PYT_TAG = 304  # Collect Python Send/Recv Tag
+
     def __init__(self):
         super(SimpleCommMPI, self).__init__()
 
@@ -628,10 +644,10 @@ class SimpleCommMPI(SimpleComm):
                 msg['dtype'] = part.dtype if hasattr(part, 'dtype') else None
 
                 # Send the handshake message to the worker rank
-                self._comm.send(msg, dest=i, tag=100)
+                self._comm.send(msg, dest=i, tag=SimpleCommMPI.PART_MSG_TAG)
 
                 # Receive the acknowledgement from the worker
-                ack = self._comm.recv(source=i, tag=101)
+                ack = self._comm.recv(source=i, tag=SimpleCommMPI.PART_ACK_TAG)
 
                 # Check the acknowledgement, if bad skip this rank
                 if not ack:
@@ -639,9 +655,11 @@ class SimpleCommMPI(SimpleComm):
 
                 # If OK, send the data to the worker
                 if self._type_is_ndarray(type(part)):
-                    self._comm.Send(self._numpy.array(part), dest=i, tag=102)
+                    self._comm.Send(self._numpy.array(part), dest=i,
+                                    tag=SimpleCommMPI.PART_NPY_TAG)
                 else:
-                    self._comm.send(part, dest=i, tag=103)
+                    self._comm.send(part, dest=i,
+                                    tag=SimpleCommMPI.PART_PYT_TAG)
 
             if involved:
                 return op(data, 0, self.get_size())
@@ -650,14 +668,14 @@ class SimpleCommMPI(SimpleComm):
         else:
 
             # Get the data message from the manager
-            msg = self._comm.recv(source=0, tag=100)
+            msg = self._comm.recv(source=0, tag=SimpleCommMPI.PART_MSG_TAG)
 
             # Check the message content
             ack = type(msg) is dict and \
                 all([key in msg for key in ['rank', 'type', 'shape', 'dtype']])
 
             # If the message is good, acknowledge
-            self._comm.send(ack, dest=0, tag=101)
+            self._comm.send(ack, dest=0, tag=SimpleCommMPI.PART_ACK_TAG)
 
             # if acknowledgement is bad, skip
             if not ack:
@@ -666,9 +684,11 @@ class SimpleCommMPI(SimpleComm):
             # Receive the data
             if self._type_is_ndarray(msg['type']):
                 recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
-                self._comm.Recv(recvd, source=0, tag=102)
+                self._comm.Recv(recvd, source=0,
+                                tag=SimpleCommMPI.PART_NPY_TAG)
             else:
-                recvd = self._comm.recv(source=0, tag=103)
+                recvd = self._comm.recv(source=0,
+                                        tag=SimpleCommMPI.PART_PYT_TAG)
             return recvd
 
     def ration(self, data=None):
@@ -701,7 +721,8 @@ class SimpleCommMPI(SimpleComm):
             if self.is_manager():
 
                 # Listen for a requesting worker rank
-                rank = self._comm.recv(source=self._mpi.ANY_SOURCE, tag=300)
+                rank = self._comm.recv(source=self._mpi.ANY_SOURCE,
+                                       tag=SimpleCommMPI.RATN_REQ_TAG)
 
                 # Create the handshake message
                 msg = {}
@@ -710,10 +731,12 @@ class SimpleCommMPI(SimpleComm):
                 msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
 
                 # Send the handshake message to the requesting worker
-                self._comm.send(msg, dest=rank, tag=301)
+                self._comm.send(msg, dest=rank,
+                                tag=SimpleCommMPI.RATN_MSG_TAG)
 
                 # Receive the acknowledgement from the requesting worker
-                ack = self._comm.recv(source=rank, tag=302)
+                ack = self._comm.recv(source=rank,
+                                      tag=SimpleCommMPI.RATN_ACK_TAG)
 
                 # Check the acknowledgement, if not OK skip
                 if not ack:
@@ -721,23 +744,27 @@ class SimpleCommMPI(SimpleComm):
 
                 # If OK, send the data to the requesting worker
                 if self._type_is_ndarray(type(data)):
-                    self._comm.Send(data, dest=rank, tag=303)
+                    self._comm.Send(data, dest=rank,
+                                    tag=SimpleCommMPI.RATN_NPY_TAG)
                 else:
-                    self._comm.send(data, dest=rank, tag=304)
+                    self._comm.send(data, dest=rank,
+                                    tag=SimpleCommMPI.RATN_PYT_TAG)
             else:
 
                 # Send a request for data to the manager
-                self._comm.send(self.get_rank(), dest=0, tag=300)
+                self._comm.send(self.get_rank(), dest=0,
+                                tag=SimpleCommMPI.RATN_REQ_TAG)
 
                 # Receive the handshake message from the manager
-                msg = self._comm.recv(source=0, tag=301)
+                msg = self._comm.recv(source=0,
+                                      tag=SimpleCommMPI.RATN_MSG_TAG)
 
                 # Check the message content
                 ack = type(msg) is dict and \
                     all([key in msg for key in ['type', 'shape', 'dtype']])
 
                 # Send acknowledgement back to the manager
-                self._comm.send(ack, dest=0, tag=302)
+                self._comm.send(ack, dest=0, tag=SimpleCommMPI.RATN_ACK_TAG)
 
                 # If acknowledgement is bad, don't receive
                 if not ack:
@@ -746,9 +773,11 @@ class SimpleCommMPI(SimpleComm):
                 # Receive the data from the manager
                 if self._type_is_ndarray(msg['type']):
                     recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
-                    self._comm.Recv(recvd, source=0, tag=303)
+                    self._comm.Recv(recvd, source=0,
+                                    tag=SimpleCommMPI.RATN_NPY_TAG)
                 else:
-                    recvd = self._comm.recv(source=0, tag=304)
+                    recvd = self._comm.recv(source=0,
+                                            tag=SimpleCommMPI.RATN_PYT_TAG)
                 return recvd
         else:
             err_msg = 'Rationing cannot be used in 1-rank parallel operation'
@@ -785,7 +814,8 @@ class SimpleCommMPI(SimpleComm):
             if self.is_manager():
 
                 # Receive the message from the worker
-                msg = self._comm.recv(source=self._mpi.ANY_SOURCE, tag=200)
+                msg = self._comm.recv(source=self._mpi.ANY_SOURCE,
+                                      tag=SimpleCommMPI.CLCT_MSG_TAG)
 
                 # Check the message content
                 ack = type(msg) is dict and \
@@ -793,7 +823,8 @@ class SimpleCommMPI(SimpleComm):
                                                 'shape', 'dtype']])
 
                 # Send acknowledgement back to the worker
-                self._comm.send(ack, dest=msg['rank'], tag=201)
+                self._comm.send(ack, dest=msg['rank'],
+                                tag=SimpleCommMPI.CLCT_ACK_TAG)
 
                 # If acknowledgement is bad, don't receive
                 if not ack:
@@ -802,9 +833,11 @@ class SimpleCommMPI(SimpleComm):
                 # Receive the data
                 if self._type_is_ndarray(msg['type']):
                     recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
-                    self._comm.Recv(recvd, source=msg['rank'], tag=202)
+                    self._comm.Recv(recvd, source=msg['rank'],
+                                    tag=SimpleCommMPI.CLCT_NPY_TAG)
                 else:
-                    recvd = self._comm.recv(source=msg['rank'], tag=203)
+                    recvd = self._comm.recv(source=msg['rank'],
+                                            tag=SimpleCommMPI.CLCT_PYT_TAG)
                 return msg['rank'], recvd
 
             else:
@@ -817,10 +850,10 @@ class SimpleCommMPI(SimpleComm):
                 msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
 
                 # Send the handshake message to the manager
-                self._comm.send(msg, dest=0, tag=200)
+                self._comm.send(msg, dest=0, tag=SimpleCommMPI.CLCT_MSG_TAG)
 
                 # Receive the acknowledgement from the manager
-                ack = self._comm.recv(source=0, tag=201)
+                ack = self._comm.recv(source=0, tag=SimpleCommMPI.CLCT_ACK_TAG)
 
                 # Check the acknowledgement, if not OK skip
                 if not ack:
@@ -828,9 +861,11 @@ class SimpleCommMPI(SimpleComm):
 
                 # If OK, send the data to the manager
                 if self._type_is_ndarray(type(data)):
-                    self._comm.Send(data, dest=0, tag=202)
+                    self._comm.Send(data, dest=0,
+                                    tag=SimpleCommMPI.CLCT_NPY_TAG)
                 else:
-                    self._comm.send(data, dest=0, tag=203)
+                    self._comm.send(data, dest=0,
+                                    tag=SimpleCommMPI.CLCT_PYT_TAG)
         else:
             err_msg = 'Collection cannot be used in a 1-rank communicator'
             raise RuntimeError(err_msg)
