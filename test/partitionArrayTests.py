@@ -22,7 +22,7 @@ def test_info_msg(name, data, index, size, actual, expected):
     return msg
 
 
-class partitionTests(unittest.TestCase):
+class partitionArrayTests(unittest.TestCase):
 
     '''
     Unit tests for the partition module
