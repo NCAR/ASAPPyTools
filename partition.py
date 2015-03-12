@@ -12,9 +12,10 @@ subselecting parts of the data.
 _______________________________________________________________________________
 Created on Feb 4, 2015
 
-@author: Kevin Paul <kpaul@ucar.edu>
+Author: Kevin Paul <kpaul@ucar.edu>
 '''
 
+import abc
 from operator import itemgetter
 
 
@@ -23,44 +24,16 @@ from operator import itemgetter
 # Base class for all partitioning functions
 #==============================================================================
 class PartitionFunction(object):
+
     '''
-    The base-class for all Partitioning Function objects.
+    The abstract base-class for all Partitioning Function objects.
 
     A PartitionFunction object is one with a '__call__' method that takes
     three arguments: the data to be partitioned, the index of the partition
     (or part) requested, and the number of partitions to assume when dividing
     the data.
     '''
-
-    def __init__(self):
-        '''
-        Constructor
-        '''
-
-    @staticmethod
-    def _ifc(data, index=0, size=1):
-        '''
-        Define the common interface for all partitioning functions.  Checks the
-        input for correct format and returns the input if everything is
-        correct.
-
-        @param  data  The data to be partitioned
-
-        @param  index  A partition index into a part of the data
-
-        @param  size  The largest number of partitions allowed
-
-        @return  If correct, it returns the input
-        '''
-        if type(index) is not int:
-            raise TypeError('Partition index must be an integer')
-        if type(size) is not int:
-            raise TypeError('Partition size must be an integer')
-        if size < 1:
-            raise TypeError('Partition size less than 1 is invalid')
-        if index > size - 1 or index < 0:
-            raise IndexError('Partition index out of bounds')
-        return data, index, size
+    __metaclass__ = abc.ABCMeta
 
     @staticmethod
     def _is_indexable(data):
@@ -83,26 +56,63 @@ class PartitionFunction(object):
         else:
             return False
 
+    @abc.abstractmethod
+    def __call__(self, data, index=0, size=1):
+        '''
+        Define the common interface for all partitioning functions.
+
+        The abstract base class implements the check on the input for correct
+        format and typing.
+
+        Args:
+
+            data:   The data to be partitioned
+
+        Kwargs:
+
+            index:  A partition index into a part of the data
+
+            size:   The largest number of partitions allowed
+        '''
+        if type(index) is not int:
+            raise TypeError('Partition index must be an integer')
+        if type(size) is not int:
+            raise TypeError('Partition size must be an integer')
+        if size < 1:
+            raise TypeError('Partition size less than 1 is invalid')
+        if index > size - 1 or index < 0:
+            raise IndexError('Partition index out of bounds')
+
 
 #==============================================================================
 # Duplicate Partitioning Function -
 # Grab parts of a list-like object with equal lengths
 #==============================================================================
 class Duplicate(PartitionFunction):
+
     '''
     Return a copy of the original input data in each partition
     '''
 
-    def __init__(self):
+    def __call__(self, data, index=0, size=1):
         '''
-        Constructor
-        '''
+        Define the common interface for all partitioning functions.
 
-    def __call__(self, *args, **kwargs):
+        The abstract base class implements the check on the input for correct
+        format and typing.
+
+        Args:
+
+            data:   The data to be partitioned
+
+        Kwargs:
+
+            index:  A partition index into a part of the data
+
+            size:   The largest number of partitions allowed
         '''
-        Partition the data given
-        '''
-        return PartitionFunction._ifc(*args, **kwargs)[0]
+        super(Duplicate, self).__call__(data, index=index, size=size)
+        return data
 
 
 #==============================================================================
@@ -110,6 +120,7 @@ class Duplicate(PartitionFunction):
 # Grab parts of a list-like object with equal lengths
 #==============================================================================
 class EqualLength(PartitionFunction):
+
     '''
     Partition an indexable object into sublists of equal (or roughly equal)
     length by returning sections of the list.
@@ -120,17 +131,25 @@ class EqualLength(PartitionFunction):
     list otherwise.
     '''
 
-    def __init__(self):
+    def __call__(self, data, index=0, size=1):
         '''
-        Constructor
-        '''
+        Define the common interface for all partitioning functions.
 
-    def __call__(self, *args, **kwargs):
+        The abstract base class implements the check on the input for correct
+        format and typing.
+
+        Args:
+
+            data:   The data to be partitioned
+
+        Kwargs:
+
+            index:  A partition index into a part of the data
+
+            size:   The largest number of partitions allowed
         '''
-        Partition the data given
-        '''
-        data, index, size = PartitionFunction._ifc(*args, **kwargs)
-        if PartitionFunction._is_indexable(data):
+        super(EqualLength, self).__call__(data, index=index, size=size)
+        if self._is_indexable(data):
             (lenpart, remdata) = divmod(len(data), size)
             psizes = [lenpart] * size
             for i in xrange(remdata):
@@ -152,6 +171,7 @@ class EqualLength(PartitionFunction):
 # Grab parts of a list-like object with equal lengths
 #==============================================================================
 class EqualStride(PartitionFunction):
+
     '''
     Partition an indexable object into sublists of equal (or roughly equal)
     length by striding through the data with a fixed stride.
@@ -162,17 +182,25 @@ class EqualStride(PartitionFunction):
     list otherwise.
     '''
 
-    def __init__(self):
+    def __call__(self, data, index=0, size=1):
         '''
-        Constructor
-        '''
+        Define the common interface for all partitioning functions.
 
-    def __call__(self, *args, **kwargs):
+        The abstract base class implements the check on the input for correct
+        format and typing.
+
+        Args:
+
+            data:   The data to be partitioned
+
+        Kwargs:
+
+            index:  A partition index into a part of the data
+
+            size:   The largest number of partitions allowed
         '''
-        Partition the data given
-        '''
-        data, index, size = PartitionFunction._ifc(*args, **kwargs)
-        if PartitionFunction._is_indexable(data):
+        super(EqualStride, self).__call__(data, index=index, size=size)
+        if self._is_indexable(data):
             if index < len(data):
                 return data[index::size]
             else:
@@ -189,6 +217,7 @@ class EqualStride(PartitionFunction):
 # Grab parts of an indexable object with equal length  after sorting by weights
 #==============================================================================
 class SortedStride(PartitionFunction):
+
     '''
     Partition an indexable list of pairs.  The first index of each pair is
     assumed to be an item of data (which will be partitioned), and the second
@@ -200,17 +229,25 @@ class SortedStride(PartitionFunction):
     total weight.  Equal length is prioritized over total weight.
     '''
 
-    def __init__(self):
+    def __call__(self, data, index=0, size=1):
         '''
-        Constructor
-        '''
+        Define the common interface for all partitioning functions.
 
-    def __call__(self, *args, **kwargs):
+        The abstract base class implements the check on the input for correct
+        format and typing.
+
+        Args:
+
+            data:   The data to be partitioned
+
+        Kwargs:
+
+            index:  A partition index into a part of the data
+
+            size:   The largest number of partitions allowed
         '''
-        Partition the data given
-        '''
-        data, index, size = PartitionFunction._ifc(*args, **kwargs)
-        if PartitionFunction._are_pairs(data):
+        super(SortedStride, self).__call__(data, index=index, size=size)
+        if self._are_pairs(data):
             subdata = [q[0] for q in sorted(data, key=itemgetter(1))]
             return EqualStride()(subdata, index=index, size=size)
         else:
@@ -223,6 +260,7 @@ class SortedStride(PartitionFunction):
 # total weight, though not necessarily equal length
 #==============================================================================
 class WeightBalanced(PartitionFunction):
+
     '''
     Partition an indexable list of pairs.  The first index of each pair is
     assumed to be an item of data (which will be partitioned), and the second
@@ -233,17 +271,25 @@ class WeightBalanced(PartitionFunction):
 
     '''
 
-    def __init__(self):
+    def __call__(self, data, index=0, size=1):
         '''
-        Constructor
-        '''
+        Define the common interface for all partitioning functions.
 
-    def __call__(self, *args, **kwargs):
+        The abstract base class implements the check on the input for correct
+        format and typing.
+
+        Args:
+
+            data:   The data to be partitioned
+
+        Kwargs:
+
+            index:  A partition index into a part of the data
+
+            size:   The largest number of partitions allowed
         '''
-        Partition the data given
-        '''
-        data, index, size = PartitionFunction._ifc(*args, **kwargs)
-        if PartitionFunction._are_pairs(data):
+        super(WeightBalanced, self).__call__(data, index=index, size=size)
+        if self._are_pairs(data):
             sorted_pairs = sorted(data, key=itemgetter(1), reverse=True)
             partition = []
             weights = [0] * size
@@ -254,4 +300,4 @@ class WeightBalanced(PartitionFunction):
                 weights[k] += weight
             return partition
         else:
-            return EqualStride()(*args, **kwargs)
+            return EqualStride()(data, index=index, size=size)

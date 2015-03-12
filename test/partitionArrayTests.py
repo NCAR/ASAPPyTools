@@ -10,17 +10,20 @@ import partition
 import numpy
 from os import linesep
 
+
 def test_info_msg(name, data, index, size, actual, expected):
     spcr = ' ' * len(name)
     msg = ''.join([linesep,
                    name, ' - Data: ', str(data), linesep,
-                   spcr, ' - Index/Size: ', str(index), '/', str(size), linesep,
+                   spcr, ' - Index/Size: ', str(
+                       index), '/', str(size), linesep,
                    spcr, ' - Actual:   ', str(actual), linesep,
                    spcr, ' - Expected: ', str(expected)])
     return msg
 
 
 class partitionTests(unittest.TestCase):
+
     '''
     Unit tests for the partition module
     '''
@@ -37,15 +40,18 @@ class partitionTests(unittest.TestCase):
         pass
 
     def testOutOfBounds(self):
-        self.assertRaises(IndexError, partition.PartitionFunction(), [1, 2, 3], 3, 3)
-        self.assertRaises(IndexError, partition.PartitionFunction(), [1, 2, 3], 7, 3)
+        self.assertRaises(
+            IndexError, partition.EqualLength(), [1, 2, 3], 3, 3)
+        self.assertRaises(
+            IndexError, partition.EqualStride(), [1, 2, 3], 7, 3)
 
-    def testPartitionFunction(self):
+    def testDuplicate(self):
         for inp in self.inputs:
-            pfunc = partition.PartitionFunction()
+            pfunc = partition.Duplicate()
             actual = pfunc(*inp)
             expected = inp[0]
-            msg = test_info_msg('PartitionFunction', inp[0], inp[1], inp[2], actual, expected)
+            msg = test_info_msg(
+                'Duplicate', inp[0], inp[1], inp[2], actual, expected)
             print msg
             numpy.testing.assert_array_equal(actual, expected, msg)
 
@@ -57,7 +63,8 @@ class partitionTests(unittest.TestCase):
             pfunc = partition.EqualLength()
             actual = pfunc(*inp)
             expected = results[ii]
-            msg = test_info_msg('EqualLength', inp[0], inp[1], inp[2], actual, expected)
+            msg = test_info_msg(
+                'EqualLength', inp[0], inp[1], inp[2], actual, expected)
             print msg
             numpy.testing.assert_array_equal(actual, expected, msg)
 
@@ -66,7 +73,8 @@ class partitionTests(unittest.TestCase):
             pfunc = partition.EqualStride()
             actual = pfunc(*inp)
             expected = inp[0][inp[1]::inp[2]]
-            msg = test_info_msg('EqualStride', inp[0], inp[1], inp[2], actual, expected)
+            msg = test_info_msg(
+                'EqualStride', inp[0], inp[1], inp[2], actual, expected)
             print msg
             numpy.testing.assert_array_equal(actual, expected, msg)
 
@@ -78,7 +86,8 @@ class partitionTests(unittest.TestCase):
             actual = pfunc(data, inp[1], inp[2])
             expected = inp[0][::-1]
             expected = expected[inp[1]::inp[2]]
-            msg = test_info_msg('SortedStride', data, inp[1], inp[2], actual, expected)
+            msg = test_info_msg(
+                'SortedStride', data, inp[1], inp[2], actual, expected)
             print msg
             numpy.testing.assert_array_equal(actual, expected, msg)
 
@@ -92,7 +101,8 @@ class partitionTests(unittest.TestCase):
             data = numpy.dstack((inp[0], weights))[0]
             actual = set(pfunc(data, inp[1], inp[2]))
             expected = results[ii]
-            msg = test_info_msg('WeightBalanced', data, inp[1], inp[2], actual, expected)
+            msg = test_info_msg(
+                'WeightBalanced', data, inp[1], inp[2], actual, expected)
             print msg
             self.assertEqual(actual, expected, msg)
 
