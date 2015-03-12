@@ -14,7 +14,7 @@ Author: Kevin Paul <kpaul@ucar.edu>
 class VPrinter(object):
 
     '''
-    A Verbosity-enabled Printing Class
+    A Verbosity-enabled Printing Class.
 
     The VPrinter is designed to print messages to standard out, or optionally
     a string, as determined by a pre-set verbosity-level and/or on which
@@ -31,7 +31,7 @@ class VPrinter(object):
 
     def __init__(self, header='', verbosity=1):
         '''
-        Constructor - Creates an instance of a VPrinter object
+        Constructor - Creates an instance of a VPrinter object.
 
         Kwargs:
 
@@ -49,7 +49,7 @@ class VPrinter(object):
 
     def to_str(self, *args, **kwargs):
         '''
-        Concatenates string representations of the input arguments
+        Concatenates string representations of the input arguments.
 
         This takes a list of arguments of any length, converts each argument
         to a string representation, and concatenates them into a single string.
@@ -88,7 +88,7 @@ class VPrinter(object):
 
     def __call__(self, *args, **kwargs):
         '''
-        Print the supplied arguments to standard out
+        Print the supplied arguments to standard out.
 
         Prints all supplied positional arguments to standard output, if the
         message verbosity is less than the VPrinter's verbosity level.  Can

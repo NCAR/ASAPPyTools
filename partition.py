@@ -39,28 +39,22 @@ class PartitionFunction(object):
     @staticmethod
     def _check_types(data, index, size):
         '''
-        Check the types of the index and size arguments
+        Check the types of the 'index' and 'size' arguments.
 
         Args:
 
-            data:    The data to be partitioned
+            data: The data to be partitioned
 
-        Kwargs:
+            index: The index of the partition to return
 
-            index:   The index of the partition to return
-
-            size:    The number of partitions to make
+            size: The number of partitions to make
 
         Raises:
 
-            TypeError, if the size argument is not int
+            TypeError: The 'size' or 'index' arguments are not int
 
-            IndexError, if size < 1
-
-            TypeError, if the index argument is not int
-
-            IndexError, if index < 0 or index > size - 1
-        '''
+            IndexError: The 'size' argument is less than 1, or the 'index'
+                argument is less than 0 or greater than or equal to 'size'        '''
 
         # Check the type of the index
         if type(index) is not int:
@@ -81,16 +75,15 @@ class PartitionFunction(object):
     @staticmethod
     def _is_indexable(data):
         '''
-        Check if the data object is indexable
+        Check if the data object is indexable.
 
         Args:
 
-            data:    The data to be partitioned
+            data: The data to be partitioned
 
         Returns:
 
-            True, if data is an indexable object.
-            False, otherwise.
+            'True' if 'data' is an indexable object. 'False', otherwise.
         '''
         if hasattr(data, '__len__') and hasattr(data, '__getitem__'):
             return True
@@ -100,16 +93,15 @@ class PartitionFunction(object):
     @staticmethod
     def _are_pairs(data):
         '''
-        Check if the data object is an indexable list of pairs
+        Check if the data object is an indexable list of pairs.
 
         Args:
 
-            data:    The data to be partitioned
+            data: The data to be partitioned
 
         Returns:
 
-            True, if data is an indexable list of pairs.
-            False, otherwise.
+            'True' if 'data' is an indexable list of pairs. 'False', otherwise.
         '''
         if PartitionFunction._is_indexable(data):
             return all(map(lambda i: PartitionFunction._is_indexable(i)
@@ -120,7 +112,7 @@ class PartitionFunction(object):
     @abstractmethod
     def __call__(self):
         '''
-        Implements the partition algorithm
+        Implements the partition algorithm.
         '''
         return
 
@@ -132,7 +124,7 @@ class PartitionFunction(object):
 class Duplicate(PartitionFunction):
 
     '''
-    Return a copy of the original input data in each partition
+    Return a copy of the original input data in each partition.
     '''
 
     def __call__(self, data, index=0, size=1):
@@ -144,18 +136,16 @@ class Duplicate(PartitionFunction):
 
         Args:
 
-            data:   The data to be partitioned
+            data: The data to be partitioned
 
-        Kwargs:
+            index: A partition index into a part of the data
 
-            index:  A partition index into a part of the data
-
-            size:   The largest number of partitions allowed
+            size: The largest number of partitions allowed
 
         Returns:
 
             The indexed part of the data, assuming the data is divided into
-            size parts.
+            'size' parts.
         '''
         self._check_types(data, index, size)
 
@@ -187,18 +177,16 @@ class EqualLength(PartitionFunction):
 
         Args:
 
-            data:   The data to be partitioned
+            data: The data to be partitioned
 
-        Kwargs:
+            index: A partition index into a part of the data
 
-            index:  A partition index into a part of the data
-
-            size:   The largest number of partitions allowed
+            size: The largest number of partitions allowed
 
         Returns:
 
             The indexed part of the data, assuming the data is divided into
-            size parts.
+            'size' parts.
         '''
         self._check_types(data, index, size)
 
@@ -226,12 +214,12 @@ class EqualLength(PartitionFunction):
 class EqualStride(PartitionFunction):
 
     '''
-    Partition an indexable object by chopping the data into roughly equal lengths.
+    Partition an object by chopping the data into roughly equal lengths.
 
-    This returns a sublist of the initial data by "striding" through the
-    data in steps equal to the partition "size".  If the partition size is 
+    This returns a sublist of an indexable object by "striding" through the
+    data in steps equal to the partition 'size'.  If the partition size is 
     greater than the length of the input data, then it will return an empty 
-    list for 'empty' partitions.  If the data is not indexable, then it will
+    list for "empty" partitions.  If the data is not indexable, then it will
     return the data for index=0 only, and an empty list otherwise.
     '''
 
@@ -244,18 +232,16 @@ class EqualStride(PartitionFunction):
 
         Args:
 
-            data:   The data to be partitioned
+            data: The data to be partitioned
 
-        Kwargs:
+            index: A partition index into a part of the data
 
-            index:  A partition index into a part of the data
-
-            size:   The largest number of partitions allowed
+            size: The largest number of partitions allowed
 
         Returns:
 
             The indexed part of the data, assuming the data is divided into
-            size parts.
+            'size' parts.
         '''
         self._check_types(data, index, size)
 
@@ -298,18 +284,16 @@ class SortedStride(PartitionFunction):
 
         Args:
 
-            data:   The data to be partitioned
+            data: The data to be partitioned
 
-        Kwargs:
+            index: A partition index into a part of the data
 
-            index:  A partition index into a part of the data
-
-            size:   The largest number of partitions allowed
+            size: The largest number of partitions allowed
 
         Returns:
 
             The indexed part of the data, assuming the data is divided into
-            size parts.
+            'size' parts.
         '''
         self._check_types(data, index, size)
 
@@ -349,18 +333,16 @@ class WeightBalanced(PartitionFunction):
 
         Args:
 
-            data:   The data to be partitioned
+            data: The data to be partitioned
 
-        Kwargs:
+            index: A partition index into a part of the data
 
-            index:  A partition index into a part of the data
-
-            size:   The largest number of partitions allowed
+            size: The largest number of partitions allowed
 
         Returns:
 
             The indexed part of the data, assuming the data is divided into
-            size parts.
+            'size' parts.
         '''
         self._check_types(data, index, size)
 

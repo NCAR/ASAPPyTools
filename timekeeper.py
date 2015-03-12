@@ -31,7 +31,7 @@ class TimeKeeper(object):
 
     def __init__(self, time=time.time):
         '''
-        Constructor
+        Constructor.
 
         Args:
 
@@ -112,7 +112,7 @@ class TimeKeeper(object):
 
     def get_order(self):
         '''
-        Method to return the order in which the clocks were added
+        Method to return the order in which the clocks were added.
 
         Returns:
 

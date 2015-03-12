@@ -195,7 +195,7 @@ def create_comm(serial=False):
 class SimpleComm(object):
 
     '''
-    Simple Communicator for serial operation
+    Simple Communicator for serial operation.
 
     Attributes:
 
@@ -208,7 +208,7 @@ class SimpleComm(object):
 
     def __init__(self):
         '''
-        Constructor
+        Constructor.
         '''
 
         # Try importing the Numpy module
@@ -228,7 +228,7 @@ class SimpleComm(object):
 
     def _type_is_ndarray(self, dt):
         '''
-        Helper function to determing if an object is a Numpy NDArray
+        Helper function to determing if an object is a Numpy NDArray.
 
         Args:
 
@@ -260,7 +260,7 @@ class SimpleComm(object):
 
     def get_size(self):
         '''
-        Get the integer number of ranks in this communicator
+        Get the integer number of ranks in this communicator.
 
         The size includes the 'manager' rank.
 
@@ -272,7 +272,7 @@ class SimpleComm(object):
 
     def get_rank(self):
         '''
-        Get the integer rank ID of this MPI process in this communicator
+        Get the integer rank ID of this MPI process in this communicator.
 
         This call can be made independently from other ranks.
 
@@ -312,7 +312,7 @@ class SimpleComm(object):
 
     def get_group(self):
         '''
-        Get the group ID of this MPI communicator
+        Get the group ID of this MPI communicator.
 
         The group ID is the argument passed to the 'divide' method, and it
         represents a unique identifier for all ranks in the same color group.
@@ -328,7 +328,7 @@ class SimpleComm(object):
 
     def sync(self):
         '''
-        Synchronize all MPI processes at the point of this call
+        Synchronize all MPI processes at the point of this call.
 
         Immediately after this method is called, you can guarantee that all
         ranks in this communicator will be synchronized.
@@ -422,7 +422,7 @@ class SimpleComm(object):
 
     def ration(self, data=None):
         '''
-        Send a single piece of data from the 'manager' rank to a 'worker' rank
+        Send a single piece of data from the 'manager' rank to a 'worker' rank.
 
         If this method is called on a 'worker' rank, the worker will send a
         "request" for data to the 'manager' rank.  When the 'manager' receives
@@ -487,7 +487,7 @@ class SimpleComm(object):
 
     def divide(self, group):
         '''
-        Divide this communicator's ranks into groups
+        Divide this communicator's ranks into groups.
 
         Creates and returns two (2) kinds of groups:
 
@@ -524,7 +524,7 @@ class SimpleComm(object):
 class SimpleCommMPI(SimpleComm):
 
     '''
-    Simple Communicator using MPI
+    Simple Communicator using MPI.
 
     Attributes:
 
@@ -567,7 +567,7 @@ class SimpleCommMPI(SimpleComm):
 
     def __init__(self):
         '''
-        Constructor
+        Constructor.
         '''
 
         # Call the base class constructor
@@ -588,7 +588,7 @@ class SimpleCommMPI(SimpleComm):
 
     def __del__(self):
         '''
-        Destructor
+        Destructor.
 
         Free the communicator if this SimpleComm goes out of scope
         '''
@@ -597,7 +597,7 @@ class SimpleCommMPI(SimpleComm):
 
     def get_size(self):
         '''
-        Get the integer number of ranks in this communicator
+        Get the integer number of ranks in this communicator.
 
         The size includes the 'manager' rank.
 
@@ -609,7 +609,7 @@ class SimpleCommMPI(SimpleComm):
 
     def get_rank(self):
         '''
-        Get the integer rank ID of this MPI process in this communicator
+        Get the integer rank ID of this MPI process in this communicator.
 
         This call can be made independently from other ranks.
 
@@ -621,7 +621,7 @@ class SimpleCommMPI(SimpleComm):
 
     def sync(self):
         '''
-        Synchronize all MPI processes at the point of this call
+        Synchronize all MPI processes at the point of this call.
 
         Immediately after this method is called, you can guarantee that all
         ranks in this communicator will be synchronized.
@@ -772,7 +772,7 @@ class SimpleCommMPI(SimpleComm):
 
     def ration(self, data=None):
         '''
-        Send a single piece of data from the 'manager' rank to a 'worker' rank
+        Send a single piece of data from the 'manager' rank to a 'worker' rank.
 
         If this method is called on a 'worker' rank, the worker will send a
         "request" for data to the 'manager' rank.  When the 'manager' receives
@@ -957,7 +957,7 @@ class SimpleCommMPI(SimpleComm):
 
     def divide(self, group):
         '''
-        Divide this communicator's ranks into groups
+        Divide this communicator's ranks into groups.
 
         Creates and returns two (2) kinds of groups:
 
