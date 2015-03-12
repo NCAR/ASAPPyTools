@@ -12,6 +12,7 @@ import time
 
 
 class TimeKeeper(object):
+
     '''
     Class to keep timing recordings, start/stop/reset timers.
     '''
@@ -25,27 +26,29 @@ class TimeKeeper(object):
                     it is the Python 'time.time()' method.
         '''
 
-        ## The method to use for time measurements
+        # The method to use for time measurements
         self._time = time
 
-        ## Dictionary of start times associated with a string name
+        # Dictionary of start times associated with a string name
         self._start_times = {}
 
-        ## Dictionary of accumulated times associated with a string name
+        # Dictionary of accumulated times associated with a string name
         self._accumulated_times = {}
 
-        ## List containing the order of the timers
+        # List containing the order of the timers
         #  (when added to the dictionaries)
         self._added_order = []
 
     def reset(self, name):
         '''
-        Method to reset a timer associated with a given name.  If the name
-        has never been used before, the timer is created and the accumulated
-        time is set to 0.  If the timer has been used before, the accumulated
-        time is set to 0.
+        Method to reset a timer associated with a given name.
 
-        @param name  The name or ID of the timer to reset
+        If the name has never been used before, the timer is created and the 
+        accumulated time is set to 0.  If the timer has been used before, the 
+        accumulated time is set to 0.
+
+        Args:
+            name:    The name or ID of the timer to reset
         '''
 
         # Reset the named timer (creates it if it doesn't exist yet)
@@ -56,11 +59,13 @@ class TimeKeeper(object):
 
     def start(self, name):
         '''
-        Method to start a timer associated with a given name.  If the name
-        has never been used before, the timer is created and the accumulated
-        time is set to 0.
+        Method to start a timer associated with a given name.
 
-        @param name  The name or ID of the timer to start
+        If the name has never been used before, the timer is created and 
+        the accumulated time is set to 0.
+
+        Args:
+            name:    The name or ID of the timer to start
         '''
 
         # Start the named timer (creates it if it doesn't exist yet)
@@ -71,12 +76,15 @@ class TimeKeeper(object):
 
     def stop(self, name):
         '''
+        Stop the timing and add the accumulated time to the timer.
+
         Method to stop a timer associated with a given name, and adds
         the accumulated time to the timer when stopped.  If the given timer
         name has never been used before (either by calling reset() or start()),
         the timer is created and the accumulated time is set to 0.
 
-        @param name  The name or ID of the timer to stop
+        Args:
+            name:    The name or ID of the timer to stop
         '''
 
         # Stop the named timer, add to accumulated time
@@ -88,21 +96,23 @@ class TimeKeeper(object):
 
     def get_order(self):
         '''
-        Method to return the order in which the clocks were added to the
-        TimeKeeper.
+        Method to return the order in which the clocks were added
         '''
         return self._added_order
 
     def get_time(self, name):
         '''
-        Returns the accumulated time of the given timer.  If the given timer
-        name has never been created, it is created and the accumulated time
-        is set to zero before returning.
+        Returns the accumulated time of the given timer.
 
-        @param name  The name or ID of the timer to stop
+        If the given timer name has never been created, it is created and the 
+        accumulated time is set to zero before returning.
 
-        @return  The accumulated time of the named timer (or 0.0 if the
-                 named timer has never been created before).
+        Args:
+            name:    The name or ID of the timer to stop
+
+        Returns:
+            The accumulated time of the named timer (or 0.0 if the named timer 
+            has never been created before).
         '''
 
         # Get the accumulated time
@@ -114,6 +124,7 @@ class TimeKeeper(object):
         '''
         Returns the dictionary of accumulated times on the local processor.
 
-        @return  The dictionary of accumulated times
+        Returns:
+            The dictionary of accumulated times
         '''
         return self._accumulated_times

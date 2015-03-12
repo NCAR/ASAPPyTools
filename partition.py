@@ -161,13 +161,13 @@ class Duplicate(PartitionFunction):
 class EqualLength(PartitionFunction):
 
     '''
-    Partition an indexable object into sublists of equal (or roughly equal)
-    length by returning sections of the list.
+    Partition an indexable object by striding through the data.
 
-    If the partition size is greater than the length of the input data, then
-    it will return an empty list for 'empty' partitions.  If the data is not
-    indexable, then it will return the data for index=0 only, and an empty
-    list otherwise.
+    The initial object is "chopped" along its length into roughly equal length
+    sublists.  If the partition size is greater than the length of the input 
+    data, then it will return an empty list for 'empty' partitions.  If the 
+    data is not indexable, then it will return the data for index=0 only, and 
+    an empty list otherwise.  
     '''
 
     def __call__(self, *args, **kwargs):
@@ -212,13 +212,13 @@ class EqualLength(PartitionFunction):
 class EqualStride(PartitionFunction):
 
     '''
-    Partition an indexable object into sublists of equal (or roughly equal)
-    length by striding through the data with a fixed stride.
+    Partition an indexable object by chopping the data into roughly equal lengths.
 
-    If the partition size is greater than the length of the input data, then
-    it will return an empty list for 'empty' partitions.  If the data is not
-    indexable, then it will return the data for index=0 only, and an empty
-    list otherwise.
+    This returns a sublist of the initial data by "striding" through the
+    data in steps equal to the partition "size".  If the partition size is 
+    greater than the length of the input data, then it will return an empty 
+    list for 'empty' partitions.  If the data is not indexable, then it will
+    return the data for index=0 only, and an empty list otherwise.
     '''
 
     def __call__(self, *args, **kwargs):
@@ -258,14 +258,15 @@ class EqualStride(PartitionFunction):
 class SortedStride(PartitionFunction):
 
     '''
-    Partition an indexable list of pairs.  The first index of each pair is
-    assumed to be an item of data (which will be partitioned), and the second
-    index in each pair is assumed to be a numeric weight.  The pairs are
-    first sorted by weight, and then partitions are returned by striding
-    through the sorted data.
+    Partition an indexable list of pairs by striding through sorted data.
+
+    The first index of each pair is assumed to be an item of data (which will 
+    be partitioned), and the second index in each pair is assumed to be a 
+    numeric weight.  The pairs are first sorted by weight, and then partitions 
+    are returned by striding through the sorted data.
 
     The results are partitions of roughly equal length and roughly equal
-    total weight.  Equal length is prioritized over total weight.
+    total weight.  However, equal length is prioritized over total weight.
     '''
 
     def __call__(self, *args, **kwargs):
@@ -301,12 +302,15 @@ class SortedStride(PartitionFunction):
 class WeightBalanced(PartitionFunction):
 
     '''
-    Partition an indexable list of pairs.  The first index of each pair is
-    assumed to be an item of data (which will be partitioned), and the second
-    index in each pair is assumed to be a numeric weight.
+    Partition an indexable list of pairs by balancing the total weight.
+
+    The first index of each pair is assumed to be an item of data (which will 
+    be partitioned), and the second index in each pair is assumed to be a 
+    numeric weight.  The data items are grouped via a "greedy" binning 
+    algorithm into partitions of roughly equal total weight.
 
     The results are partitions of roughly equal length and roughly equal
-    total weight.  Equal total weight is prioritized over length.
+    total weight.  However, equal total weight is prioritized over length.
 
     '''
 
