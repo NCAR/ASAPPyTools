@@ -117,21 +117,21 @@ group.
 _______________________________________________________________________________
 Created on Feb 4, 2015
 
-@author: Kevin Paul <kpaul@ucar.edu>
+Author: Kevin Paul <kpaul@ucar.edu>
 '''
 
 from functools import partial
 from collections import defaultdict
 
-## Define the supported reduction operators
+# Define the supported reduction operators
 OPERATORS = ['sum', 'prod', 'max', 'min']
 
-## Define the reduction operators map (Maps names to function names.
-## The 'py' function names are passed to 'eval(*)' and executed as python code.
-## The 'np' function names are passed to 'getattr(numpy,*)' and executed as
-## numpy code.  The 'mpi' function names are passed to 'getattr(mpi4py,*)'
-## and return an MPI operator object which is passed as an argument to MPI
-## reduce functions.
+# Define the reduction operators map (Maps names to function names.
+# The 'py' function names are passed to 'eval(*)' and executed as python code.
+# The 'np' function names are passed to 'getattr(numpy,*)' and executed as
+# numpy code.  The 'mpi' function names are passed to 'getattr(mpi4py,*)'
+# and return an MPI operator object which is passed as an argument to MPI
+# reduce functions.
 _OP_MAP = {'sum': {'py': 'sum',
                    'np': 'sum',
                    'mpi': 'SUM'},
@@ -157,15 +157,18 @@ def create_comm(serial=False):
     parallel SimpleComm object.
 
     Kwargs:
+
         serial: A boolean flag with True indicating the desire for a
                 serial SimpleComm instance, and False incidicating the
                 desire for a parallel SimpleComm instance.
 
     Returns:
+
         An instance of a SimpleComm object, either serial (if 'serial==True')
         or parallel (if 'serial==False')
 
     Raises:
+
         TypeError, if the 'serial' argument is not a bool.
 
     Examples:
@@ -193,9 +196,20 @@ class SimpleComm(object):
 
     '''
     Simple Communicator for serial operation
+
+    Attributes:
+
+        _numpy:    Reference to the Numpy module, if found
+
+        _color:    The color associated with the communicator, if colored
+
+        _group:    The group ID associated with the communicator's color
     '''
 
     def __init__(self):
+        '''
+        Constructor
+        '''
 
         # Try importing the Numpy module
         try:
@@ -203,13 +217,13 @@ class SimpleComm(object):
         except:
             numpy = None
 
-        ## To the Numpy module, if found
+        # To the Numpy module, if found
         self._numpy = numpy
 
-        ## The color ID associated with this communicator
+        # The color ID associated with this communicator
         self._color = None
 
-        ## The group ID associated with the color ID
+        # The group ID associated with the color
         self._group = None
 
     def _type_is_ndarray(self, dt):
@@ -217,11 +231,14 @@ class SimpleComm(object):
         Helper function to determing if an object is a Numpy NDArray
 
         Args:
+
             dt: The type of the data object to be tested
 
         Returns:
-            True, if the object is a Numpy NDArray.  Folse, if otherwise or
-            the Numpy module was not found during the SimpleComm constructor.
+
+            True, if the object is a Numpy NDArray.  
+            Folse, otherwise or if the Numpy module was not found during
+            the SimpleComm constructor.
 
         Examples:
 
@@ -248,6 +265,7 @@ class SimpleComm(object):
         The size includes the 'manager' rank.
 
         Returns:
+
             The integer number of ranks in this communicator.
         '''
         return 1
@@ -259,6 +277,7 @@ class SimpleComm(object):
         This call can be made independently from other ranks.
 
         Returns:
+
             The integer rank ID of this MPI process
         '''
         return 0
@@ -270,6 +289,7 @@ class SimpleComm(object):
         This call can be made independently from other ranks.
 
         Returns:
+
             True, if this MPI process is on the master rank (or rank 0).
             False, otherwise.
         '''
@@ -285,7 +305,8 @@ class SimpleComm(object):
         This call can be made independently from other ranks.
 
         Returns:
-            The integer color ID of this MPI communicator
+
+            The integer color of this MPI communicator
         '''
         return self._color
 
@@ -300,6 +321,7 @@ class SimpleComm(object):
         This call can be made independently from other ranks.
 
         Returns:
+
             The group ID of this communicator
         '''
         return self._group
@@ -326,13 +348,16 @@ class SimpleComm(object):
         This call must be made by all ranks.
 
         Args:
+
             data:   The data to be reduced
+
             op:     A string identifier for a reduce operation (any string
                     found in the OPERATORS list)
 
         Returns:
+
             The single value constituting the reduction of the input data.
-            The same value is returned on all ranks in this communicator.
+            (The same value is returned on all ranks in this communicator.)
         '''
         if (isinstance(data, dict)):
             totals = {}
@@ -371,16 +396,20 @@ class SimpleComm(object):
         This call must be made by all ranks.
 
         Kwargs:
+
             data:       The data to be partitioned across the ranks in the
                         communicator.
+
             func:       A PartitionFunction object/function that returns a part
                         of the data given the index and assumed size of the
                         partition
+
             involved:   True, if a part of the data should be given to the
                         'manager' rank in addition to the 'worker' ranks.
                         False, otherwise.
 
         Returns:
+
             A (possibly partitioned) subset (i.e., part) of the data.
             Depending on the PartitionFunction used (or if it is used at all),
             this method may return a different part on each rank.
@@ -408,13 +437,16 @@ class SimpleComm(object):
         hang.
 
         Kwargs:
+
             data:   The data to be asynchronously sent to the 'worker' rank/
 
         Returns:
+
             On the 'worker' rank, the data sent by the manager.  On the
             'manager' rank, None.
 
         Raises:
+
             RuntimeError, if executed during a serial or 1-rank parallel run
         '''
         err_msg = 'Rationing cannot be used in serial operation'
@@ -437,14 +469,17 @@ class SimpleComm(object):
         hang.
 
         Kwargs:
+
             data:   The data to be collected asynchronously on the 'manager'
                     rank.
 
         Returns:
+
             On the 'manager' rank, a tuple containing the source rank ID
             and the data collected.  None on all other ranks.
 
         Raises:
+
             RuntimeError, if executed during a serial or 1-rank parallel run
         '''
         err_msg = 'Collection cannot be used in serial operation'
@@ -463,17 +498,20 @@ class SimpleComm(object):
                 (called a "multicolor" group).
 
         Args:
+
             group:  A unique group ID to which will be assigned an integer
                     color ID ranging from 0 to the number of group ID's
                     supplied across all ranks
 
         Returns:
+
             A tuple containing (first) the "monocolor" SimpleComm for ranks
             with the same color ID (but different rank IDs) and (second) the
             "multicolor" SimpleComm for ranks with the same rank ID (but
             different color IDs)
 
         Raises:
+
             RuntimeError, if executed during a serial or 1-rank parallel run
         '''
         err_msg = 'Division cannot be done on a serial communicator'
@@ -487,6 +525,28 @@ class SimpleCommMPI(SimpleComm):
 
     '''
     Simple Communicator using MPI
+
+    Attributes:
+
+        PART_MSG_TAG: Partition Message Tag
+        PART_ACK_TAG: Partition Acknowledgement Tag
+        PART_NPY_TAG: Partition Numpy Send/Recv Tag
+        PART_PYT_TAG: Partition Python Send/Recv Tag
+
+        RATN_REQ_TAG: Ration Request Tag
+        RATN_MSG_TAG: Ration Message Tag
+        RATN_ACK_TAG: Ration Acknowledgement Tag
+        RATN_NPY_TAG: Ration Numpy Send/Recv Tag
+        RATN_PYT_TAG: Ration Python Send/Recv Tag
+
+        CLCT_MSG_TAG: Collect Message Tag
+        CLCT_ACK_TAG: Collect Acknowledgement Tag
+        CLCT_NPY_TAG: Collect Numpy Send/Recv Tag
+        CLCT_PYT_TAG: Collect Python Send/Recv Tag
+
+        _mpi:    A reference to the mpi4py.MPI module
+
+        _comm:   A reference to the mpi4py.MPI communicator
     '''
 
     PART_MSG_TAG = 100  # Partition Message Tag
@@ -506,6 +566,11 @@ class SimpleCommMPI(SimpleComm):
     CLCT_PYT_TAG = 304  # Collect Python Send/Recv Tag
 
     def __init__(self):
+        '''
+        Constructor
+        '''
+
+        # Call the base class constructor
         super(SimpleCommMPI, self).__init__()
 
         # Try importing the MPI4Py MPI module
@@ -515,13 +580,18 @@ class SimpleCommMPI(SimpleComm):
             err_msg = 'MPI could not be found.'
             raise ImportError(err_msg)
 
-        ## Hold on to the MPI module
+        # Hold on to the MPI module
         self._mpi = MPI
 
-        ## The MPI communicator (by default, COMM_WORLD)
+        # The MPI communicator (by default, COMM_WORLD)
         self._comm = self._mpi.COMM_WORLD
 
     def __del__(self):
+        '''
+        Destructor
+
+        Free the communicator if this SimpleComm goes out of scope
+        '''
         if self._comm != self._mpi.COMM_WORLD:
             self._comm.Free()
 
@@ -532,6 +602,7 @@ class SimpleCommMPI(SimpleComm):
         The size includes the 'manager' rank.
 
         Returns:
+
             The integer number of ranks in this communicator.
         '''
         return self._comm.Get_size()
@@ -543,6 +614,7 @@ class SimpleCommMPI(SimpleComm):
         This call can be made independently from other ranks.
 
         Returns:
+
             The integer rank ID of this MPI process
         '''
         return self._comm.Get_rank()
@@ -569,13 +641,16 @@ class SimpleCommMPI(SimpleComm):
         This call must be made by all ranks.
 
         Args:
+
             data:   The data to be reduced
+
             op:     A string identifier for a reduce operation (any string
                     found in the OPERATORS list)
 
         Returns:
+
             The single value constituting the reduction of the input data.
-            The same value is returned on all ranks in this communicator.
+            (The same value is returned on all ranks in this communicator.)
         '''
         if (isinstance(data, dict)):
             all_list = self._comm.gather(SimpleComm.allreduce(self, data, op))
@@ -614,16 +689,20 @@ class SimpleCommMPI(SimpleComm):
         This call must be made by all ranks.
 
         Kwargs:
+
             data:       The data to be partitioned across the ranks in the
                         communicator.
+
             func:       A PartitionFunction object/function that returns a part
                         of the data given the index and assumed size of the
-                        partition
+                        partition.
+
             involved:   True, if a part of the data should be given to the
                         'manager' rank in addition to the 'worker' ranks.
                         False, otherwise.
 
         Returns:
+
             A (possibly partitioned) subset (i.e., part) of the data.
             Depending on the PartitionFunction used (or if it is used at all),
             this method may return a different part on each rank.
@@ -708,13 +787,16 @@ class SimpleCommMPI(SimpleComm):
         hang.
 
         Kwargs:
+
             data:   The data to be asynchronously sent to the 'worker' rank/
 
         Returns:
+
             On the 'worker' rank, the data sent by the manager.  On the
             'manager' rank, None.
 
         Raises:
+
             RuntimeError, if executed during a serial or 1-rank parallel run
         '''
         if self.get_size() > 1:
@@ -800,14 +882,17 @@ class SimpleCommMPI(SimpleComm):
         hang.
 
         Kwargs:
+
             data:   The data to be collected asynchronously on the 'manager'
                     rank.
 
         Returns:
+
             On the 'manager' rank, a tuple containing the source rank ID
             and the the data collected.  None on all other ranks.
 
         Raises:
+
             RuntimeError, if executed during a serial or 1-rank parallel run
         '''
         if self.get_size() > 1:
@@ -883,17 +968,20 @@ class SimpleCommMPI(SimpleComm):
                 (called a "multicolor" group).
 
         Args:
+
             group:  A unique group ID to which will be assigned an integer
                     color ID ranging from 0 to the number of group ID's
                     supplied across all ranks
 
         Returns:
+
             A tuple containing (first) the "monocolor" SimpleComm for ranks
             with the same color ID (but different rank IDs) and (second) the
             "multicolor" SimpleComm for ranks with the same rank ID (but
             different color IDs)
 
         Raises:
+
             RuntimeError, if executed during a serial or 1-rank parallel run
         '''
         if self.get_size() > 1:

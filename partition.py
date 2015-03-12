@@ -37,31 +37,30 @@ class PartitionFunction(object):
     __metaclass__ = ABCMeta
 
     @staticmethod
-    def _interface(*args, **kwargs):
+    def _check_types(data, index, size):
         '''
-        Define the common interface for PartitionFunction objects
+        Check the types of the index and size arguments
+
+        Args:
+
+            data:    The data to be partitioned
+
+        Kwargs:
+
+            index:   The index of the partition to return
+
+            size:    The number of partitions to make
+
+        Raises:
+
+            TypeError, if the size argument is not int
+
+            IndexError, if size < 1
+
+            TypeError, if the index argument is not int
+
+            IndexError, if index < 0 or index > size - 1
         '''
-
-        # Parse the positional arguments
-        if len(args) == 0:
-            err_msg = 'PartitionFunction objects take at least 1 positional ' \
-                      'argument'
-            raise TypeError(err_msg)
-        elif len(args) > 3:
-            err_msg = 'PartitionFunction objects take at most 3 positional ' \
-                      'arguments'
-            raise TypeError(err_msg)
-
-        data = args[0]
-        index = args[1] if len(args) > 1 else kwargs.pop('index', 0)
-        size = args[2] if len(args) > 2 else kwargs.pop('size', 1)
-
-        # If there are any keyword args left, list them as unrecognized
-        if len(kwargs) > 0:
-            err_msg = 'Unrecognized keyword arguments to PartitionFunction: '
-            unrecognized_keys = ', '.join([str(k) for k in kwargs.keys()])
-            err_msg += unrecognized_keys
-            raise ValueError(err_msg)
 
         # Check the type of the index
         if type(index) is not int:
@@ -77,15 +76,21 @@ class PartitionFunction(object):
 
         # Check the value of size
         if size < 1:
-            raise TypeError('Partition size less than 1 is invalid')
-
-        # Return the data, index, and size
-        return data, index, size
+            raise IndexError('Partition size less than 1 is invalid')
 
     @staticmethod
     def _is_indexable(data):
         '''
         Check if the data object is indexable
+
+        Args:
+
+            data:    The data to be partitioned
+
+        Returns:
+
+            True, if data is an indexable object.
+            False, otherwise.
         '''
         if hasattr(data, '__len__') and hasattr(data, '__getitem__'):
             return True
@@ -96,6 +101,15 @@ class PartitionFunction(object):
     def _are_pairs(data):
         '''
         Check if the data object is an indexable list of pairs
+
+        Args:
+
+            data:    The data to be partitioned
+
+        Returns:
+
+            True, if data is an indexable list of pairs.
+            False, otherwise.
         '''
         if PartitionFunction._is_indexable(data):
             return all(map(lambda i: PartitionFunction._is_indexable(i)
@@ -104,24 +118,11 @@ class PartitionFunction(object):
             return False
 
     @abstractmethod
-    def __call__(self, *args, **kwargs):
+    def __call__(self):
         '''
-        Define the common interface for all partitioning functions.
-
-        The abstract base class implements the check on the input for correct
-        format and typing.
-
-        Args:
-
-            data:   The data to be partitioned
-
-        Kwargs:
-
-            index:  A partition index into a part of the data
-
-            size:   The largest number of partitions allowed
+        Implements the partition algorithm
         '''
-        return self._interface(*args, **kwargs)
+        return
 
 
 #==============================================================================
@@ -134,7 +135,7 @@ class Duplicate(PartitionFunction):
     Return a copy of the original input data in each partition
     '''
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, data, index=0, size=1):
         '''
         Define the common interface for all partitioning functions.
 
@@ -150,8 +151,14 @@ class Duplicate(PartitionFunction):
             index:  A partition index into a part of the data
 
             size:   The largest number of partitions allowed
+
+        Returns:
+
+            The indexed part of the data, assuming the data is divided into
+            size parts.
         '''
-        data, dummy1, dummy2 = super(Duplicate, self).__call__(*args, **kwargs)
+        self._check_types(data, index, size)
+
         return data
 
 
@@ -171,7 +178,7 @@ class EqualLength(PartitionFunction):
     an empty list otherwise.  
     '''
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, data, index=0, size=1):
         '''
         Define the common interface for all partitioning functions.
 
@@ -187,8 +194,14 @@ class EqualLength(PartitionFunction):
             index:  A partition index into a part of the data
 
             size:   The largest number of partitions allowed
+
+        Returns:
+
+            The indexed part of the data, assuming the data is divided into
+            size parts.
         '''
-        data, index, size = super(EqualLength, self).__call__(*args, **kwargs)
+        self._check_types(data, index, size)
+
         if self._is_indexable(data):
             (lenpart, remdata) = divmod(len(data), size)
             psizes = [lenpart] * size
@@ -222,7 +235,7 @@ class EqualStride(PartitionFunction):
     return the data for index=0 only, and an empty list otherwise.
     '''
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, data, index=0, size=1):
         '''
         Define the common interface for all partitioning functions.
 
@@ -238,8 +251,14 @@ class EqualStride(PartitionFunction):
             index:  A partition index into a part of the data
 
             size:   The largest number of partitions allowed
+
+        Returns:
+
+            The indexed part of the data, assuming the data is divided into
+            size parts.
         '''
-        data, index, size = super(EqualStride, self).__call__(*args, **kwargs)
+        self._check_types(data, index, size)
+
         if self._is_indexable(data):
             if index < len(data):
                 return data[index::size]
@@ -270,7 +289,7 @@ class SortedStride(PartitionFunction):
     total weight.  However, equal length is prioritized over total weight.
     '''
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, data, index=0, size=1):
         '''
         Define the common interface for all partitioning functions.
 
@@ -286,8 +305,14 @@ class SortedStride(PartitionFunction):
             index:  A partition index into a part of the data
 
             size:   The largest number of partitions allowed
+
+        Returns:
+
+            The indexed part of the data, assuming the data is divided into
+            size parts.
         '''
-        data, index, size = super(SortedStride, self).__call__(*args, **kwargs)
+        self._check_types(data, index, size)
+
         if self._are_pairs(data):
             subdata = [q[0] for q in sorted(data, key=itemgetter(1))]
             return EqualStride()(subdata, index=index, size=size)
@@ -315,7 +340,7 @@ class WeightBalanced(PartitionFunction):
 
     '''
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, data, index=0, size=1):
         '''
         Define the common interface for all partitioning functions.
 
@@ -331,9 +356,14 @@ class WeightBalanced(PartitionFunction):
             index:  A partition index into a part of the data
 
             size:   The largest number of partitions allowed
+
+        Returns:
+
+            The indexed part of the data, assuming the data is divided into
+            size parts.
         '''
-        data, index, size = super(WeightBalanced,
-                                  self).__call__(*args, **kwargs)
+        self._check_types(data, index, size)
+
         if self._are_pairs(data):
             sorted_pairs = sorted(data, key=itemgetter(1), reverse=True)
             partition = []
