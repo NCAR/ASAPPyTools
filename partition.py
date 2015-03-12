@@ -29,8 +29,9 @@ class PartitionFunction(object):
     The abstract base-class for all Partitioning Function objects.
 
     A PartitionFunction object is one with a '__call__' method that takes
-    three arguments: the data to be partitioned, the index of the partition
-    (or part) requested, and the number of partitions to assume when dividing
+    three arguments.  The first argument is the data to be partitioned, the 
+    second argument is the index of the partition (or part) requested, and 
+    third argument is the number of partitions to assume when dividing
     the data.
     '''
     __metaclass__ = ABCMeta
