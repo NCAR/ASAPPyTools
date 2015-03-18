@@ -21,25 +21,21 @@ class VPrinter(object):
     parallel rank the VPrinter is instantiated.
 
     Attributes:
-
-        header:     A string to prepend to any print messages before they
-                    are printed
-
-        verbosity:  The verbosity level to use when determining if a
-                    message should be printed
+        header: A string to prepend to any print messages before they
+            are printed
+        verbosity: The verbosity level to use when determining if a
+            message should be printed
     '''
 
     def __init__(self, header='', verbosity=1):
         '''
         Constructor - Creates an instance of a VPrinter object.
 
-        Kwargs:
-
-            header:     A string to prepend to any print messages before they
-                        are printed
-
-            verbosity:  The verbosity level to use when determining if a
-                        message should be printed
+        Args:
+            header: A string to prepend to any print messages before they
+                are printed
+            verbosity: The verbosity level to use when determining if a
+                message should be printed
         '''
         # The message header to prepend to messages if desired
         self.header = header
@@ -55,25 +51,20 @@ class VPrinter(object):
         to a string representation, and concatenates them into a single string.
 
         Args:
-
-            args:   A list of arguments supplied to the function.  All of these
-                    arguments will be concatenated together.
-
-        Kwargs:
-
-            kwargs: The dictionary of keyword arguments passed to the function.
+            *args: A list of arguments supplied to the function.  All of these
+                arguments will be concatenated together.
+            **kwargs: The dictionary of keyword arguments passed to the
+                function.
 
         Returns:
-
             A single string with the arguments given converted to strings and
             concatenated together (in order).  If the keyword 'header==True'
             is supplied, then the 'header' string is prepended to the string
             before being output.
 
         Raises:
-
-            TypeError, if the 'header' keyword argument is supplied and is 
-                       not a bool
+            TypeError: If the 'header' keyword argument is supplied and is 
+                not a bool
         '''
         out_args = []
         if 'header' in kwargs:
@@ -95,20 +86,15 @@ class VPrinter(object):
         also print a useful header based on the parallel rank and size.
 
         Args:
-
-            args:       A list of arguments supplied to the function.  All of
-                        these arguments will be concatenated together.
-
-        Kwargs:
-
-            kwargs:     The dictionary of keyword arguments passed to the function.
+            *args: A list of arguments supplied to the function.  All of
+                these arguments will be concatenated together.
+            **kwargs: The dictionary of keyword arguments passed to the 
+                function.
 
         Returns:
-
             None.  However, if the 'verbosity' keyword argument is supplied,
             and the 'verbosity' value is less than the VPrinter object's
             'verbosity' attribute, then it prints to stdout.
-
             Like the 'to_str' method, if the 'header' keyword is supplied and
             equal to 'True', then it prepends the output with the header.
         '''

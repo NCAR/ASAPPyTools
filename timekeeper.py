@@ -17,16 +17,12 @@ class TimeKeeper(object):
     Class to keep timing recordings, start/stop/reset timers.
 
     Attributes:
-
         _time: The method to use for getting the time (e.g., time.time)
-
         _start_times: A dictionary of start times for each named timer
-
         _accumulated_times: A dictionary of the total accumulated times for
-                            each named timer
-
+            each named timer
         _added_order: A list containing the name of each timer, in the order
-                      it was added to the TimeKeeper
+            it was added to the TimeKeeper
     '''
 
     def __init__(self, time=time.time):
@@ -34,9 +30,8 @@ class TimeKeeper(object):
         Constructor.
 
         Args:
-
-            time:   The function to use for measuring the time.  By default,
-                    it is the Python 'time.time()' method.
+            time: The function to use for measuring the time.  By default,
+                it is the Python 'time.time()' method.
         '''
 
         # The method to use for time measurements
@@ -61,8 +56,7 @@ class TimeKeeper(object):
         accumulated time is set to 0.
 
         Args:
-
-            name:    The name or ID of the timer to reset
+            name: The name or ID of the timer to reset
         '''
 
         # Reset the named timer (creates it if it doesn't exist yet)
@@ -79,8 +73,7 @@ class TimeKeeper(object):
         the accumulated time is set to 0.
 
         Args:
-
-            name:    The name or ID of the timer to start
+            name: The name or ID of the timer to start
         '''
 
         # Start the named timer (creates it if it doesn't exist yet)
@@ -99,8 +92,7 @@ class TimeKeeper(object):
         the timer is created and the accumulated time is set to 0.
 
         Args:
-
-            name:    The name or ID of the timer to stop
+            name: The name or ID of the timer to stop
         '''
 
         # Stop the named timer, add to accumulated time
@@ -115,7 +107,6 @@ class TimeKeeper(object):
         Method to return the order in which the clocks were added.
 
         Returns:
-
             The list of timer names in the order they were added
         '''
         return self._added_order
@@ -128,11 +119,9 @@ class TimeKeeper(object):
         accumulated time is set to zero before returning.
 
         Args:
-
-            name:    The name or ID of the timer to stop
+            name: The name or ID of the timer to stop
 
         Returns:
-
             The accumulated time of the named timer (or 0.0 if the named timer 
             has never been created before).
         '''
@@ -147,7 +136,6 @@ class TimeKeeper(object):
         Returns the dictionary of accumulated times on the local processor.
 
         Returns:
-
             The dictionary of accumulated times
         '''
         return self._accumulated_times
