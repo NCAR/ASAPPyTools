@@ -102,9 +102,9 @@ class TimeKeeper(object):
             self._accumulated_times[name] += \
                 self._time() - self._start_times[name]
 
-    def get_order(self):
+    def get_names(self):
         '''
-        Method to return the order in which the clocks were added.
+        Method to return the clock names in the order in which they were added.
 
         Returns:
             The list of timer names in the order they were added
