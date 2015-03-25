@@ -1,5 +1,5 @@
 '''
-Data Partitioning Functions
+A module for data partitioning functions.
 
 This provides a collection of 'partitioning' functions.  A partitioning
 function is a three-argument function that takes, as the first argument, a

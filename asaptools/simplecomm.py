@@ -1,5 +1,5 @@
 '''
-SimpleComm - Simple MPI Communication
+A module for simple MPI communication.
 
 The SimpleComm class is designed to provide a simplified MPI-based
 communication strategy using the MPI4Py module.
@@ -95,18 +95,18 @@ groups to perform different tasks in each group.  When this is necessary, the
 'manager' rank will assign itself and each 'worker' rank a *color* ID.  Then,
 the 'manager' will assign each rank (including itself) to 2 new groups:
 
-    (1) Each rank with the same color ID will be assigned to the same group,
-        and within this new *color* group, each rank will be given a new rank
-        ID ranging from 0 (identifying the color group's 'manager' rank) to
-        the number of 'worker' ranks in the color group.  This is called the
-        *monocolor* grouping.
+1. Each rank with the same color ID will be assigned to the same group, and
+    within this new *color* group, each rank will be given a new rank ID 
+    ranging from 0 (identifying the color group's 'manager' rank) to the number
+    of 'worker' ranks in the color group.  This is called 
+    the *monocolor* grouping.
 
-    (2) Each rank with the same new rank ID across all color groups will be
-        assigned to the same group.  Hence, all ranks with rank ID 0 (but
-        different color IDs) will be in the same group, all ranks with rank ID
-        1 (but different color IDs) will be the in another group, etc.  This
-        is called the *multicolor* grouping.  NOTE: This grouping will look
-        like grouping (1) except with the rank ID and the color ID swapped.
+2. Each rank with the same new rank ID across all color groups will be assigned
+    to the same group.  Hence, all ranks with rank ID 0 (but different color
+    IDs) will be in the same group, all ranks with rank ID 1 (but different
+    color IDs) will be the in another group, etc.  This is called the
+    *multicolor* grouping.  NOTE: This grouping will look like grouping (1)
+    except with the rank ID and the color ID swapped.
 
 The *divide* method provides this functionality, and it returns 2 new
 SimpleComm objects for each of the 2 groupings described above.  This means
@@ -166,7 +166,7 @@ def create_comm(serial=False):
         or parallel (if serial == False)
 
     Raises:
-        TypeError, if the serial argument is not a bool.
+        TypeError: if the serial argument is not a bool.
 
     Examples:
 
@@ -279,8 +279,8 @@ class SimpleComm(object):
         This call can be made independently from other ranks.
 
         Returns:
-            True, if this MPI process is on the master rank (or rank 0).
-            False, otherwise.
+            True if this MPI process is on the master rank
+            (or rank 0). False otherwise.
         '''
         return self.get_rank() == 0
 
@@ -379,21 +379,18 @@ class SimpleComm(object):
         This call must be made by all ranks.
 
         Args:
-            data: The data to be partitioned across the ranks in the
-                communicator.
-            func: A PartitionFunction object/function that returns a part
-                of the data given the index and assumed size of the
-                partition
-            involved: True, if a part of the data should be given to the
-                'manager' rank in addition to the 'worker' ranks.
-                False, otherwise.
+            data: The data to be partitioned across the ranks in the communicator.
+            func: A PartitionFunction object/function that returns a part of the
+                data given the index and assumed size of the partition.
+            involved: True if a part of the data should be given to the 'manager'
+                rank in addition to the 'worker' ranks. False otherwise.
             tag: A user-defined integer tag to uniquely specify this
-                communication message
+                communication message.
 
         Returns:
-            A (possibly partitioned) subset (i.e., part) of the data.
-            Depending on the PartitionFunction used (or if it is used at all),
-            this method may return a different part on each rank.
+            A (possibly partitioned) subset (i.e., part) of the data.  Depending
+            on the PartitionFunction used (or if it is used at all), this method
+            may return a different part on each rank.
         '''
         op = func if func else lambda *x: x[0][x[1]::x[2]]
         if involved:
@@ -449,8 +446,7 @@ class SimpleComm(object):
         hang.
 
         Args:
-            data: The data to be collected asynchronously on the 'manager'
-                rank.
+            data: The data to be collected asynchronously on the manager rank.
             tag: A user-defined integer tag to uniquely specify this
                 communication message
 
@@ -470,11 +466,11 @@ class SimpleComm(object):
 
         Creates and returns two (2) kinds of groups:
 
-            (1) groups with ranks of the same color ID but different rank IDs
-                (called a "monocolor" group), and
+        1. groups with ranks of the same color ID but different rank IDs
+            (called a "monocolor" group), and
 
-            (2) groups with ranks of the same rank ID but different color IDs
-                (called a "multicolor" group).
+        2. groups with ranks of the same rank ID but different color IDs
+            (called a "multicolor" group).
 
         Args:
             group: A unique group ID to which will be assigned an integer
@@ -644,16 +640,16 @@ class SimpleCommMPI(SimpleComm):
         This call must be made by all ranks.
 
         Args:
-            data: The data to be partitioned across the ranks in the
-                communicator.
-            func: A PartitionFunction object/function that returns a part
-                of the data given the index and assumed size of the
-                partition.
-            involved: True, if a part of the data should be given to the
-                'manager' rank in addition to the 'worker' ranks.
-                False, otherwise.
-            tag: A user-defined integer tag to uniquely specify this
-                communication message
+            data: The data to be partitioned across
+                the ranks in the communicator.
+            func: A PartitionFunction object/function that returns
+                a part of the data given the index and assumed
+                size of the partition.
+            involved: True, if a part of the data should be given
+                to the 'manager' rank in addition to the 'worker'
+                ranks. False, otherwise.
+            tag: A user-defined integer tag to uniquely
+                specify this communication message
 
         Returns:
             A (possibly partitioned) subset (i.e., part) of the data.
@@ -841,10 +837,10 @@ class SimpleCommMPI(SimpleComm):
         hang.
 
         Args:
-            data: The data to be collected asynchronously on the 'manager'
-                rank.
-            tag: A user-defined integer tag to uniquely specify this
-                communication message
+            data: The data to be collected asynchronously 
+                on the 'manager' rank.
+            tag: A user-defined integer tag to uniquely
+                specify this communication message
 
         Returns:
             On the 'manager' rank, a tuple containing the source rank ID

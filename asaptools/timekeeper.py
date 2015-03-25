@@ -1,5 +1,7 @@
 '''
-This is a simple class to act as a time keeper for internal
+A module containing the TimeKeeper class.
+
+This module contains is a simple class to act as a time keeper for internal
 performance monitoring (namely, timing given processes).
 
 _______________________
@@ -8,7 +10,7 @@ Created on May 15, 2014
 Author: Kevin Paul <kpaul@ucar.edu>
 '''
 
-import time
+from time import time
 
 
 class TimeKeeper(object):
@@ -25,7 +27,7 @@ class TimeKeeper(object):
             it was added to the TimeKeeper
     '''
 
-    def __init__(self, time=time.time):
+    def __init__(self, time=time):
         '''
         Constructor.
 

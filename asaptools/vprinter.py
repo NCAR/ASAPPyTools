@@ -1,8 +1,8 @@
 '''
-VPrinter - A module for erbosity-enabled printing
+A module containing the VPrinter class.
 
-This module implements a VPrinter class that enables clean printing to
-standard out (or a string) in a verbosity-level print management.
+This module contains the VPrinter class that enables clean printing to
+standard out (or a string) with verbosity-level print management.
 
 _______________________________________________________________________________
 Created on Feb 26, 2015
@@ -21,8 +21,8 @@ class VPrinter(object):
     parallel rank the VPrinter is instantiated.
 
     Attributes:
-        header: A string to prepend to any print messages before they
-            are printed
+        header: A string to prepend to any print messages before
+            they are printed
         verbosity: The verbosity level to use when determining if a
             message should be printed
     '''
@@ -32,8 +32,8 @@ class VPrinter(object):
         Constructor - Creates an instance of a VPrinter object.
 
         Args:
-            header: A string to prepend to any print messages before they
-                are printed
+            header: A string to prepend to any print messages before
+                they are printed
             verbosity: The verbosity level to use when determining if a
                 message should be printed
         '''
@@ -51,10 +51,10 @@ class VPrinter(object):
         to a string representation, and concatenates them into a single string.
 
         Args:
-            *args: A list of arguments supplied to the function.  All of these
+            args: A list of arguments supplied to the function.  All of these
                 arguments will be concatenated together.
-            **kwargs: The dictionary of keyword arguments passed to the
-                function.
+            kwargs: The dictionary of keyword arguments
+                passed to the function.
 
         Returns:
             A single string with the arguments given converted to strings and
@@ -86,10 +86,10 @@ class VPrinter(object):
         also print a useful header based on the parallel rank and size.
 
         Args:
-            *args: A list of arguments supplied to the function.  All of
+            args: A list of arguments supplied to the function.  All of
                 these arguments will be concatenated together.
-            **kwargs: The dictionary of keyword arguments passed to the 
-                function.
+            kwargs: The dictionary of keyword arguments 
+                passed to the function.
 
         Returns:
             None.  However, if the 'verbosity' keyword argument is supplied,

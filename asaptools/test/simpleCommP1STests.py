@@ -12,12 +12,14 @@ Created on Feb 17, 2015
 @author: Kevin Paul <kpaul@ucar.edu>
 '''
 import unittest
-import simplecomm
 import numpy as np
-from partition import EqualStride, Duplicate
+
+from asaptools import simplecomm
+from asaptools.partition import EqualStride, Duplicate
 from os import linesep
 from mpi4py import MPI
 MPI_COMM_WORLD = MPI.COMM_WORLD
+
 
 def test_info_msg(name, data, sresult, presult):
     spcr = ' ' * len(name)
@@ -40,8 +42,10 @@ class SimpleCommP1STests(unittest.TestCase):
         pass
 
     def testIsSerialLike(self):
-        self.assertEqual(self.rank, 0, 'Rank not consistent with serial-like operation')
-        self.assertEqual(self.size, 1, 'Size not consistent with serial-like operation')
+        self.assertEqual(
+            self.rank, 0, 'Rank not consistent with serial-like operation')
+        self.assertEqual(
+            self.size, 1, 'Size not consistent with serial-like operation')
 
     def testGetSize(self):
         sresult = self.scomm.get_size()

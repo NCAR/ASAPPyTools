@@ -7,11 +7,13 @@ Created on May 31, 2014
 @author: Kevin Paul <kpaul@ucar.edu>
 '''
 import unittest
+
 from time import sleep
-import timekeeper
+from asaptools import timekeeper
 
 
 class TimeKeeperTests(unittest.TestCase):
+
     '''
     Tests for the TimeKeeper class
     '''
@@ -19,7 +21,7 @@ class TimeKeeperTests(unittest.TestCase):
     def test_init(self):
         tk = timekeeper.TimeKeeper()
         self.assertIsInstance(tk, timekeeper.TimeKeeper,
-            'TimeKeeper class instantiated incorrectly.')
+                              'TimeKeeper class instantiated incorrectly.')
 
     def test_start_stop_names(self):
         tk = timekeeper.TimeKeeper()
@@ -58,9 +60,9 @@ class TimeKeeperTests(unittest.TestCase):
         sleep(wait_time)
         tk.stop(name2)
         self.assertEqual(name1, tk._added_order[0],
-                      'Clock name 1 not appropriately ordered')
+                         'Clock name 1 not appropriately ordered')
         self.assertEqual(name2, tk._added_order[1],
-                      'Clock name 2 not appropriately ordered')
+                         'Clock name 2 not appropriately ordered')
 
     def test_start_stop_values2(self):
         tk = timekeeper.TimeKeeper()
@@ -102,8 +104,8 @@ class TimeKeeperTests(unittest.TestCase):
         sleep(wait_time)
         tk.stop(name)
         self.assertAlmostEqual(wait_time, tk.get_time(name),
-                         msg='Get time seems off',
-                         delta=ok_diff)
+                               msg='Get time seems off',
+                               delta=ok_diff)
 
     def test_get_all_times(self):
         tk = timekeeper.TimeKeeper()
