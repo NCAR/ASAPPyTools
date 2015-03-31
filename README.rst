@@ -31,7 +31,7 @@ Python packages.
 Dependencies
 ------------
 
-All of the ASAP PyTools are written to work with Python 2.6+ (but not
+All of the ASAP Python Toolbox are written to work with Python 2.6+ (but not
 Python 3.0+). The vprinter, timekeeper, and partition modules are pure
 Python. The simplecomm module depends on mpi4py (>-1.3).
 
@@ -53,7 +53,7 @@ permissions can be given to those to make changes to the source.
 Building & Installation
 -----------------------
 
-Installation of the PyTools is very simple. After checking out the
+Installation of the ASAP Python Toolbox is very simple. After checking out the
 source from the above svn link, via::
 
     svn co https://proxy.subversion.ucar.edu/pubasap/pyTools/tags/v0.3 ASAPTools
@@ -78,20 +78,29 @@ This can be handy since the site-packages directory will be common for
 all user installs, and therefore only needs to be added to the
 PYTHONPATH once.
 
-To install API documentation for developer use, you must run doxygen
-with the command (on unix machines)::
+To build the documentation for developer use, you will need Sphinx.  Sphinx
+can be installed with the pip utility simple::
 
-    $  doxygen Doxyfile
+    $  pip install Sphinx
+    
+Once Sphinx is installed, you can build the ASAP Python Toolbox's
+HTML documentation with::
 
-If doxypypy is found on the system, then the Doxypypy filter is used to
-generate the API documentation. Otherwise, the raw Python files will be
-interpretted directly by Doxygen. The resulting API documentation will
-be placed in the docs/api directory.
+    $  cd docs
+    $  make html
+    
+which will build the documentation in the docs/build/html directory.  If you
+wish to build a PDF, do the following::
+
+    $  cd docs
+    $  make latexpdf
+    
+which requires pdflatex to build a PDF version of the documentation.
 
 Before Using the ASAP Python Toolbox
 ------------------------------------
 
-Before the PyTools package can be used, you must make sure that the
+Before the ASAP Python Toolbox package can be used, you must make sure that the
 site-packages directory containing the 'pytools' source directory is in
 your PYTHONPATH. Depending on the PREFIX used during installation, this
 path will be::
@@ -104,15 +113,8 @@ that you are using to install the package.
 Instructions & Use
 ------------------
 
-For instructions on how to use the PyTools, see the additional documents
-found in the docs/api and docs/user directories.
-
-If you are a developer wanting to use the PyTools API directly from your
-own Python code, please read the 'Building & Installation' section above
-for instructions on how to build the API documentation. Once built, you
-will be able to open the 'docs/api/html/index.html' page in any browser.
-
-The docs/user directory contains user manual describing how to use the
-different modules in the PyTools package. Both this README and the User
-Manual are written in reStructuredText, and can easily be converted to HTML or
-many other formats with the help of a tool such as pandoc or Sphinx.
+For instructions on how to use the ASAP Python Toolbox, see the additional 
+documentation found in the docs directory.  Please read the 
+'Building & Installation' section above for instructions on how to build the 
+HTML documentation. Once built, you will be able to open the 
+'docs/build/html/index.html' page in any browser.
