@@ -6,7 +6,7 @@ Created on Feb 4, 2015
 @author: Kevin Paul <kpaul@ucar.edu>
 '''
 import unittest
-import partition
+from asaptools import partition
 import numpy
 from os import linesep
 
@@ -92,9 +92,9 @@ class partitionArrayTests(unittest.TestCase):
             numpy.testing.assert_array_equal(actual, expected, msg)
 
     def testWeightBalanced(self):
-        results = [{0, 1, 2}, {1}, set(),
-                   {3, 2, 4, 1, 0}, {1}, set(),
-                   {3, 2, 4, 1, 5, 0, 6}, {3, 6}, {4}]
+        results = [set([0, 1, 2]), set([1]), set(),
+                   set([3, 2, 4, 1, 0]), set([1]), set(),
+                   set([3, 2, 4, 1, 5, 0, 6]), set([3, 6]), set([4])]
         for (ii, inp) in enumerate(self.inputs):
             weights = numpy.array([(3 - i) ** 2 for i in inp[0]])
             pfunc = partition.WeightBalanced()

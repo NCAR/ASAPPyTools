@@ -7,8 +7,9 @@ Created on Feb 4, 2015
 @author: Kevin Paul <kpaul@ucar.edu>
 '''
 import unittest
-import simplecomm
-from partition import EqualStride, Duplicate
+
+from asaptools import simplecomm
+from asaptools.partition import EqualStride, Duplicate
 from os import linesep as eol
 from mpi4py import MPI
 MPI_COMM_WORLD = MPI.COMM_WORLD
@@ -191,7 +192,8 @@ class SimpleCommParDivTests(unittest.TestCase):
 
     def testMultiPartitionIntInvolved(self):
         data = self.grank
-        actual = self.multicomm.partition(data, func=Duplicate(), involved=True)
+        actual = self.multicomm.partition(
+            data, func=Duplicate(), involved=True)
         expected = self.rank * len(self.groups)
         msg = test_info_msg(self.grank, self.gsize, 'multi.partition(int,T)',
                             data, actual, expected)
@@ -390,11 +392,13 @@ class SimpleCommParDivTests(unittest.TestCase):
             data = None
 
         if self.monocomm.is_manager():
-            mydata = self.multicomm.partition(data, func=Duplicate(), involved=True)
+            mydata = self.multicomm.partition(
+                data, func=Duplicate(), involved=True)
         else:
             mydata = None
 
-        actual = self.monocomm.partition(mydata, func=Duplicate(), involved=True)
+        actual = self.monocomm.partition(
+            mydata, func=Duplicate(), involved=True)
         expected = 10
         msg = test_info_msg(self.grank, self.gsize, 'TreeScatter(int)',
                             data, actual, expected)

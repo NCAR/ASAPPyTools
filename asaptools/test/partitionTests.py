@@ -6,20 +6,23 @@ Created on Feb 4, 2015
 @author: Kevin Paul <kpaul@ucar.edu>
 '''
 import unittest
-import partition
+from asaptools import partition
 from os import linesep
+
 
 def test_info_msg(name, data, index, size, actual, expected):
     spcr = ' ' * len(name)
     msg = ''.join([linesep,
                    name, ' - Data: ', str(data), linesep,
-                   spcr, ' - Index/Size: ', str(index), '/', str(size), linesep,
+                   spcr, ' - Index/Size: ', str(
+                       index), '/', str(size), linesep,
                    spcr, ' - Actual:   ', str(actual), linesep,
                    spcr, ' - Expected: ', str(expected)])
     return msg
 
 
 class partitionTests(unittest.TestCase):
+
     '''
     Unit tests for the partition module
     '''
@@ -36,15 +39,18 @@ class partitionTests(unittest.TestCase):
         pass
 
     def testOutOfBounds(self):
-        self.assertRaises(IndexError, partition.EqualLength(), [1, 2, 3], 3, 3)
-        self.assertRaises(IndexError, partition.EqualLength(), [1, 2, 3], 7, 3)
+        self.assertRaises(
+            IndexError, partition.EqualLength(), [1, 2, 3], 3, 3)
+        self.assertRaises(
+            IndexError, partition.EqualLength(), [1, 2, 3], 7, 3)
 
     def testDuplicate(self):
         for inp in self.inputs:
             pfunc = partition.Duplicate()
             actual = pfunc(*inp)
             expected = inp[0]
-            msg = test_info_msg('Duplicate', inp[0], inp[1], inp[2], actual, expected)
+            msg = test_info_msg(
+                'Duplicate', inp[0], inp[1], inp[2], actual, expected)
             print msg
             self.assertEqual(actual, expected, msg)
 
@@ -56,7 +62,8 @@ class partitionTests(unittest.TestCase):
             pfunc = partition.EqualLength()
             actual = pfunc(*inp)
             expected = results[ii]
-            msg = test_info_msg('EqualLength', inp[0], inp[1], inp[2], actual, expected)
+            msg = test_info_msg(
+                'EqualLength', inp[0], inp[1], inp[2], actual, expected)
             print msg
             self.assertEqual(actual, expected, msg)
 
@@ -65,7 +72,8 @@ class partitionTests(unittest.TestCase):
             pfunc = partition.EqualStride()
             actual = pfunc(*inp)
             expected = inp[0][inp[1]::inp[2]]
-            msg = test_info_msg('EqualStride', inp[0], inp[1], inp[2], actual, expected)
+            msg = test_info_msg(
+                'EqualStride', inp[0], inp[1], inp[2], actual, expected)
             print msg
             self.assertEqual(actual, expected, msg)
 
@@ -77,20 +85,22 @@ class partitionTests(unittest.TestCase):
             expected = inp[0][:]
             expected.reverse()
             expected = expected[inp[1]::inp[2]]
-            msg = test_info_msg('SortedStride', zip(inp[0], weights), inp[1], inp[2], actual, expected)
+            msg = test_info_msg(
+                'SortedStride', zip(inp[0], weights), inp[1], inp[2], actual, expected)
             print msg
             self.assertEqual(actual, expected, msg)
 
     def testWeightBalanced(self):
-        results = [{0, 1, 2}, {1}, set(),
-                   {3, 2, 4, 1, 0}, {1}, set(),
-                   {3, 2, 4, 1, 5, 0, 6}, {3, 6}, {4}]
+        results = [set([0, 1, 2]), set([1]), set(),
+                   set([3, 2, 4, 1, 0]), set([1]), set(),
+                   set([3, 2, 4, 1, 5, 0, 6]), set([3, 6]), set([4])]
         for (ii, inp) in enumerate(self.inputs):
             weights = [(3 - i) ** 2 for i in inp[0]]
             pfunc = partition.WeightBalanced()
             actual = set(pfunc(zip(inp[0], weights), inp[1], inp[2]))
             expected = results[ii]
-            msg = test_info_msg('WeightBalanced', zip(inp[0], weights), inp[1], inp[2], actual, expected)
+            msg = test_info_msg(
+                'WeightBalanced', zip(inp[0], weights), inp[1], inp[2], actual, expected)
             print msg
             self.assertEqual(actual, expected, msg)
 

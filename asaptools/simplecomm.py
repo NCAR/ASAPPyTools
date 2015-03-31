@@ -1,5 +1,5 @@
 '''
-SimpleComm - Simple MPI Communication
+A module for simple MPI communication.
 
 The SimpleComm class is designed to provide a simplified MPI-based
 communication strategy using the MPI4Py module.
@@ -11,7 +11,7 @@ common 'manager'/'worker' pattern, with the 0th rank assumed to be the
 'manager' rank to the 'worker' ranks, and for collecting the data from the
 'worker' ranks back on the 'manager' rank.
 
-PARTITIONING:
+**PARTITIONING:**
 
 Within the SimpleComm paradigm, the 'manager' rank is assumed to be responsible
 for partition (or distributing) the necessary work to the 'worker' ranks.
@@ -36,7 +36,7 @@ master will take a part of the data for itself.  If the 'manager' is
 *Partitioning* is a *synchronous* communication call that implements a
 *static partitioning* algorithm.
 
-RATIONING:
+**RATIONING:**
 
 An alternative approach to the *partitioning* communication method is the
 *rationing* communication method.  This method involves the individual
@@ -54,7 +54,7 @@ process will hang and wait forever!
 *Rationing* is an *asynchronous* communication call that allows the 'manager'
 to implement a *dynamic partitioning* algorithm.
 
-COLLECTING:
+**COLLECTING:**
 
 Once each 'worker' has received its assigned part of the data, the 'worker'
 will perform some work pertaining to the data it received.  In such a case,
@@ -72,7 +72,7 @@ The *collect* method is a *handshake* method, meaning that while the 'manager'
 rank doesn't care which 'worker' rank sends it data, the 'manager' rank does
 acknowledge the 'worker' rank and record the 'worker' rank's identity.
 
-REDUCING:
+**REDUCING:**
 
 In general, it is assumed that each 'worker' rank works independently from the
 other 'worker' ranks.  However, it may be occasionally necessary for the
@@ -88,36 +88,31 @@ across the ranks.  Since the *reduction* computes a reduced quantity of data
 distributed across all ranks, the *allreduce* method is a *synchronous* method
 (i.e., all ranks must participate in the call, including the 'manager').
 
-DIVIDING:
+**DIVIDING:**
 
 It can be occasionally useful to subdivide the 'worker' ranks into different
 groups to perform different tasks in each group.  When this is necessary, the
 'manager' rank will assign itself and each 'worker' rank a *color* ID.  Then,
 the 'manager' will assign each rank (including itself) to 2 new groups:
 
-    (1) Each rank with the same color ID will be assigned to the same group,
-        and within this new *color* group, each rank will be given a new rank
-        ID ranging from 0 (identifying the color group's 'manager' rank) to
-        the number of 'worker' ranks in the color group.  This is called the
-        *monocolor* grouping.
+1. Each rank with the same color ID will be assigned to the same group, and
+    within this new *color* group, each rank will be given a new rank ID 
+    ranging from 0 (identifying the color group's 'manager' rank) to the number
+    of 'worker' ranks in the color group.  This is called 
+    the *monocolor* grouping.
 
-    (2) Each rank with the same new rank ID across all color groups will be
-        assigned to the same group.  Hence, all ranks with rank ID 0 (but
-        different color IDs) will be in the same group, all ranks with rank ID
-        1 (but different color IDs) will be the in another group, etc.  This
-        is called the *multicolor* grouping.  NOTE: This grouping will look
-        like grouping (1) except with the rank ID and the color ID swapped.
+2. Each rank with the same new rank ID across all color groups will be assigned
+    to the same group.  Hence, all ranks with rank ID 0 (but different color
+    IDs) will be in the same group, all ranks with rank ID 1 (but different
+    color IDs) will be the in another group, etc.  This is called the
+    *multicolor* grouping.  NOTE: This grouping will look like grouping (1)
+    except with the rank ID and the color ID swapped.
 
 The *divide* method provides this functionality, and it returns 2 new
 SimpleComm objects for each of the 2 groupings described above.  This means
 that within each group, the same *partition*, *collecting*, and *reducing*
 operations can be performed in the same way as described above for the *global*
 group.
-
-_______________________________________________________________________________
-Created on Feb 4, 2015
-
-Author: Kevin Paul <kpaul@ucar.edu>
 '''
 
 from functools import partial
@@ -156,17 +151,17 @@ def create_comm(serial=False):
     Depending on the argument given, it returns an instance of a serial or
     parallel SimpleComm object.
 
-    Args:
-        serial: A boolean flag with True indicating the desire for a
+    Keyword Arguments:
+        serial (bool): A boolean flag with True indicating the desire for a
             serial SimpleComm instance, and False incidicating the
             desire for a parallel SimpleComm instance.
 
     Returns:
-        An instance of a SimpleComm object, either serial (if serial == True)
-        or parallel (if serial == False)
+        SimpleComm: An instance of a SimpleComm object, either serial 
+            (if serial == True) or parallel (if serial == False)
 
     Raises:
-        TypeError, if the serial argument is not a bool.
+        TypeError: if the serial argument is not a bool.
 
     Examples:
 
@@ -224,13 +219,13 @@ class SimpleComm(object):
         '''
         Helper function to determing if an object is a Numpy NDArray.
 
-        Args:
+        Parameters:
             dt: The type of the data object to be tested
 
         Returns:
-            True if the object is a Numpy NDArray.  
-            Folse otherwise, or if the Numpy module was not found during
-            the SimpleComm constructor.
+            bool: True if the object is a Numpy NDArray. False otherwise,  
+                or if the Numpy module was not found during
+                the SimpleComm constructor.
 
         Examples:
 
@@ -257,7 +252,7 @@ class SimpleComm(object):
         The size includes the 'manager' rank.
 
         Returns:
-            The integer number of ranks in this communicator.
+            int: The integer number of ranks in this communicator.
         '''
         return 1
 
@@ -268,7 +263,7 @@ class SimpleComm(object):
         This call can be made independently from other ranks.
 
         Returns:
-            The integer rank ID of this MPI process
+            int: The integer rank ID of this MPI process
         '''
         return 0
 
@@ -279,8 +274,8 @@ class SimpleComm(object):
         This call can be made independently from other ranks.
 
         Returns:
-            True, if this MPI process is on the master rank (or rank 0).
-            False, otherwise.
+            bool: True if this MPI process is on the master rank
+                (or rank 0). False otherwise.
         '''
         return self.get_rank() == 0
 
@@ -294,7 +289,7 @@ class SimpleComm(object):
         This call can be made independently from other ranks.
 
         Returns:
-            The integer color of this MPI communicator
+            int: The color of this MPI communicator
         '''
         return self._color
 
@@ -334,9 +329,9 @@ class SimpleComm(object):
 
         This call must be made by all ranks.
 
-        Args:
+        Parameters:
             data: The data to be reduced
-            op: A string identifier for a reduce operation (any string
+            op (str): A string identifier for a reduce operation (any string
                 found in the OPERATORS list)
 
         Returns:
@@ -378,22 +373,21 @@ class SimpleComm(object):
 
         This call must be made by all ranks.
 
-        Args:
-            data: The data to be partitioned across the ranks in the
+        Keyword Arguments:
+            data: The data to be partitioned across the ranks in the 
                 communicator.
-            func: A PartitionFunction object/function that returns a part
-                of the data given the index and assumed size of the
-                partition
-            involved: True, if a part of the data should be given to the
-                'manager' rank in addition to the 'worker' ranks.
-                False, otherwise.
-            tag: A user-defined integer tag to uniquely specify this
-                communication message
+            func: A PartitionFunction object/function that returns a part 
+                of the data given the index and assumed size of the partition.
+            involved (bool): True if a part of the data should be given to the
+                'manager' rank in addition to the 'worker' ranks. False 
+                otherwise.
+            tag (int): A user-defined integer tag to uniquely specify this
+                communication message.
 
         Returns:
-            A (possibly partitioned) subset (i.e., part) of the data.
-            Depending on the PartitionFunction used (or if it is used at all),
-            this method may return a different part on each rank.
+            A (possibly partitioned) subset (i.e., part) of the data.  Depending
+            on the PartitionFunction used (or if it is used at all), this method
+            may return a different part on each rank.
         '''
         op = func if func else lambda *x: x[0][x[1]::x[2]]
         if involved:
@@ -417,9 +411,9 @@ class SimpleComm(object):
         'manager' rank and itself.  Attempting this will cause the code to
         hang.
 
-        Args:
+        Keyword Arguments:
             data: The data to be asynchronously sent to the 'worker' rank
-            tag: A user-defined integer tag to uniquely specify this
+            tag (int): A user-defined integer tag to uniquely specify this
                 communication message
 
         Returns:
@@ -448,10 +442,9 @@ class SimpleComm(object):
         'manager' rank and itself.  Attempting this will cause the code to
         hang.
 
-        Args:
-            data: The data to be collected asynchronously on the 'manager'
-                rank.
-            tag: A user-defined integer tag to uniquely specify this
+        Keyword Arguments:
+            data: The data to be collected asynchronously on the manager rank.
+            tag (int): A user-defined integer tag to uniquely specify this
                 communication message
 
         Returns:
@@ -470,22 +463,22 @@ class SimpleComm(object):
 
         Creates and returns two (2) kinds of groups:
 
-            (1) groups with ranks of the same color ID but different rank IDs
-                (called a "monocolor" group), and
+        1. groups with ranks of the same color ID but different rank IDs
+            (called a "monocolor" group), and
 
-            (2) groups with ranks of the same rank ID but different color IDs
-                (called a "multicolor" group).
+        2. groups with ranks of the same rank ID but different color IDs
+            (called a "multicolor" group).
 
-        Args:
+        Parameters:
             group: A unique group ID to which will be assigned an integer
                 color ID ranging from 0 to the number of group ID's
                 supplied across all ranks
 
         Returns:
-            A tuple containing (first) the "monocolor" SimpleComm for ranks
-            with the same color ID (but different rank IDs) and (second) the
-            "multicolor" SimpleComm for ranks with the same rank ID (but
-            different color IDs)
+            tuple: A tuple containing (first) the "monocolor" SimpleComm for 
+                ranks with the same color ID (but different rank IDs) and 
+                (second) the "multicolor" SimpleComm for ranks with the same
+                rank ID (but different color IDs)
 
         Raises:
             RuntimeError: If executed during a serial or 1-rank parallel run
@@ -519,11 +512,11 @@ class SimpleCommMPI(SimpleComm):
     RATN_TAG = 2  # Ration Tag Identifier
     CLCT_TAG = 3  # Collect Tag Identifier
 
-    REQ_TAG = 1  # Message request Identifier
-    MSG_TAG = 2  # Message request Identifier
-    ACK_TAG = 3  # Message request Identifier
-    PYT_TAG = 4  # Message request Identifier
-    NPY_TAG = 5  # Message request Identifier
+    REQ_TAG = 1  # Request Identifier
+    MSG_TAG = 2  # Message Identifier
+    ACK_TAG = 3  # Acknowledgement Identifier
+    PYT_TAG = 4  # Python Data send/recv Identifier
+    NPY_TAG = 5  # Numpy NDArray send/recv Identifier
 
     def __init__(self):
         '''
@@ -562,7 +555,7 @@ class SimpleCommMPI(SimpleComm):
         The size includes the 'manager' rank.
 
         Returns:
-            The integer number of ranks in this communicator.
+            int: The integer number of ranks in this communicator.
         '''
         return self._comm.Get_size()
 
@@ -573,7 +566,7 @@ class SimpleCommMPI(SimpleComm):
         This call can be made independently from other ranks.
 
         Returns:
-            The integer rank ID of this MPI process
+            int: The integer rank ID of this MPI process
         '''
         return self._comm.Get_rank()
 
@@ -598,9 +591,9 @@ class SimpleCommMPI(SimpleComm):
 
         This call must be made by all ranks.
 
-        Args:
+        Parameters:
             data: The data to be reduced
-            op: A string identifier for a reduce operation (any string
+            op (str): A string identifier for a reduce operation (any string
                 found in the OPERATORS list)
 
         Returns:
@@ -625,6 +618,21 @@ class SimpleCommMPI(SimpleComm):
                                         op=getattr(self._mpi,
                                                    _OP_MAP[op]['mpi']))
 
+    def _tag_offset(self, method, message, user):
+        '''
+        Method to generate the tag for a given MPI message
+
+        Parameters:
+            method (int): One of PART_TAG, RATN_TAG, CLCT_TAG
+            message (int):  One of REQ_TAG, MSG_TAG, ACK_TAG, PYT_TAG, NPY_TAG
+            user (int): A user-defined integer tag
+
+        Returns:
+            int: A new tag uniquely combining all of the method, message, and
+                user tags together
+        '''
+        return 100 * user + 10 * method + message
+
     def partition(self, data=None, func=None, involved=False, tag=0):
         '''
         Partition and send data from the 'manager' rank to 'worker' ranks.
@@ -643,24 +651,23 @@ class SimpleCommMPI(SimpleComm):
 
         This call must be made by all ranks.
 
-        Args:
-            data: The data to be partitioned across the ranks in the
-                communicator.
-            func: A PartitionFunction object/function that returns a part
-                of the data given the index and assumed size of the
-                partition.
-            involved: True, if a part of the data should be given to the
-                'manager' rank in addition to the 'worker' ranks.
-                False, otherwise.
-            tag: A user-defined integer tag to uniquely specify this
-                communication message
+        Keyword Arguments:
+            data: The data to be partitioned across
+                the ranks in the communicator.
+            func: A PartitionFunction object/function that returns
+                a part of the data given the index and assumed
+                size of the partition.
+            involved (bool): True, if a part of the data should be given
+                to the 'manager' rank in addition to the 'worker'
+                ranks. False, otherwise.
+            tag (int): A user-defined integer tag to uniquely
+                specify this communication message
 
         Returns:
             A (possibly partitioned) subset (i.e., part) of the data.
             Depending on the PartitionFunction used (or if it is used at all),
             this method may return a different part on each rank.
         '''
-        TAG_OFFSET = 100 * tag + 10 * SimpleCommMPI.PART_TAG
         if self.is_manager():
             op = func if func else lambda *x: x[0][x[1]::x[2]]
             j = int(not involved)
@@ -677,12 +684,12 @@ class SimpleCommMPI(SimpleComm):
                 msg['dtype'] = part.dtype if hasattr(part, 'dtype') else None
 
                 # Send the handshake message to the worker rank
-                self._comm.send(msg, dest=i,
-                                tag=TAG_OFFSET + SimpleCommMPI.MSG_TAG)
+                msg_tag = self._tag_offset(self.PART_TAG, self.MSG_TAG, tag)
+                self._comm.send(msg, dest=i, tag=msg_tag)
 
                 # Receive the acknowledgement from the worker
-                ack = self._comm.recv(source=i,
-                                      tag=TAG_OFFSET + SimpleCommMPI.ACK_TAG)
+                ack_tag = self._tag_offset(self.PART_TAG, self.ACK_TAG, tag)
+                ack = self._comm.recv(source=i, tag=ack_tag)
 
                 # Check the acknowledgement, if bad skip this rank
                 if not ack:
@@ -690,11 +697,14 @@ class SimpleCommMPI(SimpleComm):
 
                 # If OK, send the data to the worker
                 if self._type_is_ndarray(type(part)):
-                    self._comm.Send(self._numpy.array(part), dest=i,
-                                    tag=TAG_OFFSET + SimpleCommMPI.NPY_TAG)
+                    npy_tag = self._tag_offset(
+                        self.PART_TAG, self.NPY_TAG, tag)
+                    self._comm.Send(
+                        self._numpy.array(part), dest=i, tag=npy_tag)
                 else:
-                    self._comm.send(part, dest=i,
-                                    tag=TAG_OFFSET + SimpleCommMPI.PYT_TAG)
+                    pyt_tag = self._tag_offset(
+                        self.PART_TAG, self.PYT_TAG, tag)
+                    self._comm.send(part, dest=i, tag=pyt_tag)
 
             if involved:
                 return op(data, 0, self.get_size())
@@ -703,16 +713,16 @@ class SimpleCommMPI(SimpleComm):
         else:
 
             # Get the data message from the manager
-            msg = self._comm.recv(source=0,
-                                  tag=TAG_OFFSET + SimpleCommMPI.MSG_TAG)
+            msg_tag = self._tag_offset(self.PART_TAG, self.MSG_TAG, tag)
+            msg = self._comm.recv(source=0, tag=msg_tag)
 
             # Check the message content
             ack = type(msg) is dict and \
                 all([key in msg for key in ['rank', 'type', 'shape', 'dtype']])
 
             # If the message is good, acknowledge
-            self._comm.send(ack, dest=0,
-                            tag=TAG_OFFSET + SimpleCommMPI.ACK_TAG)
+            ack_tag = self._tag_offset(self.PART_TAG, self.ACK_TAG, tag)
+            self._comm.send(ack, dest=0, tag=ack_tag)
 
             # if acknowledgement is bad, skip
             if not ack:
@@ -720,12 +730,15 @@ class SimpleCommMPI(SimpleComm):
 
             # Receive the data
             if self._type_is_ndarray(msg['type']):
+                npy_tag = self._tag_offset(
+                    self.PART_TAG, self.NPY_TAG, tag)
                 recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
-                self._comm.Recv(recvd, source=0,
-                                tag=TAG_OFFSET + SimpleCommMPI.NPY_TAG)
+                self._comm.Recv(recvd, source=0, tag=npy_tag)
             else:
-                recvd = self._comm.recv(source=0,
-                                        tag=TAG_OFFSET + SimpleCommMPI.PYT_TAG)
+                pyt_tag = self._tag_offset(
+                    self.PART_TAG, self.PYT_TAG, tag)
+                recvd = self._comm.recv(source=0, tag=pyt_tag)
+
             return recvd
 
     def ration(self, data=None, tag=0):
@@ -744,9 +757,9 @@ class SimpleCommMPI(SimpleComm):
         'manager' rank and itself.  Attempting this will cause the code to
         hang.
 
-        Args:
+        Keyword Arguments:
             data: The data to be asynchronously sent to the 'worker' rank
-            tag: A user-defined integer tag to uniquely specify this
+            tag (int): A user-defined integer tag to uniquely specify this
                 communication message
 
         Returns:
@@ -756,13 +769,13 @@ class SimpleCommMPI(SimpleComm):
         Raises:
             RuntimeError: If executed during a serial or 1-rank parallel run
         '''
-        TAG_OFFSET = 100 * tag + 10 * SimpleCommMPI.RATN_TAG
         if self.get_size() > 1:
             if self.is_manager():
 
                 # Listen for a requesting worker rank
-                rank = self._comm.recv(source=self._mpi.ANY_SOURCE,
-                                       tag=TAG_OFFSET + SimpleCommMPI.REQ_TAG)
+                req_tag = self._tag_offset(self.RATN_TAG, self.REQ_TAG, tag)
+                rank = self._comm.recv(
+                    source=self._mpi.ANY_SOURCE, tag=req_tag)
 
                 # Create the handshake message
                 msg = {}
@@ -771,12 +784,12 @@ class SimpleCommMPI(SimpleComm):
                 msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
 
                 # Send the handshake message to the requesting worker
-                self._comm.send(msg, dest=rank,
-                                tag=TAG_OFFSET + SimpleCommMPI.MSG_TAG)
+                msg_tag = self._tag_offset(self.RATN_TAG, self.MSG_TAG, tag)
+                self._comm.send(msg, dest=rank, tag=msg_tag)
 
                 # Receive the acknowledgement from the requesting worker
-                ack = self._comm.recv(source=rank,
-                                      tag=TAG_OFFSET + SimpleCommMPI.ACK_TAG)
+                ack_tag = self._tag_offset(self.RATN_TAG, self.ACK_TAG, tag)
+                ack = self._comm.recv(source=rank, tag=ack_tag)
 
                 # Check the acknowledgement, if not OK skip
                 if not ack:
@@ -784,28 +797,30 @@ class SimpleCommMPI(SimpleComm):
 
                 # If OK, send the data to the requesting worker
                 if self._type_is_ndarray(type(data)):
-                    self._comm.Send(data, dest=rank,
-                                    tag=TAG_OFFSET + SimpleCommMPI.NPY_TAG)
+                    npy_tag = self._tag_offset(
+                        self.RATN_TAG, self.NPY_TAG, tag)
+                    self._comm.Send(data, dest=rank, tag=npy_tag)
                 else:
-                    self._comm.send(data, dest=rank,
-                                    tag=TAG_OFFSET + SimpleCommMPI.PYT_TAG)
+                    pyt_tag = self._tag_offset(
+                        self.RATN_TAG, self.PYT_TAG, tag)
+                    self._comm.send(data, dest=rank, tag=pyt_tag)
             else:
 
                 # Send a request for data to the manager
-                self._comm.send(self.get_rank(), dest=0,
-                                tag=TAG_OFFSET + SimpleCommMPI.REQ_TAG)
+                req_tag = self._tag_offset(self.RATN_TAG, self.REQ_TAG, tag)
+                self._comm.send(self.get_rank(), dest=0, tag=req_tag)
 
                 # Receive the handshake message from the manager
-                msg = self._comm.recv(source=0,
-                                      tag=TAG_OFFSET + SimpleCommMPI.MSG_TAG)
+                msg_tag = self._tag_offset(self.RATN_TAG, self.MSG_TAG, tag)
+                msg = self._comm.recv(source=0, tag=msg_tag)
 
                 # Check the message content
                 ack = type(msg) is dict and \
                     all([key in msg for key in ['type', 'shape', 'dtype']])
 
                 # Send acknowledgement back to the manager
-                self._comm.send(ack, dest=0,
-                                tag=TAG_OFFSET + SimpleCommMPI.ACK_TAG)
+                ack_tag = self._tag_offset(self.RATN_TAG, self.ACK_TAG, tag)
+                self._comm.send(ack, dest=0, tag=ack_tag)
 
                 # If acknowledgement is bad, don't receive
                 if not ack:
@@ -813,12 +828,14 @@ class SimpleCommMPI(SimpleComm):
 
                 # Receive the data from the manager
                 if self._type_is_ndarray(msg['type']):
+                    npy_tag = self._tag_offset(
+                        self.RATN_TAG, self.NPY_TAG, tag)
                     recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
-                    self._comm.Recv(recvd, source=0,
-                                    tag=TAG_OFFSET + SimpleCommMPI.NPY_TAG)
+                    self._comm.Recv(recvd, source=0, tag=npy_tag)
                 else:
-                    recvd = self._comm.recv(source=0,
-                                            tag=TAG_OFFSET + SimpleCommMPI.PYT_TAG)
+                    pyt_tag = self._tag_offset(
+                        self.RATN_TAG, self.PYT_TAG, tag)
+                    recvd = self._comm.recv(source=0, tag=pyt_tag)
                 return recvd
         else:
             err_msg = 'Rationing cannot be used in 1-rank parallel operation'
@@ -840,26 +857,25 @@ class SimpleCommMPI(SimpleComm):
         'manager' rank and itself.  Attempting this will cause the code to
         hang.
 
-        Args:
-            data: The data to be collected asynchronously on the 'manager'
-                rank.
-            tag: A user-defined integer tag to uniquely specify this
-                communication message
+        Keyword Arguments:
+            data: The data to be collected asynchronously 
+                on the 'manager' rank.
+            tag (int): A user-defined integer tag to uniquely
+                specify this communication message
 
         Returns:
-            On the 'manager' rank, a tuple containing the source rank ID
-            and the the data collected.  None on all other ranks.
+            tuple: On the 'manager' rank, a tuple containing the source rank
+                ID and the the data collected.  None on all other ranks.
 
         Raises:
             RuntimeError: If executed during a serial or 1-rank parallel run
         '''
-        TAG_OFFSET = 100 * tag + 10 * SimpleCommMPI.CLCT_TAG
         if self.get_size() > 1:
             if self.is_manager():
 
                 # Receive the message from the worker
-                msg = self._comm.recv(source=self._mpi.ANY_SOURCE,
-                                      tag=TAG_OFFSET + SimpleCommMPI.MSG_TAG)
+                msg_tag = self._tag_offset(self.CLCT_TAG, self.MSG_TAG, tag)
+                msg = self._comm.recv(source=self._mpi.ANY_SOURCE, tag=msg_tag)
 
                 # Check the message content
                 ack = type(msg) is dict and \
@@ -867,8 +883,8 @@ class SimpleCommMPI(SimpleComm):
                                                 'shape', 'dtype']])
 
                 # Send acknowledgement back to the worker
-                self._comm.send(ack, dest=msg['rank'],
-                                tag=TAG_OFFSET + SimpleCommMPI.ACK_TAG)
+                ack_tag = self._tag_offset(self.CLCT_TAG, self.ACK_TAG, tag)
+                self._comm.send(ack, dest=msg['rank'], tag=ack_tag)
 
                 # If acknowledgement is bad, don't receive
                 if not ack:
@@ -876,12 +892,14 @@ class SimpleCommMPI(SimpleComm):
 
                 # Receive the data
                 if self._type_is_ndarray(msg['type']):
+                    npy_tag = self._tag_offset(
+                        self.CLCT_TAG, self.NPY_TAG, tag)
                     recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
-                    self._comm.Recv(recvd, source=msg['rank'],
-                                    tag=TAG_OFFSET + SimpleCommMPI.NPY_TAG)
+                    self._comm.Recv(recvd, source=msg['rank'], tag=npy_tag)
                 else:
-                    recvd = self._comm.recv(source=msg['rank'],
-                                            tag=TAG_OFFSET + SimpleCommMPI.PYT_TAG)
+                    pyt_tag = self._tag_offset(
+                        self.CLCT_TAG, self.PYT_TAG, tag)
+                    recvd = self._comm.recv(source=msg['rank'], tag=pyt_tag)
                 return msg['rank'], recvd
 
             else:
@@ -894,12 +912,12 @@ class SimpleCommMPI(SimpleComm):
                 msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
 
                 # Send the handshake message to the manager
-                self._comm.send(msg, dest=0,
-                                tag=TAG_OFFSET + SimpleCommMPI.MSG_TAG)
+                msg_tag = self._tag_offset(self.CLCT_TAG, self.MSG_TAG, tag)
+                self._comm.send(msg, dest=0, tag=msg_tag)
 
                 # Receive the acknowledgement from the manager
-                ack = self._comm.recv(source=0,
-                                      tag=TAG_OFFSET + SimpleCommMPI.ACK_TAG)
+                ack_tag = self._tag_offset(self.CLCT_TAG, self.ACK_TAG, tag)
+                ack = self._comm.recv(source=0, tag=ack_tag)
 
                 # Check the acknowledgement, if not OK skip
                 if not ack:
@@ -907,11 +925,13 @@ class SimpleCommMPI(SimpleComm):
 
                 # If OK, send the data to the manager
                 if self._type_is_ndarray(type(data)):
-                    self._comm.Send(data, dest=0,
-                                    tag=TAG_OFFSET + SimpleCommMPI.NPY_TAG)
+                    npy_tag = self._tag_offset(
+                        self.CLCT_TAG, self.NPY_TAG, tag)
+                    self._comm.Send(data, dest=0, tag=npy_tag)
                 else:
-                    self._comm.send(data, dest=0,
-                                    tag=TAG_OFFSET + SimpleCommMPI.PYT_TAG)
+                    pyt_tag = self._tag_offset(
+                        self.CLCT_TAG, self.PYT_TAG, tag)
+                    self._comm.send(data, dest=0, tag=pyt_tag)
         else:
             err_msg = 'Collection cannot be used in a 1-rank communicator'
             raise RuntimeError(err_msg)
@@ -928,16 +948,16 @@ class SimpleCommMPI(SimpleComm):
             (2) groups with ranks of the same rank ID but different color IDs
                 (called a "multicolor" group).
 
-        Args:
+        Parameters:
             group: A unique group ID to which will be assigned an integer
                 color ID ranging from 0 to the number of group ID's
                 supplied across all ranks
 
         Returns:
-            A tuple containing (first) the "monocolor" SimpleComm for ranks
-            with the same color ID (but different rank IDs) and (second) the
-            "multicolor" SimpleComm for ranks with the same rank ID (but
-            different color IDs)
+            tuple: A tuple containing (first) the "monocolor" SimpleComm for 
+                ranks with the same color ID (but different rank IDs) and 
+                (second) the "multicolor" SimpleComm for ranks with the same 
+                rank ID (but different color IDs)
 
         Raises:
             RuntimeError: If executed during a serial or 1-rank parallel run

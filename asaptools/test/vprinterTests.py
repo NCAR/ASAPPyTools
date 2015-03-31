@@ -4,9 +4,9 @@ Created on Feb 26, 2015
 @author: Kevin Paul <kpaul@ucar.edu>
 '''
 import unittest
-import vprinter
 import sys
 
+from asaptools import vprinter
 from os import linesep
 from cStringIO import StringIO
 
