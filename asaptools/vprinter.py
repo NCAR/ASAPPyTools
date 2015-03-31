@@ -3,11 +3,6 @@ A module containing the VPrinter class.
 
 This module contains the VPrinter class that enables clean printing to
 standard out (or a string) with verbosity-level print management.
-
-_______________________________________________________________________________
-Created on Feb 26, 2015
-
-Author: Kevin Paul <kpaul@ucar.edu>
 '''
 
 
@@ -21,9 +16,9 @@ class VPrinter(object):
     parallel rank the VPrinter is instantiated.
 
     Attributes:
-        header: A string to prepend to any print messages before
+        header (str): A string to prepend to any print messages before
             they are printed
-        verbosity: The verbosity level to use when determining if a
+        verbosity (int): The verbosity level to use when determining if a
             message should be printed
     '''
 
@@ -31,10 +26,10 @@ class VPrinter(object):
         '''
         Constructor - Creates an instance of a VPrinter object.
 
-        Args:
-            header: A string to prepend to any print messages before
+        Keyword Arguments:
+            header (str): A string to prepend to any print messages before
                 they are printed
-            verbosity: The verbosity level to use when determining if a
+            verbosity (int): The verbosity level to use when determining if a
                 message should be printed
         '''
         # The message header to prepend to messages if desired
@@ -50,17 +45,19 @@ class VPrinter(object):
         This takes a list of arguments of any length, converts each argument
         to a string representation, and concatenates them into a single string.
 
-        Args:
-            args: A list of arguments supplied to the function.  All of these
-                arguments will be concatenated together.
-            kwargs: The dictionary of keyword arguments
+        Parameters:
+            args (list): A list of arguments supplied to the function.  All 
+                of these arguments will be concatenated together.
+
+        Keyword Arguments:
+            kwargs (dict): The dictionary of keyword arguments
                 passed to the function.
 
         Returns:
-            A single string with the arguments given converted to strings and
-            concatenated together (in order).  If the keyword 'header==True'
-            is supplied, then the 'header' string is prepended to the string
-            before being output.
+            str: A single string with the arguments given converted to strings
+                and concatenated together (in order).  If the keyword
+                'header==True' is supplied, then the 'header' string is 
+                prepended to the string before being output.
 
         Raises:
             TypeError: If the 'header' keyword argument is supplied and is 
@@ -85,18 +82,20 @@ class VPrinter(object):
         message verbosity is less than the VPrinter's verbosity level.  Can
         also print a useful header based on the parallel rank and size.
 
-        Args:
-            args: A list of arguments supplied to the function.  All of
-                these arguments will be concatenated together.
-            kwargs: The dictionary of keyword arguments 
+        Parameters:
+            args (list): A list of arguments supplied to the function.  All 
+                of these arguments will be concatenated together.
+
+        Keyword Arguments:
+            kwargs (dict): The dictionary of keyword arguments
                 passed to the function.
 
         Returns:
-            None.  However, if the 'verbosity' keyword argument is supplied,
-            and the 'verbosity' value is less than the VPrinter object's
-            'verbosity' attribute, then it prints to stdout.
-            Like the 'to_str' method, if the 'header' keyword is supplied and
-            equal to 'True', then it prepends the output with the header.
+            None: However, if the 'verbosity' keyword argument is supplied,
+                and the 'verbosity' value is less than the VPrinter object's
+                'verbosity' attribute, then it prints to stdout. Like
+                the 'to_str' method, if the 'header' keyword is supplied and
+                equal to 'True', then it prepends the output with the header.
         '''
         verbosity = 0
         if 'verbosity' in kwargs and type(kwargs['verbosity']) is int:

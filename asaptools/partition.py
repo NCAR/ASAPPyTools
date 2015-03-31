@@ -9,10 +9,6 @@ function is to return a subset of the data corresponding to the given index.
 
 By design, partitioning functions should keep the data "unchanged" except for
 subselecting parts of the data.
-_______________________________________________________________________________
-Created on Feb 4, 2015
-
-Author: Kevin Paul <kpaul@ucar.edu>
 '''
 
 from abc import ABCMeta, abstractmethod
@@ -41,10 +37,10 @@ class PartitionFunction(object):
         '''
         Check the types of the index and size arguments.
 
-        Args:
+        Parameters:
             data: The data to be partitioned
-            index: The index of the partition to return
-            size: The number of partitions to make
+            index (int): The index of the partition to return
+            size (int): The number of partitions to make
 
         Raises:
             TypeError: The size or index arguments are not int
@@ -73,11 +69,11 @@ class PartitionFunction(object):
         '''
         Check if the data object is indexable.
 
-        Args:
+        Parameters:
             data: The data to be partitioned
 
         Returns:
-            True if data is an indexable object. False, otherwise.
+            bool: True, if data is an indexable object. False, otherwise.
         '''
         if hasattr(data, '__len__') and hasattr(data, '__getitem__'):
             return True
@@ -89,11 +85,12 @@ class PartitionFunction(object):
         '''
         Check if the data object is an indexable list of pairs.
 
-        Args:
+        Parameters:
             data: The data to be partitioned
 
         Returns:
-            True if data is an indexable list of pairs. False, otherwise.
+            bool: True, if data is an indexable list of pairs.
+                False, otherwise.
         '''
         if PartitionFunction._is_indexable(data):
             return all(map(lambda i: PartitionFunction._is_indexable(i)
@@ -126,10 +123,12 @@ class Duplicate(PartitionFunction):
         The abstract base class implements the check on the input for correct
         format and typing.
 
-        Args:
+        Parameters:
             data: The data to be partitioned
-            index: A partition index into a part of the data
-            size: The largest number of partitions allowed
+
+        Keyword Arguments:
+            index (int): A partition index into a part of the data
+            size (int): The largest number of partitions allowed
 
         Returns:
             The indexed part of the data, assuming the data is divided into
@@ -163,10 +162,12 @@ class EqualLength(PartitionFunction):
         The abstract base class implements the check on the input for correct
         format and typing.
 
-        Args:
+        Parameters:
             data: The data to be partitioned
-            index: A partition index into a part of the data
-            size: The largest number of partitions allowed
+
+        Keyword Arguments:
+            index (int): A partition index into a part of the data
+            size (int): The largest number of partitions allowed
 
         Returns:
             The indexed part of the data, assuming the data is divided into
@@ -214,10 +215,12 @@ class EqualStride(PartitionFunction):
         The abstract base class implements the check on the input for correct
         format and typing.
 
-        Args:
+        Parameters:
             data: The data to be partitioned
-            index: A partition index into a part of the data
-            size: The largest number of partitions allowed
+
+        Keyword Arguments:
+            index (int): A partition index into a part of the data
+            size (int): The largest number of partitions allowed
 
         Returns:
             The indexed part of the data, assuming the data is divided into
@@ -262,10 +265,12 @@ class SortedStride(PartitionFunction):
         The abstract base class implements the check on the input for correct
         format and typing.
 
-        Args:
+        Parameters:
             data: The data to be partitioned
-            index: A partition index into a part of the data
-            size: The largest number of partitions allowed
+
+        Keyword Arguments:
+            index (int): A partition index into a part of the data
+            size (int): The largest number of partitions allowed
 
         Returns:
             The indexed part of the data, assuming the data is divided into
@@ -307,10 +312,12 @@ class WeightBalanced(PartitionFunction):
         The abstract base class implements the check on the input for correct
         format and typing.
 
-        Args:
+        Parameters:
             data: The data to be partitioned
-            index: A partition index into a part of the data
-            size: The largest number of partitions allowed
+
+        Keyword Arguments:
+            index (int): A partition index into a part of the data
+            size (int): The largest number of partitions allowed
 
         Returns:
             The indexed part of the data, assuming the data is divided into
