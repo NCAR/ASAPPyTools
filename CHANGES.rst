@@ -15,5 +15,6 @@ Version 0.4
 10 June 2015:
 
 - Updating install to include LICENSE
+- Restructured source directory
 - Upload to PyPI
 
