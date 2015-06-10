@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
-import shutil
-
-# Copy license file into package directory
-shutil.copy('LICENSE.txt', 'source/asaptools')
 
 setup(name='ASAPTools',
       version='0.4',
