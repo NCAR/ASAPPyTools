@@ -7,7 +7,7 @@ tasks, from managing print messages with a set verbosity level, to
 keeping timing information, to managing simple MPI communication.
 
 :AUTHORS: Kevin Paul, John Dennis, Sheri Mickelson, Haiying Xu
-:VERSION: 0.3
+:VERSION: 0.4
 :COPYRIGHT: See the document entitled LICENSE.txt
 
 Send questions and comments to Kevin Paul (kpaul@ucar.edu).
@@ -45,10 +45,11 @@ Obtaining the Source Code
 Currently, the most up-to-date source code is available via svn from the
 site::
 
-    https://proxy.subversion.ucar.edu/pubasap/pyTools/tags/v0.3
+    https://github.com/NCAR-CISL-ASAP/ASAPPyTools
 
-The source is available in read-only mode to everyone, but special
-permissions can be given to those to make changes to the source.
+The most recent stable tag is 'v0.4'.  The source is available in read-only
+mode to everyone, but special permissions can be given to those to make
+changes to the source.
 
 Building & Installation
 -----------------------
@@ -56,12 +57,13 @@ Building & Installation
 Installation of the ASAP Python Toolbox is very simple. After checking out the
 source from the above svn link, via::
 
-    svn co https://proxy.subversion.ucar.edu/pubasap/pyTools/tags/v0.3 ASAPTools
+    $  git clone https://github.com/NCAR-CISL-ASAP/ASAPPyTools
 
-change into the top-level source directory and run the Python distutils
-setup. On unix, this involves::
+change into the top-level source directory, check out the most recent tag,
+and run the Python distutils setup. On unix, this involves::
 
-    $  cd ASAPTools
+    $  cd ASAPPyTools
+    $  git checkout v0.4
     $  python setup.py install [--prefix-/path/to/install/location]
 
 The prefix is optional, as the default prefix is typically /usr/local on
@@ -82,19 +84,19 @@ To build the documentation for developer use, you will need Sphinx.  Sphinx
 can be installed with the pip utility simple::
 
     $  pip install Sphinx
-    
+
 Once Sphinx is installed, you can build the ASAP Python Toolbox's
 HTML documentation with::
 
     $  cd docs
     $  make html
-    
+
 which will build the documentation in the docs/build/html directory.  If you
 wish to build a PDF, do the following::
 
     $  cd docs
     $  make latexpdf
-    
+
 which requires pdflatex to build a PDF version of the documentation.
 
 Before Using the ASAP Python Toolbox
@@ -113,8 +115,8 @@ that you are using to install the package.
 Instructions & Use
 ------------------
 
-For instructions on how to use the ASAP Python Toolbox, see the additional 
-documentation found in the docs directory.  Please read the 
-'Building & Installation' section above for instructions on how to build the 
-HTML documentation. Once built, you will be able to open the 
+For instructions on how to use the ASAP Python Toolbox, see the additional
+documentation found in the docs directory.  Please read the
+'Building & Installation' section above for instructions on how to build the
+HTML documentation. Once built, you will be able to open the
 'docs/build/html/index.html' page in any browser.
