@@ -17,4 +17,3 @@ Version 0.4
 - Updating install to include LICENSE
 - Restructured source directory
 - Upload to PyPI
-
