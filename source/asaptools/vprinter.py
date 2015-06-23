@@ -1,14 +1,17 @@
-'''
+"""
 A module containing the VPrinter class.
 
 This module contains the VPrinter class that enables clean printing to
 standard out (or a string) with verbosity-level print management.
-'''
+
+Copyright 2015, University Corporation for Atmospheric Research
+See the LICENSE.txt file for details
+"""
 
 
 class VPrinter(object):
 
-    '''
+    """
     A Verbosity-enabled Printing Class.
 
     The VPrinter is designed to print messages to standard out, or optionally
@@ -20,10 +23,10 @@ class VPrinter(object):
             they are printed
         verbosity (int): The verbosity level to use when determining if a
             message should be printed
-    '''
+    """
 
     def __init__(self, header='', verbosity=1):
-        '''
+        """
         Constructor - Creates an instance of a VPrinter object.
 
         Keyword Arguments:
@@ -31,7 +34,7 @@ class VPrinter(object):
                 they are printed
             verbosity (int): The verbosity level to use when determining if a
                 message should be printed
-        '''
+        """
         # The message header to prepend to messages if desired
         self.header = header
 
@@ -39,7 +42,7 @@ class VPrinter(object):
         self.verbosity = verbosity
 
     def to_str(self, *args, **kwargs):
-        '''
+        """
         Concatenates string representations of the input arguments.
 
         This takes a list of arguments of any length, converts each argument
@@ -62,7 +65,7 @@ class VPrinter(object):
         Raises:
             TypeError: If the 'header' keyword argument is supplied and is 
                 not a bool
-        '''
+        """
         out_args = []
         if 'header' in kwargs:
             if type(kwargs['header']) is bool:
@@ -75,7 +78,7 @@ class VPrinter(object):
         return ''.join([str(arg) for arg in out_args])
 
     def __call__(self, *args, **kwargs):
-        '''
+        """
         Print the supplied arguments to standard out.
 
         Prints all supplied positional arguments to standard output, if the
@@ -96,7 +99,7 @@ class VPrinter(object):
                 'verbosity' attribute, then it prints to stdout. Like
                 the 'to_str' method, if the 'header' keyword is supplied and
                 equal to 'True', then it prepends the output with the header.
-        '''
+        """
         verbosity = 0
         if 'verbosity' in kwargs and type(kwargs['verbosity']) is int:
             verbosity = kwargs['verbosity']

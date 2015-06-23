@@ -1,10 +1,10 @@
-'''
+"""
 These are the unit tests for the partition module functions
 _______________________________________________________________________________
 Created on Feb 4, 2015
 
 @author: Kevin Paul <kpaul@ucar.edu>
-'''
+"""
 import unittest
 from asaptools import partition
 from os import linesep
@@ -23,9 +23,9 @@ def test_info_msg(name, data, index, size, actual, expected):
 
 class partitionTests(unittest.TestCase):
 
-    '''
+    """
     Unit tests for the partition module
-    '''
+    """
 
     def setUp(self):
         data = [range(3), range(5), range(7)]

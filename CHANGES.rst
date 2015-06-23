@@ -1,6 +1,9 @@
 Change Log
 ==========
 
+Copyright 2015, University Corporation for Atmospheric Research
+See the LICENSE.txt file for details
+
 Version 0.3
 -----------
 

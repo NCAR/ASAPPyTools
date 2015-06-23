@@ -1,4 +1,4 @@
-'''
+"""
 A module for simple MPI communication.
 
 The SimpleComm class is designed to provide a simplified MPI-based
@@ -113,7 +113,10 @@ SimpleComm objects for each of the 2 groupings described above.  This means
 that within each group, the same *partition*, *collecting*, and *reducing*
 operations can be performed in the same way as described above for the *global*
 group.
-'''
+
+Copyright 2015, University Corporation for Atmospheric Research
+See the LICENSE.txt file for details
+"""
 
 from functools import partial
 from collections import defaultdict
@@ -145,7 +148,7 @@ _OP_MAP = {'sum': {'py': 'sum',
 # create_comm - Simple Communicator Factory Function
 #==============================================================================
 def create_comm(serial=False):
-    '''
+    """
     This is a factory function for creating SimpleComm objects.
 
     Depending on the argument given, it returns an instance of a serial or
@@ -172,7 +175,7 @@ def create_comm(serial=False):
         >>> parcomm = create_comm()
         >>> type(parcomm)
         <class 'simplecomm.SimpleCommMPI'>
-    '''
+    """
     if type(serial) is not bool:
         raise TypeError('Serial parameter must be a bool')
     if serial:
@@ -186,19 +189,19 @@ def create_comm(serial=False):
 #==============================================================================
 class SimpleComm(object):
 
-    '''
+    """
     Simple Communicator for serial operation.
 
     Attributes:
         _numpy: Reference to the Numpy module, if found
         _color: The color associated with the communicator, if colored
         _group: The group ID associated with the communicator's color
-    '''
+    """
 
     def __init__(self):
-        '''
+        """
         Constructor.
-        '''
+        """
 
         # Try importing the Numpy module
         try:
@@ -216,7 +219,7 @@ class SimpleComm(object):
         self._group = None
 
     def _type_is_ndarray(self, dt):
-        '''
+        """
         Helper function to determing if an object is a Numpy NDArray.
 
         Parameters:
@@ -239,36 +242,36 @@ class SimpleComm(object):
             >>> aarray = numpy.array(alist)
             >>> _type_is_ndarray(type(aarray))
             True
-        '''
+        """
         if self._numpy:
             return dt is self._numpy.ndarray
         else:
             return False
 
     def get_size(self):
-        '''
+        """
         Get the integer number of ranks in this communicator.
 
         The size includes the 'manager' rank.
 
         Returns:
             int: The integer number of ranks in this communicator.
-        '''
+        """
         return 1
 
     def get_rank(self):
-        '''
+        """
         Get the integer rank ID of this MPI process in this communicator.
 
         This call can be made independently from other ranks.
 
         Returns:
             int: The integer rank ID of this MPI process
-        '''
+        """
         return 0
 
     def is_manager(self):
-        '''
+        """
         Check if this MPI process is on the 'manager' rank (i.e., rank 0).
 
         This call can be made independently from other ranks.
@@ -276,11 +279,11 @@ class SimpleComm(object):
         Returns:
             bool: True if this MPI process is on the master rank
                 (or rank 0). False otherwise.
-        '''
+        """
         return self.get_rank() == 0
 
     def get_color(self):
-        '''
+        """
         Get the integer color ID of this MPI process in this communicator.
 
         By default, a communicator's color is None, but a communicator can
@@ -290,11 +293,11 @@ class SimpleComm(object):
 
         Returns:
             int: The color of this MPI communicator
-        '''
+        """
         return self._color
 
     def get_group(self):
-        '''
+        """
         Get the group ID of this MPI communicator.
 
         The group ID is the argument passed to the 'divide' method, and it
@@ -305,22 +308,22 @@ class SimpleComm(object):
 
         Returns:
             The group ID of this communicator
-        '''
+        """
         return self._group
 
     def sync(self):
-        '''
+        """
         Synchronize all MPI processes at the point of this call.
 
         Immediately after this method is called, you can guarantee that all
         ranks in this communicator will be synchronized.
 
         This call must be made by all ranks.
-        '''
+        """
         return
 
     def allreduce(self, data, op):
-        '''
+        """
         Perform an MPI AllReduction operation.
 
         The data is "reduced" across all ranks in the communicator, and the
@@ -337,7 +340,7 @@ class SimpleComm(object):
         Returns:
             The single value constituting the reduction of the input data.
             (The same value is returned on all ranks in this communicator.)
-        '''
+        """
         if (isinstance(data, dict)):
             totals = {}
             for k, v in data.items():
@@ -356,7 +359,7 @@ class SimpleComm(object):
             return data
 
     def partition(self, data=None, func=None, involved=False, tag=0):
-        '''
+        """
         Partition and send data from the 'manager' rank to 'worker' ranks.
 
         By default, the data is partitioned using an "equal stride" across the
@@ -388,7 +391,7 @@ class SimpleComm(object):
             A (possibly partitioned) subset (i.e., part) of the data.  Depending
             on the PartitionFunction used (or if it is used at all), this method
             may return a different part on each rank.
-        '''
+        """
         op = func if func else lambda *x: x[0][x[1]::x[2]]
         if involved:
             return op(data, 0, 1)
@@ -396,7 +399,7 @@ class SimpleComm(object):
             return None
 
     def ration(self, data=None, tag=0):
-        '''
+        """
         Send a single piece of data from the 'manager' rank to a 'worker' rank.
 
         If this method is called on a 'worker' rank, the worker will send a
@@ -422,12 +425,12 @@ class SimpleComm(object):
 
         Raises:
             RuntimeError: If executed during a serial or 1-rank parallel run
-        '''
+        """
         err_msg = 'Rationing cannot be used in serial operation'
         raise RuntimeError(err_msg)
 
     def collect(self, data=None, tag=0):
-        '''
+        """
         Send data from a 'worker' rank to the 'manager' rank.
 
         If the calling MPI process is the 'manager' rank, then it will
@@ -453,12 +456,12 @@ class SimpleComm(object):
 
         Raises:
             RuntimeError: If executed during a serial or 1-rank parallel run
-        '''
+        """
         err_msg = 'Collection cannot be used in serial operation'
         raise RuntimeError(err_msg)
 
     def divide(self, group):
-        '''
+        """
         Divide this communicator's ranks into groups.
 
         Creates and returns two (2) kinds of groups:
@@ -482,7 +485,7 @@ class SimpleComm(object):
 
         Raises:
             RuntimeError: If executed during a serial or 1-rank parallel run
-        '''
+        """
         err_msg = 'Division cannot be done on a serial communicator'
         raise RuntimeError(err_msg)
 
@@ -492,7 +495,7 @@ class SimpleComm(object):
 #==============================================================================
 class SimpleCommMPI(SimpleComm):
 
-    '''
+    """
     Simple Communicator using MPI.
 
     Attributes:
@@ -506,7 +509,7 @@ class SimpleCommMPI(SimpleComm):
         NPY_TAG: Numpy send/recv Identifier
         _mpi: A reference to the mpi4py.MPI module
         _comm: A reference to the mpi4py.MPI communicator
-    '''
+    """
 
     PART_TAG = 1  # Partition Tag Identifier
     RATN_TAG = 2  # Ration Tag Identifier
@@ -519,9 +522,9 @@ class SimpleCommMPI(SimpleComm):
     NPY_TAG = 5  # Numpy NDArray send/recv Identifier
 
     def __init__(self):
-        '''
+        """
         Constructor.
-        '''
+        """
 
         # Call the base class constructor
         super(SimpleCommMPI, self).__init__()
@@ -540,49 +543,49 @@ class SimpleCommMPI(SimpleComm):
         self._comm = self._mpi.COMM_WORLD
 
     def __del__(self):
-        '''
+        """
         Destructor.
 
         Free the communicator if this SimpleComm goes out of scope
-        '''
+        """
         if self._comm != self._mpi.COMM_WORLD:
             self._comm.Free()
 
     def get_size(self):
-        '''
+        """
         Get the integer number of ranks in this communicator.
 
         The size includes the 'manager' rank.
 
         Returns:
             int: The integer number of ranks in this communicator.
-        '''
+        """
         return self._comm.Get_size()
 
     def get_rank(self):
-        '''
+        """
         Get the integer rank ID of this MPI process in this communicator.
 
         This call can be made independently from other ranks.
 
         Returns:
             int: The integer rank ID of this MPI process
-        '''
+        """
         return self._comm.Get_rank()
 
     def sync(self):
-        '''
+        """
         Synchronize all MPI processes at the point of this call.
 
         Immediately after this method is called, you can guarantee that all
         ranks in this communicator will be synchronized.
 
         This call must be made by all ranks.
-        '''
+        """
         self._comm.Barrier()
 
     def allreduce(self, data, op):
-        '''
+        """
         Perform an MPI AllReduction operation.
 
         The data is "reduced" across all ranks in the communicator, and the
@@ -599,7 +602,7 @@ class SimpleCommMPI(SimpleComm):
         Returns:
             The single value constituting the reduction of the input data.
             (The same value is returned on all ranks in this communicator.)
-        '''
+        """
         if (isinstance(data, dict)):
             all_list = self._comm.gather(SimpleComm.allreduce(self, data, op))
             if self.is_manager():
@@ -619,7 +622,7 @@ class SimpleCommMPI(SimpleComm):
                                                    _OP_MAP[op]['mpi']))
 
     def _tag_offset(self, method, message, user):
-        '''
+        """
         Method to generate the tag for a given MPI message
 
         Parameters:
@@ -630,11 +633,11 @@ class SimpleCommMPI(SimpleComm):
         Returns:
             int: A new tag uniquely combining all of the method, message, and
                 user tags together
-        '''
+        """
         return 100 * user + 10 * method + message
 
     def partition(self, data=None, func=None, involved=False, tag=0):
-        '''
+        """
         Partition and send data from the 'manager' rank to 'worker' ranks.
 
         By default, the data is partitioned using an "equal stride" across the
@@ -667,7 +670,7 @@ class SimpleCommMPI(SimpleComm):
             A (possibly partitioned) subset (i.e., part) of the data.
             Depending on the PartitionFunction used (or if it is used at all),
             this method may return a different part on each rank.
-        '''
+        """
         if self.is_manager():
             op = func if func else lambda *x: x[0][x[1]::x[2]]
             j = int(not involved)
@@ -742,7 +745,7 @@ class SimpleCommMPI(SimpleComm):
             return recvd
 
     def ration(self, data=None, tag=0):
-        '''
+        """
         Send a single piece of data from the 'manager' rank to a 'worker' rank.
 
         If this method is called on a 'worker' rank, the worker will send a
@@ -768,7 +771,7 @@ class SimpleCommMPI(SimpleComm):
 
         Raises:
             RuntimeError: If executed during a serial or 1-rank parallel run
-        '''
+        """
         if self.get_size() > 1:
             if self.is_manager():
 
@@ -842,7 +845,7 @@ class SimpleCommMPI(SimpleComm):
             raise RuntimeError(err_msg)
 
     def collect(self, data=None, tag=0):
-        '''
+        """
         Send data from a 'worker' rank to the 'manager' rank.
 
         If the calling MPI process is the 'manager' rank, then it will
@@ -869,7 +872,7 @@ class SimpleCommMPI(SimpleComm):
 
         Raises:
             RuntimeError: If executed during a serial or 1-rank parallel run
-        '''
+        """
         if self.get_size() > 1:
             if self.is_manager():
 
@@ -937,7 +940,7 @@ class SimpleCommMPI(SimpleComm):
             raise RuntimeError(err_msg)
 
     def divide(self, group):
-        '''
+        """
         Divide this communicator's ranks into groups.
 
         Creates and returns two (2) kinds of groups:
@@ -961,7 +964,7 @@ class SimpleCommMPI(SimpleComm):
 
         Raises:
             RuntimeError: If executed during a serial or 1-rank parallel run
-        '''
+        """
         if self.get_size() > 1:
             allgroups = list(set(self._comm.allgather(group)))
             color = allgroups.index(group)

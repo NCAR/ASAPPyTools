@@ -1,4 +1,4 @@
-'''
+"""
 A module for data partitioning functions.
 
 This provides a collection of 'partitioning' functions.  A partitioning
@@ -9,7 +9,10 @@ function is to return a subset of the data corresponding to the given index.
 
 By design, partitioning functions should keep the data "unchanged" except for
 subselecting parts of the data.
-'''
+
+Copyright 2015, University Corporation for Atmospheric Research
+See the LICENSE.txt file for details
+"""
 
 from abc import ABCMeta, abstractmethod
 from operator import itemgetter
@@ -21,7 +24,7 @@ from operator import itemgetter
 #==============================================================================
 class PartitionFunction(object):
 
-    '''
+    """
     The abstract base-class for all Partitioning Function objects.
 
     A PartitionFunction object is one with a __call__ method that takes
@@ -29,12 +32,12 @@ class PartitionFunction(object):
     second argument is the index of the partition (or part) requested, and 
     third argument is the number of partitions to assume when dividing
     the data.
-    '''
+    """
     __metaclass__ = ABCMeta
 
     @staticmethod
     def _check_types(data, index, size):
-        '''
+        """
         Check the types of the index and size arguments.
 
         Parameters:
@@ -46,7 +49,7 @@ class PartitionFunction(object):
             TypeError: The size or index arguments are not int
             IndexError: The size argument is less than 1, or the index
                 argument is less than 0 or greater than or equal to size
-        '''
+        """
 
         # Check the type of the index
         if type(index) is not int:
@@ -66,7 +69,7 @@ class PartitionFunction(object):
 
     @staticmethod
     def _is_indexable(data):
-        '''
+        """
         Check if the data object is indexable.
 
         Parameters:
@@ -74,7 +77,7 @@ class PartitionFunction(object):
 
         Returns:
             bool: True, if data is an indexable object. False, otherwise.
-        '''
+        """
         if hasattr(data, '__len__') and hasattr(data, '__getitem__'):
             return True
         else:
@@ -82,7 +85,7 @@ class PartitionFunction(object):
 
     @staticmethod
     def _are_pairs(data):
-        '''
+        """
         Check if the data object is an indexable list of pairs.
 
         Parameters:
@@ -91,7 +94,7 @@ class PartitionFunction(object):
         Returns:
             bool: True, if data is an indexable list of pairs.
                 False, otherwise.
-        '''
+        """
         if PartitionFunction._is_indexable(data):
             return all(map(lambda i: PartitionFunction._is_indexable(i)
                            and len(i) == 2, data))
@@ -100,9 +103,9 @@ class PartitionFunction(object):
 
     @abstractmethod
     def __call__(self):
-        '''
+        """
         Implements the partition algorithm.
-        '''
+        """
         return
 
 
@@ -112,12 +115,12 @@ class PartitionFunction(object):
 #==============================================================================
 class Duplicate(PartitionFunction):
 
-    '''
+    """
     Return a copy of the original input data in each partition.
-    '''
+    """
 
     def __call__(self, data, index=0, size=1):
-        '''
+        """
         Define the common interface for all partitioning functions.
 
         The abstract base class implements the check on the input for correct
@@ -133,7 +136,7 @@ class Duplicate(PartitionFunction):
         Returns:
             The indexed part of the data, assuming the data is divided into
             size parts.
-        '''
+        """
         self._check_types(data, index, size)
 
         return data
@@ -145,7 +148,7 @@ class Duplicate(PartitionFunction):
 #==============================================================================
 class EqualLength(PartitionFunction):
 
-    '''
+    """
     Partition an indexable object by striding through the data.
 
     The initial object is "chopped" along its length into roughly equal length
@@ -153,10 +156,10 @@ class EqualLength(PartitionFunction):
     data, then it will return an empty list for 'empty' partitions.  If the 
     data is not indexable, then it will return the data for index=0 only, and 
     an empty list otherwise.  
-    '''
+    """
 
     def __call__(self, data, index=0, size=1):
-        '''
+        """
         Define the common interface for all partitioning functions.
 
         The abstract base class implements the check on the input for correct
@@ -172,7 +175,7 @@ class EqualLength(PartitionFunction):
         Returns:
             The indexed part of the data, assuming the data is divided into
             size parts.
-        '''
+        """
         self._check_types(data, index, size)
 
         if self._is_indexable(data):
@@ -198,7 +201,7 @@ class EqualLength(PartitionFunction):
 #==============================================================================
 class EqualStride(PartitionFunction):
 
-    '''
+    """
     Partition an object by chopping the data into roughly equal lengths.
 
     This returns a sublist of an indexable object by "striding" through the
@@ -206,10 +209,10 @@ class EqualStride(PartitionFunction):
     greater than the length of the input data, then it will return an empty 
     list for "empty" partitions.  If the data is not indexable, then it will
     return the data for index=0 only, and an empty list otherwise.
-    '''
+    """
 
     def __call__(self, data, index=0, size=1):
-        '''
+        """
         Define the common interface for all partitioning functions.
 
         The abstract base class implements the check on the input for correct
@@ -225,7 +228,7 @@ class EqualStride(PartitionFunction):
         Returns:
             The indexed part of the data, assuming the data is divided into
             size parts.
-        '''
+        """
         self._check_types(data, index, size)
 
         if self._is_indexable(data):
@@ -246,7 +249,7 @@ class EqualStride(PartitionFunction):
 #==============================================================================
 class SortedStride(PartitionFunction):
 
-    '''
+    """
     Partition an indexable list of pairs by striding through sorted data.
 
     The first index of each pair is assumed to be an item of data (which will 
@@ -256,10 +259,10 @@ class SortedStride(PartitionFunction):
 
     The results are partitions of roughly equal length and roughly equal
     total weight.  However, equal length is prioritized over total weight.
-    '''
+    """
 
     def __call__(self, data, index=0, size=1):
-        '''
+        """
         Define the common interface for all partitioning functions.
 
         The abstract base class implements the check on the input for correct
@@ -275,7 +278,7 @@ class SortedStride(PartitionFunction):
         Returns:
             The indexed part of the data, assuming the data is divided into
             size parts.
-        '''
+        """
         self._check_types(data, index, size)
 
         if self._are_pairs(data):
@@ -292,7 +295,7 @@ class SortedStride(PartitionFunction):
 #==============================================================================
 class WeightBalanced(PartitionFunction):
 
-    '''
+    """
     Partition an indexable list of pairs by balancing the total weight.
 
     The first index of each pair is assumed to be an item of data (which will 
@@ -303,10 +306,10 @@ class WeightBalanced(PartitionFunction):
     The results are partitions of roughly equal length and roughly equal
     total weight.  However, equal total weight is prioritized over length.
 
-    '''
+    """
 
     def __call__(self, data, index=0, size=1):
-        '''
+        """
         Define the common interface for all partitioning functions.
 
         The abstract base class implements the check on the input for correct
@@ -322,7 +325,7 @@ class WeightBalanced(PartitionFunction):
         Returns:
             The indexed part of the data, assuming the data is divided into
             size parts.
-        '''
+        """
         self._check_types(data, index, size)
 
         if self._are_pairs(data):

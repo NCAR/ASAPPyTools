@@ -1,4 +1,4 @@
-'''
+"""
 Parallel-1-Serial Tests for the SimpleComm class
 
 The 'P1S' Test Suite specificially tests whether the serial behavior is the
@@ -10,7 +10,7 @@ _______________________________________________________________________________
 Created on Feb 17, 2015
 
 @author: Kevin Paul <kpaul@ucar.edu>
-'''
+"""
 import unittest
 import numpy as np
 

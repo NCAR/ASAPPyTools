@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+"""
+ASAP Python Toolbox -- Setup Script
+
+Copyright 2015, University Corporation for Atmospheric Research
+See the LICENSE.txt file for details
+"""
 
 from distutils.core import setup
 

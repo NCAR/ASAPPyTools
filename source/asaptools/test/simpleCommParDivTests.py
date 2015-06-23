@@ -1,11 +1,11 @@
-'''
+"""
 Parallel Tests with communicator division for the SimpleComm class
 
 _______________________________________________________________________________
 Created on Feb 4, 2015
 
 @author: Kevin Paul <kpaul@ucar.edu>
-'''
+"""
 import unittest
 
 from asaptools import simplecomm

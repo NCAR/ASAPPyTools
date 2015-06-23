@@ -1,11 +1,11 @@
-'''
+"""
 Unit tests (serial only) for the TimeKeeper class
 
 -----------------------
 Created on May 31, 2014
 
 @author: Kevin Paul <kpaul@ucar.edu>
-'''
+"""
 import unittest
 
 from time import sleep
@@ -14,9 +14,9 @@ from asaptools import timekeeper
 
 class TimeKeeperTests(unittest.TestCase):
 
-    '''
+    """
     Tests for the TimeKeeper class
-    '''
+    """
 
     def test_init(self):
         tk = timekeeper.TimeKeeper()
