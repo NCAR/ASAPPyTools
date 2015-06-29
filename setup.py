@@ -6,11 +6,10 @@ Copyright 2015, University Corporation for Atmospheric Research
 See the LICENSE.txt file for details
 """
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(name='ASAPTools',
       version='0.4.2',
-      packages=find_packages()
       description='A collection of useful Python modules from the '
                   'Application Scalability And Performance (ASAP) group '
                   'at the National Center for Atmospheric Research',
