@@ -8,7 +8,7 @@ See the LICENSE.txt file for details
 
 from setuptools import setup
 
-exec(open('yourpackage/version.py').read())
+exec(open('source/asaptools/version.py').read())
 
 setup(name='ASAPTools',
       version=__version__,
