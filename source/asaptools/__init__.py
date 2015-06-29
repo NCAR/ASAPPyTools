@@ -11,3 +11,5 @@ keeping timing information, to managing simple MPI communication.
 
 Send questions and comments to Kevin Paul (kpaul@ucar.edu).
 """
+
+from version import __version__

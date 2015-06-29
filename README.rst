@@ -7,7 +7,6 @@ tasks, from managing print messages with a set verbosity level, to
 keeping timing information, to managing simple MPI communication.
 
 :AUTHORS: Kevin Paul, John Dennis, Sheri Mickelson, Haiying Xu
-:VERSION: 0.4.1
 :COPYRIGHT: 2015, University Corporation for Atmospheric Research
 :LICENSE: See the LICENSE.txt file for details
 
@@ -40,15 +39,27 @@ This implies the dependency:
 
 - mpi4py depends on numpy (>-1.4) and MPI
 
+Easy Installation
+-----------------
+
+The easiest way to install the ASAP Python Toolbox is from the Python
+Package Index (PyPI) with the pip package manager::
+
+    $  pip install [--user] ASAPTools
+    
+The optional '--user' argument can be used to install the package in the
+local user's directory, which is useful if the user doesn't have root
+privileges.
+
 Obtaining the Source Code
 -------------------------
 
-Currently, the most up-to-date source code is available via svn from the
+Currently, the most up-to-date source code is available via git from the
 site::
 
     https://github.com/NCAR-CISL-ASAP/ASAPPyTools
 
-The most recent stable tag is 'v0.4.1'.  The source is available in read-only
+Check out the most recent tag.  The source is available in read-only
 mode to everyone, but special permissions can be given to those to make
 changes to the source.
 
@@ -64,7 +75,7 @@ change into the top-level source directory, check out the most recent tag,
 and run the Python distutils setup. On unix, this involves::
 
     $  cd ASAPPyTools
-    $  git checkout v0.4.1
+    $  git checkout [latest tag]
     $  python setup.py install [--prefix-/path/to/install/location]
 
 The prefix is optional, as the default prefix is typically /usr/local on

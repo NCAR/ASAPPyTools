@@ -20,3 +20,17 @@ Version 0.4
 - Updating install to include LICENSE
 - Restructured source directory
 - Upload to PyPI
+
+Version 0.4.1
+-------------
+
+15 June 2015:
+
+- Bugfixes
+
+Version 0.4.2
+-------------
+
+29 June 2015:
+
+- Update setup script to setuptools (instead of distutils)
