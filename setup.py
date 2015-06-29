@@ -6,10 +6,11 @@ Copyright 2015, University Corporation for Atmospheric Research
 See the LICENSE.txt file for details
 """
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(name='ASAPTools',
-      version='0.4.1',
+      version='0.4.2',
+      packages=find_packages()
       description='A collection of useful Python modules from the '
                   'Application Scalability And Performance (ASAP) group '
                   'at the National Center for Atmospheric Research',
@@ -21,5 +22,5 @@ setup(name='ASAPTools',
       packages=['asaptools'],
       package_dir={'asaptools': 'source/asaptools'},
       package_data={'asaptools': ['LICENSE.txt']},
-      requires=['mpi4py']
+      install_requires=['mpi4py>=1.3']
       )
