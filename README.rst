@@ -7,7 +7,7 @@ tasks, from managing print messages with a set verbosity level, to
 keeping timing information, to managing simple MPI communication.
 
 :AUTHORS: Kevin Paul, John Dennis, Sheri Mickelson, Haiying Xu
-:VERSION: 0.4.1
+:VERSION: 0.4.2
 :COPYRIGHT: 2015, University Corporation for Atmospheric Research
 :LICENSE: See the LICENSE.txt file for details
 
@@ -48,7 +48,7 @@ site::
 
     https://github.com/NCAR-CISL-ASAP/ASAPPyTools
 
-The most recent stable tag is 'v0.4.1'.  The source is available in read-only
+The most recent stable tag is 'v0.4.2'.  The source is available in read-only
 mode to everyone, but special permissions can be given to those to make
 changes to the source.
 
@@ -64,7 +64,7 @@ change into the top-level source directory, check out the most recent tag,
 and run the Python distutils setup. On unix, this involves::
 
     $  cd ASAPPyTools
-    $  git checkout v0.4.1
+    $  git checkout v0.4.2
     $  python setup.py install [--prefix-/path/to/install/location]
 
 The prefix is optional, as the default prefix is typically /usr/local on
