@@ -49,7 +49,7 @@ class VPrinter(object):
         to a string representation, and concatenates them into a single string.
 
         Parameters:
-            args (list): A list of arguments supplied to the function.  All 
+            args (list): A list of arguments supplied to the function.  All
                 of these arguments will be concatenated together.
 
         Keyword Arguments:
@@ -59,11 +59,11 @@ class VPrinter(object):
         Returns:
             str: A single string with the arguments given converted to strings
                 and concatenated together (in order).  If the keyword
-                'header==True' is supplied, then the 'header' string is 
+                'header==True' is supplied, then the 'header' string is
                 prepended to the string before being output.
 
         Raises:
-            TypeError: If the 'header' keyword argument is supplied and is 
+            TypeError: If the 'header' keyword argument is supplied and is
                 not a bool
         """
         out_args = []
@@ -86,7 +86,7 @@ class VPrinter(object):
         also print a useful header based on the parallel rank and size.
 
         Parameters:
-            args (list): A list of arguments supplied to the function.  All 
+            args (list): A list of arguments supplied to the function.  All
                 of these arguments will be concatenated together.
 
         Keyword Arguments:
