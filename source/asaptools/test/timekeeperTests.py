@@ -9,6 +9,7 @@ Created on May 31, 2014
 import unittest
 
 from time import sleep
+from collections import OrderedDict
 from asaptools import timekeeper
 
 
@@ -32,8 +33,6 @@ class TimeKeeperTests(unittest.TestCase):
         tk.stop(name)
         self.assertIn(name, tk._accumulated_times,
                       'Clock name not found in accumulated times dictionary')
-        self.assertIn(name, tk._added_order,
-                      'Clock name not found in added order list')
         self.assertIn(name, tk._start_times,
                       'Clock name not found in start times dictionary')
 
@@ -59,9 +58,9 @@ class TimeKeeperTests(unittest.TestCase):
         tk.start(name2)
         sleep(wait_time)
         tk.stop(name2)
-        self.assertEqual(name1, tk._added_order[0],
+        self.assertEqual(name1, tk._accumulated_times.keys()[0],
                          'Clock name 1 not appropriately ordered')
-        self.assertEqual(name2, tk._added_order[1],
+        self.assertEqual(name2, tk._accumulated_times.keys()[1],
                          'Clock name 2 not appropriately ordered')
 
     def test_start_stop_values2(self):
@@ -121,8 +120,8 @@ class TimeKeeperTests(unittest.TestCase):
         sleep(wait_time)
         tk.stop(name2)
         all_times = tk.get_all_times()
-        expected_all_times = {name1: 3 * wait_time,
-                              name2: 2 * wait_time}
+        expected_all_times = OrderedDict([(name1, 3 * wait_time),
+                                          (name2, 2 * wait_time)])
         self.assertListEqual(expected_all_times.keys(), all_times.keys(),
                              'All times clock names are off')
         self.assertAlmostEqual(expected_all_times.values()[0],
@@ -136,5 +135,5 @@ class TimeKeeperTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
+    # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
