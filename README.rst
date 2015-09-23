@@ -8,7 +8,7 @@ keeping timing information, to managing simple MPI communication.
 
 :AUTHORS: Kevin Paul, John Dennis, Sheri Mickelson, Haiying Xu
 :COPYRIGHT: 2015, University Corporation for Atmospheric Research
-:LICENSE: See the LICENSE.txt file for details
+:LICENSE: See the LICENSE.rst file for details
 
 Send questions and comments to Kevin Paul (kpaul@ucar.edu).
 
@@ -31,7 +31,7 @@ Python packages.
 Dependencies
 ------------
 
-All of the ASAP Python Toolbox are written to work with Python 2.6+ (but not
+All of the ASAP Python Toolbox are written to work with Python 2.7+ (but not
 Python 3.0+). The vprinter, timekeeper, and partition modules are pure
 Python. The simplecomm module depends on mpi4py (>-1.3).
 

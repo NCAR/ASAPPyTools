@@ -34,3 +34,12 @@ Version 0.4.2
 29 June 2015:
 
 - Update setup script to setuptools (instead of distutils)
+
+Version 0.5.0
+-------------
+
+23 September 2015:
+
+- Now requires Python >=2.7 and <3.0
+- Using more advanced features of Python 2.7 (over 2.6)
+- Added ability to enable/disable the timer functions
