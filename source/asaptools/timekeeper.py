@@ -54,12 +54,6 @@ class TimeKeeper(object):
         """
         self._enabled = True
 
-    def is_enabled(self):
-        """
-        Method to return if the  TimeKeeper is enabled
-        """
-        return self._enabled
-
     def disable(self):
         """
         Method to disable the TimeKeeper
