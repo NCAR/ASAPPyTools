@@ -51,8 +51,8 @@ class TimeKeeper(object):
         """
         Method to reset a timer associated with a given name.
 
-        If the name has never been used before, the timer is created and the 
-        accumulated time is set to 0.  If the timer has been used before, the 
+        If the name has never been used before, the timer is created and the
+        accumulated time is set to 0.  If the timer has been used before, the
         accumulated time is set to 0.
 
         Parameters:
@@ -69,7 +69,7 @@ class TimeKeeper(object):
         """
         Method to start a timer associated with a given name.
 
-        If the name has never been used before, the timer is created and 
+        If the name has never been used before, the timer is created and
         the accumulated time is set to 0.
 
         Parameters:
@@ -115,14 +115,14 @@ class TimeKeeper(object):
         """
         Returns the accumulated time of the given timer.
 
-        If the given timer name has never been created, it is created and the 
+        If the given timer name has never been created, it is created and the
         accumulated time is set to zero before returning.
 
         Parameters:
             name: The name or ID of the timer to stop
 
         Returns:
-            float: The accumulated time of the named timer (or 0.0 if the 
+            float: The accumulated time of the named timer (or 0.0 if the
                 named timer has never been created before).
         """
 
