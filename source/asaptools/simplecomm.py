@@ -96,9 +96,9 @@ groups to perform different tasks in each group.  When this is necessary, the
 the 'manager' will assign each rank (including itself) to 2 new groups:
 
 1. Each rank with the same color ID will be assigned to the same group, and
-    within this new *color* group, each rank will be given a new rank ID 
+    within this new *color* group, each rank will be given a new rank ID
     ranging from 0 (identifying the color group's 'manager' rank) to the number
-    of 'worker' ranks in the color group.  This is called 
+    of 'worker' ranks in the color group.  This is called
     the *monocolor* grouping.
 
 2. Each rank with the same new rank ID across all color groups will be assigned
@@ -160,7 +160,7 @@ def create_comm(serial=False):
             desire for a parallel SimpleComm instance.
 
     Returns:
-        SimpleComm: An instance of a SimpleComm object, either serial 
+        SimpleComm: An instance of a SimpleComm object, either serial
             (if serial == True) or parallel (if serial == False)
 
     Raises:
@@ -226,7 +226,7 @@ class SimpleComm(object):
             dt: The type of the data object to be tested
 
         Returns:
-            bool: True if the object is a Numpy NDArray. False otherwise,  
+            bool: True if the object is a Numpy NDArray. False otherwise,
                 or if the Numpy module was not found during
                 the SimpleComm constructor.
 
@@ -377,12 +377,12 @@ class SimpleComm(object):
         This call must be made by all ranks.
 
         Keyword Arguments:
-            data: The data to be partitioned across the ranks in the 
+            data: The data to be partitioned across the ranks in the
                 communicator.
-            func: A PartitionFunction object/function that returns a part 
+            func: A PartitionFunction object/function that returns a part
                 of the data given the index and assumed size of the partition.
             involved (bool): True if a part of the data should be given to the
-                'manager' rank in addition to the 'worker' ranks. False 
+                'manager' rank in addition to the 'worker' ranks. False
                 otherwise.
             tag (int): A user-defined integer tag to uniquely specify this
                 communication message.
@@ -478,8 +478,8 @@ class SimpleComm(object):
                 supplied across all ranks
 
         Returns:
-            tuple: A tuple containing (first) the "monocolor" SimpleComm for 
-                ranks with the same color ID (but different rank IDs) and 
+            tuple: A tuple containing (first) the "monocolor" SimpleComm for
+                ranks with the same color ID (but different rank IDs) and
                 (second) the "multicolor" SimpleComm for ranks with the same
                 rank ID (but different color IDs)
 
@@ -861,7 +861,7 @@ class SimpleCommMPI(SimpleComm):
         hang.
 
         Keyword Arguments:
-            data: The data to be collected asynchronously 
+            data: The data to be collected asynchronously
                 on the 'manager' rank.
             tag (int): A user-defined integer tag to uniquely
                 specify this communication message
@@ -957,9 +957,9 @@ class SimpleCommMPI(SimpleComm):
                 supplied across all ranks
 
         Returns:
-            tuple: A tuple containing (first) the "monocolor" SimpleComm for 
-                ranks with the same color ID (but different rank IDs) and 
-                (second) the "multicolor" SimpleComm for ranks with the same 
+            tuple: A tuple containing (first) the "monocolor" SimpleComm for
+                ranks with the same color ID (but different rank IDs) and
+                (second) the "multicolor" SimpleComm for ranks with the same
                 rank ID (but different color IDs)
 
         Raises:
