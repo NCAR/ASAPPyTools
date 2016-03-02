@@ -218,12 +218,12 @@ class SimpleComm(object):
         # The group ID associated with the color
         self._group = None
 
-    def _type_is_ndarray(self, dt):
+    def _is_ndarray(self, obj):
         """
         Helper function to determing if an object is a Numpy NDArray.
 
         Parameters:
-            dt: The type of the data object to be tested
+            obj: The object to be tested
 
         Returns:
             bool: True if the object is a Numpy NDArray. False otherwise,
@@ -232,19 +232,19 @@ class SimpleComm(object):
 
         Examples:
 
-            >>> _type_is_ndarray(type(1))
+            >>> _is_ndarray(1)
             False
 
             >>> alist = [1,2,3,4]
-            >>> _type_is_ndarray(type(alist))
+            >>> _is_ndarray(alist)
             False
 
             >>> aarray = numpy.array(alist)
-            >>> _type_is_ndarray(type(aarray))
+            >>> _is_ndarray(aarray)
             True
         """
         if self._numpy:
-            return dt is self._numpy.ndarray
+            return isinstance(obj, self._numpy.ndarray)
         else:
             return False
 
@@ -346,7 +346,7 @@ class SimpleComm(object):
             for k, v in data.items():
                 totals[k] = SimpleComm.allreduce(self, v, op)
             return totals
-        elif self._type_is_ndarray(type(data)):
+        elif self._is_ndarray(data):
             return SimpleComm.allreduce(self,
                                         getattr(self._numpy,
                                                 _OP_MAP[op]['np'])(data),
@@ -682,9 +682,9 @@ class SimpleCommMPI(SimpleComm):
                 # Create the handshake message
                 msg = {}
                 msg['rank'] = self.get_rank()
-                msg['type'] = type(part)
-                msg['shape'] = part.shape if hasattr(part, 'shape') else None
-                msg['dtype'] = part.dtype if hasattr(part, 'dtype') else None
+                msg['array'] = self._is_ndarray(part)
+                msg['shape'] = getattr(part, 'shape', None)
+                msg['dtype'] = getattr(part, 'dtype', None)
 
                 # Send the handshake message to the worker rank
                 msg_tag = self._tag_offset(self.PART_TAG, self.MSG_TAG, tag)
@@ -699,7 +699,7 @@ class SimpleCommMPI(SimpleComm):
                     continue
 
                 # If OK, send the data to the worker
-                if self._type_is_ndarray(type(part)):
+                if self._is_ndarray(part):
                     npy_tag = self._tag_offset(
                         self.PART_TAG, self.NPY_TAG, tag)
                     self._comm.Send(
@@ -732,7 +732,7 @@ class SimpleCommMPI(SimpleComm):
                 return None
 
             # Receive the data
-            if self._type_is_ndarray(msg['type']):
+            if msg['array']:
                 npy_tag = self._tag_offset(
                     self.PART_TAG, self.NPY_TAG, tag)
                 recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
@@ -782,7 +782,7 @@ class SimpleCommMPI(SimpleComm):
 
                 # Create the handshake message
                 msg = {}
-                msg['type'] = type(data)
+                msg['array'] = self._is_ndarray(data)
                 msg['shape'] = data.shape if hasattr(data, 'shape') else None
                 msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
 
@@ -799,7 +799,7 @@ class SimpleCommMPI(SimpleComm):
                     return
 
                 # If OK, send the data to the requesting worker
-                if self._type_is_ndarray(type(data)):
+                if self._is_ndarray(data):
                     npy_tag = self._tag_offset(
                         self.RATN_TAG, self.NPY_TAG, tag)
                     self._comm.Send(data, dest=rank, tag=npy_tag)
@@ -830,7 +830,7 @@ class SimpleCommMPI(SimpleComm):
                     return None
 
                 # Receive the data from the manager
-                if self._type_is_ndarray(msg['type']):
+                if msg['array']:
                     npy_tag = self._tag_offset(
                         self.RATN_TAG, self.NPY_TAG, tag)
                     recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
@@ -894,7 +894,7 @@ class SimpleCommMPI(SimpleComm):
                     return None
 
                 # Receive the data
-                if self._type_is_ndarray(msg['type']):
+                if msg['array']:
                     npy_tag = self._tag_offset(
                         self.CLCT_TAG, self.NPY_TAG, tag)
                     recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
@@ -910,7 +910,7 @@ class SimpleCommMPI(SimpleComm):
                 # Create the handshake message
                 msg = {}
                 msg['rank'] = self.get_rank()
-                msg['type'] = type(data)
+                msg['array'] = self._is_ndarray(data)
                 msg['shape'] = data.shape if hasattr(data, 'shape') else None
                 msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
 
@@ -927,7 +927,7 @@ class SimpleCommMPI(SimpleComm):
                     return
 
                 # If OK, send the data to the manager
-                if self._type_is_ndarray(type(data)):
+                if self._is_ndarray(data):
                     npy_tag = self._tag_offset(
                         self.CLCT_TAG, self.NPY_TAG, tag)
                     self._comm.Send(data, dest=0, tag=npy_tag)
