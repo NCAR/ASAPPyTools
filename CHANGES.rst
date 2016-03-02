@@ -43,3 +43,8 @@ Version 0.5.0
 - Now requires Python >=2.7 and <3.0
 - Using more advanced features of Python 2.7 (over 2.6)
 - Added ability to enable/disable the timer functions
+
+2 March 2016:
+
+- Changed Numpy NDArray type-checking to allow for masked arrays, instead of
+  just NDArrays
