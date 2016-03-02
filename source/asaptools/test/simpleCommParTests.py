@@ -33,7 +33,7 @@ class SimpleCommParTests(unittest.TestCase):
 
     def tearDown(self):
         pass
-
+ 
     def testGetSize(self):
         actual = self.gcomm.get_size()
         expected = self.size
@@ -41,7 +41,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'get_size()', None, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+  
     def testIsManager(self):
         actual = self.gcomm.is_manager()
         expected = (self.rank == 0)
@@ -49,7 +49,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'is_manager()', None, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+  
     def testSumInt(self):
         data = 5
         actual = self.gcomm.allreduce(data, 'sum')
@@ -58,7 +58,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'sum(int)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+  
     def testSumList(self):
         data = range(5)
         actual = self.gcomm.allreduce(data, 'sum')
@@ -67,7 +67,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'sum(list)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+  
     def testSumArray(self):
         data = np.arange(5)
         actual = self.gcomm.allreduce(data, 'sum')
@@ -76,7 +76,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'sum(array)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+  
     def testSumDict(self):
         data = {'a': range(3), 'b': [5, 7]}
         actual = self.gcomm.allreduce(data, 'sum')
@@ -86,7 +86,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'sum(dict)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+  
     def testMaxInt(self):
         data = self.rank
         actual = self.gcomm.allreduce(data, 'max')
@@ -95,7 +95,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'max(int)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+  
     def testMaxList(self):
         data = range(2 + self.rank)
         actual = self.gcomm.allreduce(data, 'max')
@@ -104,7 +104,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'max(list)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+  
     def testMaxArray(self):
         data = np.arange(2 + self.rank)
         actual = self.gcomm.allreduce(data, 'max')
@@ -113,7 +113,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'max(array)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+  
     def testMaxDict(self):
         data = {'rank': self.rank, 'range': range(2 + self.rank)}
         actual = self.gcomm.allreduce(data, 'max')
@@ -122,7 +122,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'max(dict)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+  
     def testPartitionInt(self):
         if self.gcomm.is_manager():
             data = 10
@@ -137,7 +137,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'partition(int)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+  
     def testPartitionIntInvolved(self):
         if self.gcomm.is_manager():
             data = 10
@@ -149,7 +149,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'partition(int, T)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+  
     def testPartitionList(self):
         if self.gcomm.is_manager():
             data = range(10)
@@ -164,7 +164,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'partition(list)', data, actual, expected)
         print msg
         self.assertEqual(actual, expected, msg)
-
+   
     def testPartitionListInvolved(self):
         if self.gcomm.is_manager():
             data = range(10)
@@ -206,7 +206,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'partition(array, T)', data, actual, expected)
         print msg
         np.testing.assert_array_equal(actual, expected, msg)
-
+ 
     def testCollectInt(self):
         if self.gcomm.is_manager():
             data = None
@@ -242,7 +242,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.assertItemsEqual(actual, expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
-
+ 
     def testCollectArray(self):
         if self.gcomm.is_manager():
             data = None
@@ -280,7 +280,7 @@ class SimpleCommParTests(unittest.TestCase):
             self.assertEqual(actual, expected, msg)
         else:
             self.assertIn(actual, expected, msg)
-
+ 
     def testRationArray(self):
         if self.gcomm.is_manager():
             data = np.arange(3 * self.size)

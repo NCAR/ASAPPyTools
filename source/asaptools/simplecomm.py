@@ -673,7 +673,7 @@ class SimpleCommMPI(SimpleComm):
         """
         if self.is_manager():
             op = func if func else lambda *x: x[0][x[1]::x[2]]
-            j = int(not involved)
+            j = 1 if not involved else 0
             for i in xrange(1, self.get_size()):
 
                 # Get the part of the data to send to rank i
@@ -685,7 +685,7 @@ class SimpleCommMPI(SimpleComm):
                 msg['array'] = self._is_ndarray(part)
                 msg['shape'] = getattr(part, 'shape', None)
                 msg['dtype'] = getattr(part, 'dtype', None)
-
+                
                 # Send the handshake message to the worker rank
                 msg_tag = self._tag_offset(self.PART_TAG, self.MSG_TAG, tag)
                 self._comm.send(msg, dest=i, tag=msg_tag)
@@ -699,11 +699,11 @@ class SimpleCommMPI(SimpleComm):
                     continue
 
                 # If OK, send the data to the worker
-                if self._is_ndarray(part):
+                if msg['array']:
                     npy_tag = self._tag_offset(
                         self.PART_TAG, self.NPY_TAG, tag)
-                    self._comm.Send(
-                        self._numpy.array(part), dest=i, tag=npy_tag)
+                    self._comm.Send(self._numpy.array(part),
+                                    dest=i, tag=npy_tag)
                 else:
                     pyt_tag = self._tag_offset(
                         self.PART_TAG, self.PYT_TAG, tag)
@@ -720,8 +720,9 @@ class SimpleCommMPI(SimpleComm):
             msg = self._comm.recv(source=0, tag=msg_tag)
 
             # Check the message content
-            ack = type(msg) is dict and \
-                all([key in msg for key in ['rank', 'type', 'shape', 'dtype']])
+            ack = (type(msg) is dict and 
+                   all([key in msg for key in 
+                        ['rank', 'array', 'shape', 'dtype']]))
 
             # If the message is good, acknowledge
             ack_tag = self._tag_offset(self.PART_TAG, self.ACK_TAG, tag)
@@ -799,7 +800,7 @@ class SimpleCommMPI(SimpleComm):
                     return
 
                 # If OK, send the data to the requesting worker
-                if self._is_ndarray(data):
+                if msg['array']:
                     npy_tag = self._tag_offset(
                         self.RATN_TAG, self.NPY_TAG, tag)
                     self._comm.Send(data, dest=rank, tag=npy_tag)
@@ -818,8 +819,9 @@ class SimpleCommMPI(SimpleComm):
                 msg = self._comm.recv(source=0, tag=msg_tag)
 
                 # Check the message content
-                ack = type(msg) is dict and \
-                    all([key in msg for key in ['type', 'shape', 'dtype']])
+                ack = (type(msg) is dict and
+                       all([key in msg for key in
+                            ['array', 'shape', 'dtype']]))
 
                 # Send acknowledgement back to the manager
                 ack_tag = self._tag_offset(self.RATN_TAG, self.ACK_TAG, tag)
@@ -881,9 +883,9 @@ class SimpleCommMPI(SimpleComm):
                 msg = self._comm.recv(source=self._mpi.ANY_SOURCE, tag=msg_tag)
 
                 # Check the message content
-                ack = type(msg) is dict and \
-                    all([key in msg for key in ['rank', 'type',
-                                                'shape', 'dtype']])
+                ack = (type(msg) is dict and
+                       all([key in msg for key in 
+                            ['rank', 'array', 'shape', 'dtype']]))
 
                 # Send acknowledgement back to the worker
                 ack_tag = self._tag_offset(self.CLCT_TAG, self.ACK_TAG, tag)
@@ -927,7 +929,7 @@ class SimpleCommMPI(SimpleComm):
                     return
 
                 # If OK, send the data to the manager
-                if self._is_ndarray(data):
+                if msg['array']:
                     npy_tag = self._tag_offset(
                         self.CLCT_TAG, self.NPY_TAG, tag)
                     self._comm.Send(data, dest=0, tag=npy_tag)
