@@ -551,6 +551,18 @@ class SimpleCommMPI(SimpleComm):
         if self._comm != self._mpi.COMM_WORLD:
             self._comm.Free()
 
+    def _is_bufferable(self, obj):
+        """
+        Check if the data is bufferable or not
+        """
+        if self._is_ndarray(obj):
+            if obj.dtype.char in self._mpi._typedict_c:
+                return True
+            else:
+                return False
+        else:
+            return False
+        
     def get_size(self):
         """
         Get the integer number of ranks in this communicator.
@@ -682,7 +694,7 @@ class SimpleCommMPI(SimpleComm):
                 # Create the handshake message
                 msg = {}
                 msg['rank'] = self.get_rank()
-                msg['array'] = self._is_ndarray(part)
+                msg['buffer'] = self._is_bufferable(part)
                 msg['shape'] = getattr(part, 'shape', None)
                 msg['dtype'] = getattr(part, 'dtype', None)
                 
@@ -699,7 +711,7 @@ class SimpleCommMPI(SimpleComm):
                     continue
 
                 # If OK, send the data to the worker
-                if msg['array']:
+                if msg['buffer']:
                     npy_tag = self._tag_offset(
                         self.PART_TAG, self.NPY_TAG, tag)
                     self._comm.Send(self._numpy.array(part),
@@ -722,7 +734,7 @@ class SimpleCommMPI(SimpleComm):
             # Check the message content
             ack = (type(msg) is dict and 
                    all([key in msg for key in 
-                        ['rank', 'array', 'shape', 'dtype']]))
+                        ['rank', 'buffer', 'shape', 'dtype']]))
 
             # If the message is good, acknowledge
             ack_tag = self._tag_offset(self.PART_TAG, self.ACK_TAG, tag)
@@ -733,7 +745,7 @@ class SimpleCommMPI(SimpleComm):
                 return None
 
             # Receive the data
-            if msg['array']:
+            if msg['buffer']:
                 npy_tag = self._tag_offset(
                     self.PART_TAG, self.NPY_TAG, tag)
                 recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
@@ -783,7 +795,7 @@ class SimpleCommMPI(SimpleComm):
 
                 # Create the handshake message
                 msg = {}
-                msg['array'] = self._is_ndarray(data)
+                msg['buffer'] = self._is_bufferable(data)
                 msg['shape'] = data.shape if hasattr(data, 'shape') else None
                 msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
 
@@ -800,7 +812,7 @@ class SimpleCommMPI(SimpleComm):
                     return
 
                 # If OK, send the data to the requesting worker
-                if msg['array']:
+                if msg['buffer']:
                     npy_tag = self._tag_offset(
                         self.RATN_TAG, self.NPY_TAG, tag)
                     self._comm.Send(data, dest=rank, tag=npy_tag)
@@ -821,7 +833,7 @@ class SimpleCommMPI(SimpleComm):
                 # Check the message content
                 ack = (type(msg) is dict and
                        all([key in msg for key in
-                            ['array', 'shape', 'dtype']]))
+                            ['buffer', 'shape', 'dtype']]))
 
                 # Send acknowledgement back to the manager
                 ack_tag = self._tag_offset(self.RATN_TAG, self.ACK_TAG, tag)
@@ -832,7 +844,7 @@ class SimpleCommMPI(SimpleComm):
                     return None
 
                 # Receive the data from the manager
-                if msg['array']:
+                if msg['buffer']:
                     npy_tag = self._tag_offset(
                         self.RATN_TAG, self.NPY_TAG, tag)
                     recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
@@ -885,7 +897,7 @@ class SimpleCommMPI(SimpleComm):
                 # Check the message content
                 ack = (type(msg) is dict and
                        all([key in msg for key in 
-                            ['rank', 'array', 'shape', 'dtype']]))
+                            ['rank', 'buffer', 'shape', 'dtype']]))
 
                 # Send acknowledgement back to the worker
                 ack_tag = self._tag_offset(self.CLCT_TAG, self.ACK_TAG, tag)
@@ -896,7 +908,7 @@ class SimpleCommMPI(SimpleComm):
                     return None
 
                 # Receive the data
-                if msg['array']:
+                if msg['buffer']:
                     npy_tag = self._tag_offset(
                         self.CLCT_TAG, self.NPY_TAG, tag)
                     recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
@@ -912,7 +924,7 @@ class SimpleCommMPI(SimpleComm):
                 # Create the handshake message
                 msg = {}
                 msg['rank'] = self.get_rank()
-                msg['array'] = self._is_ndarray(data)
+                msg['buffer'] = self._is_bufferable(data)
                 msg['shape'] = data.shape if hasattr(data, 'shape') else None
                 msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
 
@@ -929,7 +941,7 @@ class SimpleCommMPI(SimpleComm):
                     return
 
                 # If OK, send the data to the manager
-                if msg['array']:
+                if msg['buffer']:
                     npy_tag = self._tag_offset(
                         self.CLCT_TAG, self.NPY_TAG, tag)
                     self._comm.Send(data, dest=0, tag=npy_tag)
