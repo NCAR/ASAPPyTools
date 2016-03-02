@@ -1,9 +1,8 @@
 """
 These are the unit tests for the partition module functions
-_______________________________________________________________________________
-Created on Feb 4, 2015
 
-@author: Kevin Paul <kpaul@ucar.edu>
+Copyright 2016, University Corporation for Atmospheric Research
+See the LICENSE.txt file for details
 """
 import unittest
 from asaptools import partition

@@ -96,9 +96,9 @@ groups to perform different tasks in each group.  When this is necessary, the
 the 'manager' will assign each rank (including itself) to 2 new groups:
 
 1. Each rank with the same color ID will be assigned to the same group, and
-    within this new *color* group, each rank will be given a new rank ID 
+    within this new *color* group, each rank will be given a new rank ID
     ranging from 0 (identifying the color group's 'manager' rank) to the number
-    of 'worker' ranks in the color group.  This is called 
+    of 'worker' ranks in the color group.  This is called
     the *monocolor* grouping.
 
 2. Each rank with the same new rank ID across all color groups will be assigned
@@ -114,7 +114,7 @@ that within each group, the same *partition*, *collecting*, and *reducing*
 operations can be performed in the same way as described above for the *global*
 group.
 
-Copyright 2015, University Corporation for Atmospheric Research
+Copyright 2016, University Corporation for Atmospheric Research
 See the LICENSE.txt file for details
 """
 
@@ -160,7 +160,7 @@ def create_comm(serial=False):
             desire for a parallel SimpleComm instance.
 
     Returns:
-        SimpleComm: An instance of a SimpleComm object, either serial 
+        SimpleComm: An instance of a SimpleComm object, either serial
             (if serial == True) or parallel (if serial == False)
 
     Raises:
@@ -218,33 +218,33 @@ class SimpleComm(object):
         # The group ID associated with the color
         self._group = None
 
-    def _type_is_ndarray(self, dt):
+    def _is_ndarray(self, obj):
         """
         Helper function to determing if an object is a Numpy NDArray.
 
         Parameters:
-            dt: The type of the data object to be tested
+            obj: The object to be tested
 
         Returns:
-            bool: True if the object is a Numpy NDArray. False otherwise,  
+            bool: True if the object is a Numpy NDArray. False otherwise,
                 or if the Numpy module was not found during
                 the SimpleComm constructor.
 
         Examples:
 
-            >>> _type_is_ndarray(type(1))
+            >>> _is_ndarray(1)
             False
 
             >>> alist = [1,2,3,4]
-            >>> _type_is_ndarray(type(alist))
+            >>> _is_ndarray(alist)
             False
 
             >>> aarray = numpy.array(alist)
-            >>> _type_is_ndarray(type(aarray))
+            >>> _is_ndarray(aarray)
             True
         """
         if self._numpy:
-            return dt is self._numpy.ndarray
+            return isinstance(obj, self._numpy.ndarray)
         else:
             return False
 
@@ -346,7 +346,7 @@ class SimpleComm(object):
             for k, v in data.items():
                 totals[k] = SimpleComm.allreduce(self, v, op)
             return totals
-        elif self._type_is_ndarray(type(data)):
+        elif self._is_ndarray(data):
             return SimpleComm.allreduce(self,
                                         getattr(self._numpy,
                                                 _OP_MAP[op]['np'])(data),
@@ -377,12 +377,12 @@ class SimpleComm(object):
         This call must be made by all ranks.
 
         Keyword Arguments:
-            data: The data to be partitioned across the ranks in the 
+            data: The data to be partitioned across the ranks in the
                 communicator.
-            func: A PartitionFunction object/function that returns a part 
+            func: A PartitionFunction object/function that returns a part
                 of the data given the index and assumed size of the partition.
             involved (bool): True if a part of the data should be given to the
-                'manager' rank in addition to the 'worker' ranks. False 
+                'manager' rank in addition to the 'worker' ranks. False
                 otherwise.
             tag (int): A user-defined integer tag to uniquely specify this
                 communication message.
@@ -478,8 +478,8 @@ class SimpleComm(object):
                 supplied across all ranks
 
         Returns:
-            tuple: A tuple containing (first) the "monocolor" SimpleComm for 
-                ranks with the same color ID (but different rank IDs) and 
+            tuple: A tuple containing (first) the "monocolor" SimpleComm for
+                ranks with the same color ID (but different rank IDs) and
                 (second) the "multicolor" SimpleComm for ranks with the same
                 rank ID (but different color IDs)
 
@@ -673,7 +673,7 @@ class SimpleCommMPI(SimpleComm):
         """
         if self.is_manager():
             op = func if func else lambda *x: x[0][x[1]::x[2]]
-            j = int(not involved)
+            j = 1 if not involved else 0
             for i in xrange(1, self.get_size()):
 
                 # Get the part of the data to send to rank i
@@ -682,10 +682,10 @@ class SimpleCommMPI(SimpleComm):
                 # Create the handshake message
                 msg = {}
                 msg['rank'] = self.get_rank()
-                msg['type'] = type(part)
-                msg['shape'] = part.shape if hasattr(part, 'shape') else None
-                msg['dtype'] = part.dtype if hasattr(part, 'dtype') else None
-
+                msg['array'] = self._is_ndarray(part)
+                msg['shape'] = getattr(part, 'shape', None)
+                msg['dtype'] = getattr(part, 'dtype', None)
+                
                 # Send the handshake message to the worker rank
                 msg_tag = self._tag_offset(self.PART_TAG, self.MSG_TAG, tag)
                 self._comm.send(msg, dest=i, tag=msg_tag)
@@ -699,11 +699,11 @@ class SimpleCommMPI(SimpleComm):
                     continue
 
                 # If OK, send the data to the worker
-                if self._type_is_ndarray(type(part)):
+                if msg['array']:
                     npy_tag = self._tag_offset(
                         self.PART_TAG, self.NPY_TAG, tag)
-                    self._comm.Send(
-                        self._numpy.array(part), dest=i, tag=npy_tag)
+                    self._comm.Send(self._numpy.array(part),
+                                    dest=i, tag=npy_tag)
                 else:
                     pyt_tag = self._tag_offset(
                         self.PART_TAG, self.PYT_TAG, tag)
@@ -720,8 +720,9 @@ class SimpleCommMPI(SimpleComm):
             msg = self._comm.recv(source=0, tag=msg_tag)
 
             # Check the message content
-            ack = type(msg) is dict and \
-                all([key in msg for key in ['rank', 'type', 'shape', 'dtype']])
+            ack = (type(msg) is dict and 
+                   all([key in msg for key in 
+                        ['rank', 'array', 'shape', 'dtype']]))
 
             # If the message is good, acknowledge
             ack_tag = self._tag_offset(self.PART_TAG, self.ACK_TAG, tag)
@@ -732,7 +733,7 @@ class SimpleCommMPI(SimpleComm):
                 return None
 
             # Receive the data
-            if self._type_is_ndarray(msg['type']):
+            if msg['array']:
                 npy_tag = self._tag_offset(
                     self.PART_TAG, self.NPY_TAG, tag)
                 recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
@@ -782,7 +783,7 @@ class SimpleCommMPI(SimpleComm):
 
                 # Create the handshake message
                 msg = {}
-                msg['type'] = type(data)
+                msg['array'] = self._is_ndarray(data)
                 msg['shape'] = data.shape if hasattr(data, 'shape') else None
                 msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
 
@@ -799,7 +800,7 @@ class SimpleCommMPI(SimpleComm):
                     return
 
                 # If OK, send the data to the requesting worker
-                if self._type_is_ndarray(type(data)):
+                if msg['array']:
                     npy_tag = self._tag_offset(
                         self.RATN_TAG, self.NPY_TAG, tag)
                     self._comm.Send(data, dest=rank, tag=npy_tag)
@@ -818,8 +819,9 @@ class SimpleCommMPI(SimpleComm):
                 msg = self._comm.recv(source=0, tag=msg_tag)
 
                 # Check the message content
-                ack = type(msg) is dict and \
-                    all([key in msg for key in ['type', 'shape', 'dtype']])
+                ack = (type(msg) is dict and
+                       all([key in msg for key in
+                            ['array', 'shape', 'dtype']]))
 
                 # Send acknowledgement back to the manager
                 ack_tag = self._tag_offset(self.RATN_TAG, self.ACK_TAG, tag)
@@ -830,7 +832,7 @@ class SimpleCommMPI(SimpleComm):
                     return None
 
                 # Receive the data from the manager
-                if self._type_is_ndarray(msg['type']):
+                if msg['array']:
                     npy_tag = self._tag_offset(
                         self.RATN_TAG, self.NPY_TAG, tag)
                     recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
@@ -861,7 +863,7 @@ class SimpleCommMPI(SimpleComm):
         hang.
 
         Keyword Arguments:
-            data: The data to be collected asynchronously 
+            data: The data to be collected asynchronously
                 on the 'manager' rank.
             tag (int): A user-defined integer tag to uniquely
                 specify this communication message
@@ -881,9 +883,9 @@ class SimpleCommMPI(SimpleComm):
                 msg = self._comm.recv(source=self._mpi.ANY_SOURCE, tag=msg_tag)
 
                 # Check the message content
-                ack = type(msg) is dict and \
-                    all([key in msg for key in ['rank', 'type',
-                                                'shape', 'dtype']])
+                ack = (type(msg) is dict and
+                       all([key in msg for key in 
+                            ['rank', 'array', 'shape', 'dtype']]))
 
                 # Send acknowledgement back to the worker
                 ack_tag = self._tag_offset(self.CLCT_TAG, self.ACK_TAG, tag)
@@ -894,7 +896,7 @@ class SimpleCommMPI(SimpleComm):
                     return None
 
                 # Receive the data
-                if self._type_is_ndarray(msg['type']):
+                if msg['array']:
                     npy_tag = self._tag_offset(
                         self.CLCT_TAG, self.NPY_TAG, tag)
                     recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
@@ -910,7 +912,7 @@ class SimpleCommMPI(SimpleComm):
                 # Create the handshake message
                 msg = {}
                 msg['rank'] = self.get_rank()
-                msg['type'] = type(data)
+                msg['array'] = self._is_ndarray(data)
                 msg['shape'] = data.shape if hasattr(data, 'shape') else None
                 msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
 
@@ -927,7 +929,7 @@ class SimpleCommMPI(SimpleComm):
                     return
 
                 # If OK, send the data to the manager
-                if self._type_is_ndarray(type(data)):
+                if msg['array']:
                     npy_tag = self._tag_offset(
                         self.CLCT_TAG, self.NPY_TAG, tag)
                     self._comm.Send(data, dest=0, tag=npy_tag)
@@ -957,9 +959,9 @@ class SimpleCommMPI(SimpleComm):
                 supplied across all ranks
 
         Returns:
-            tuple: A tuple containing (first) the "monocolor" SimpleComm for 
-                ranks with the same color ID (but different rank IDs) and 
-                (second) the "multicolor" SimpleComm for ranks with the same 
+            tuple: A tuple containing (first) the "monocolor" SimpleComm for
+                ranks with the same color ID (but different rank IDs) and
+                (second) the "multicolor" SimpleComm for ranks with the same
                 rank ID (but different color IDs)
 
         Raises:

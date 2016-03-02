@@ -6,10 +6,8 @@ same as the 1-rank parallel behavior.  If the 'Par' test suite passes with
 various communicator sizes (1, 2, ...), then this suite should be run to make
 sure that serial communication behaves consistently.
 
-_______________________________________________________________________________
-Created on Feb 17, 2015
-
-@author: Kevin Paul <kpaul@ucar.edu>
+Copyright 2016, University Corporation for Atmospheric Research
+See the LICENSE.txt file for details
 """
 import unittest
 import numpy as np

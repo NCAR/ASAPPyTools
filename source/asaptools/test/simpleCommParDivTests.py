@@ -1,10 +1,8 @@
 """
 Parallel Tests with communicator division for the SimpleComm class
 
-_______________________________________________________________________________
-Created on Feb 4, 2015
-
-@author: Kevin Paul <kpaul@ucar.edu>
+Copyright 2016, University Corporation for Atmospheric Research
+See the LICENSE.txt file for details
 """
 import unittest
 

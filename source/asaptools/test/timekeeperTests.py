@@ -1,10 +1,8 @@
 """
 Unit tests (serial only) for the TimeKeeper class
 
------------------------
-Created on May 31, 2014
-
-@author: Kevin Paul <kpaul@ucar.edu>
+Copyright 2016, University Corporation for Atmospheric Research
+See the LICENSE.txt file for details
 """
 import unittest
 

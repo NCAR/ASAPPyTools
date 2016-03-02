@@ -10,7 +10,7 @@ function is to return a subset of the data corresponding to the given index.
 By design, partitioning functions should keep the data "unchanged" except for
 subselecting parts of the data.
 
-Copyright 2015, University Corporation for Atmospheric Research
+Copyright 2016, University Corporation for Atmospheric Research
 See the LICENSE.txt file for details
 """
 
