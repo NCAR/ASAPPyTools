@@ -1,7 +1,8 @@
 """
-Created on Feb 26, 2015
+Tests of the verbose printer utility
 
-@author: Kevin Paul <kpaul@ucar.edu>
+Copyright 2016, University Corporation for Atmospheric Research
+See the LICENSE.txt file for details
 """
 import unittest
 import sys
