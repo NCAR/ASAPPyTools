@@ -185,8 +185,8 @@ class SimpleCommP1STests(unittest.TestCase):
         presult = self.pcomm.partition(data, involved=True)
         msg = test_info_msg('partition(string-array, T)', data, sresult, presult)
         print msg
-        
         np.testing.assert_array_equal(sresult, presult, msg)
+        
     def testRationError(self):
         data = 10
         self.assertRaises(RuntimeError, self.scomm.ration, data)

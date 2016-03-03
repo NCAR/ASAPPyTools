@@ -322,14 +322,14 @@ class SimpleCommParTests(unittest.TestCase):
  
     def testRationArray(self):
         if self.gcomm.is_manager():
-            data = np.arange(3 * self.size)
+            data = np.arange(3 * (self.size-1))
             actual = [
-                self.gcomm.ration(data[3 * i:3 * (i + 1)]) for i in range(1, self.size)]
+                self.gcomm.ration(data[3 * i:3 * (i + 1)]) for i in range(0, self.size-1)]
             expected = [None] * (self.size - 1)
         else:
             data = None
             actual = self.gcomm.ration()
-            expected = np.arange(3 * self.size)
+            expected = np.arange(3 * (self.size-1))
         self.gcomm.sync()
         msg = test_info_msg(
             self.rank, self.size, 'ration(array)', data, actual, expected)
@@ -343,15 +343,15 @@ class SimpleCommParTests(unittest.TestCase):
 
     def testRationStrArray(self):
         if self.gcomm.is_manager():
-            data = np.array(map(str, range(3 * self.size)))
+            data = np.array(map(str, range(3 * (self.size-1))))
             actual = [
                 self.gcomm.ration(data[3 * i:3 * (i + 1)]) 
-                for i in range(1, self.size)]
+                for i in range(0, (self.size-1))]
             expected = [None] * (self.size - 1)
         else:
             data = None
             actual = self.gcomm.ration()
-            expected = np.array(map(str, range(3 * self.size)))
+            expected = np.array(map(str, range(3 * (self.size-1))))
         self.gcomm.sync()
         msg = test_info_msg(
             self.rank, self.size, 'ration(string-array)', data, actual, expected)
