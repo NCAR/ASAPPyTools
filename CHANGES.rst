@@ -61,5 +61,8 @@ Version 0.5.2
 
 2 March 2016:
 
-- Adding a test for send/recv string arrays.
- 
+- Improved testing for send/recv data types
+
+3 March 2016:
+
+- Backwards compatability with mpi4py version 1.3.1 

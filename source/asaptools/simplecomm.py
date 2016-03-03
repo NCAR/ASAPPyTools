@@ -556,8 +556,10 @@ class SimpleCommMPI(SimpleComm):
         Check if the data is bufferable or not
         """
         if self._is_ndarray(obj):
-            if obj.dtype.char in self._mpi._typedict_c:
-                return True
+            if hasattr(self._mpi, '_typedict_c'):
+                return (obj.dtype.char in self._mpi._typedict_c)
+            elif hasattr(self._mpi, '__CTypeDict__'):
+                return (obj.dtype.char in self._mpi.__CTypeDict__)
             else:
                 return False
         else:
