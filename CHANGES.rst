@@ -48,7 +48,7 @@ Version 0.5.0
 - Changed Numpy NDArray type-checking to allow for masked arrays, instead of
   just NDArrays
  
-Version 0.5.0
+Version 0.5.1
 -------------
 
 2 March 2016:
@@ -56,3 +56,13 @@ Version 0.5.0
 - Checking dtype of Numpy NDArrays before determing if buffered send/recv
   calls can be used.
  
+Version 0.5.2
+-------------
+
+2 March 2016:
+
+- Improved testing for send/recv data types
+
+3 March 2016:
+
+- Backwards compatability with mpi4py version 1.3.1 
