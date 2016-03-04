@@ -214,6 +214,25 @@ class SimpleCommParTests(unittest.TestCase):
         else:
             np.testing.assert_array_equal(actual, expected, msg)
 
+    def testPartitionCharArray(self):
+        indata = list('abcdefghi')
+        if self.gcomm.is_manager():
+            data = data = np.array(indata, dtype='c')
+        else:
+            data = None
+        actual = self.gcomm.partition(data, func=EqualStride())
+        if self.gcomm.is_manager():
+            expected = None
+        else:
+            expected = np.array(indata[self.rank - 1::self.size - 1], dtype='c')
+        msg = test_info_msg(
+            self.rank, self.size, 'partition(char-array)', data, actual, expected)
+        print msg
+        if self.gcomm.is_manager():
+            self.assertEqual(actual, expected, msg)
+        else:
+            np.testing.assert_array_equal(actual, expected, msg)
+            
     def testPartitionArrayInvolved(self):
         if self.gcomm.is_manager():
             data = np.arange(10)
@@ -302,6 +321,27 @@ class SimpleCommParTests(unittest.TestCase):
         else:
             self.assertEqual(actual, expected, msg)
 
+    def testCollectCharArray(self):
+        if self.gcomm.is_manager():
+            data = None
+            actual = [(i, list(x)) for (i, x) in [self.gcomm.collect()
+                                                  for _ in xrange(1, self.size)]]
+            expected = [(i, map(str, list(np.arange(self.size) + i)))
+                        for i in xrange(1, self.size)]
+        else:
+            data = np.array([str(i + self.rank) for i in xrange(self.size)],
+                            dtype='c')
+            actual = self.gcomm.collect(data)
+            expected = None
+        self.gcomm.sync()
+        msg = test_info_msg(
+            self.rank, self.size, 'collect(char-array)', data, actual, expected)
+        print msg
+        if self.gcomm.is_manager():
+            self.assertItemsEqual(actual, expected, msg)
+        else:
+            self.assertEqual(actual, expected, msg)
+
     def testRationInt(self):
         if self.gcomm.is_manager():
             data = range(1, self.size)
@@ -363,6 +403,27 @@ class SimpleCommParTests(unittest.TestCase):
                              for i in range(expected.size - actual.size + 1)])
             self.assertTrue(contained, msg)
 
+    def testRationCharArray(self):
+        if self.gcomm.is_manager():
+            data = np.array(map(str, range(3 * (self.size-1))), dtype='c')
+            actual = [
+                self.gcomm.ration(data[3 * i:3 * (i + 1)]) 
+                for i in range(0, (self.size-1))]
+            expected = [None] * (self.size - 1)
+        else:
+            data = None
+            actual = self.gcomm.ration()
+            expected = np.array(map(str, range(3 * (self.size-1))), dtype='c')
+        self.gcomm.sync()
+        msg = test_info_msg(
+            self.rank, self.size, 'ration(char-array)', data, actual, expected)
+        print msg
+        if self.gcomm.is_manager():
+            self.assertEqual(actual, expected, msg)
+        else:
+            contained = any([np.all(actual == expected[i:i + actual.size])
+                             for i in range(expected.size - actual.size + 1)])
+            self.assertTrue(contained, msg)
 
 if __name__ == "__main__":
     hline = '=' * 70

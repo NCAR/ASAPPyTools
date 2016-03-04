@@ -7,7 +7,7 @@ tasks, from managing print messages with a set verbosity level, to
 keeping timing information, to managing simple MPI communication.
 
 :AUTHORS: Kevin Paul, John Dennis, Sheri Mickelson, Haiying Xu
-:COPYRIGHT: 2015, University Corporation for Atmospheric Research
+:COPYRIGHT: 2016, University Corporation for Atmospheric Research
 :LICENSE: See the LICENSE.rst file for details
 
 Send questions and comments to Kevin Paul (kpaul@ucar.edu).
@@ -33,7 +33,7 @@ Dependencies
 
 All of the ASAP Python Toolbox are written to work with Python 2.7+ (but not
 Python 3.0+). The vprinter, timekeeper, and partition modules are pure
-Python. The simplecomm module depends on mpi4py (>-1.3).
+Python. The simplecomm module depends on mpi4py (>=1.3).
 
 This implies the dependency:
 
@@ -57,7 +57,7 @@ Obtaining the Source Code
 Currently, the most up-to-date source code is available via git from the
 site::
 
-    https://github.com/NCAR-CISL-ASAP/ASAPPyTools
+    https://github.com/NCAR/ASAPPyTools
 
 Check out the most recent tag.  The source is available in read-only
 mode to everyone, but special permissions can be given to those to make
@@ -69,7 +69,7 @@ Building & Installation
 Installation of the ASAP Python Toolbox is very simple. After checking out the
 source from the above svn link, via::
 
-    $  git clone https://github.com/NCAR-CISL-ASAP/ASAPPyTools
+    $  git clone https://github.com/NCAR/ASAPPyTools
 
 change into the top-level source directory, check out the most recent tag,
 and run the Python distutils setup. On unix, this involves::

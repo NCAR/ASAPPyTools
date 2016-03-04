@@ -559,7 +559,8 @@ class SimpleCommMPI(SimpleComm):
             if hasattr(self._mpi, '_typedict_c'):
                 return (obj.dtype.char in self._mpi._typedict_c)
             elif hasattr(self._mpi, '__CTypeDict__'):
-                return (obj.dtype.char in self._mpi.__CTypeDict__)
+                return (obj.dtype.char in self._mpi.__CTypeDict__ and
+                        obj.dtype.char != 'c')
             else:
                 return False
         else:

@@ -73,3 +73,12 @@ Version 0.5.3
 3 March 2016:
 
 - Updates just for PyPI release
+
+
+Version 0.5.4
+-------------
+
+4 March 2016:
+
+- Bugfix: Special catch for dtype='c' (C-type char arrays) in check for 
+  Numpy arrays being bufferable
