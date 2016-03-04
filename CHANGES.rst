@@ -66,3 +66,10 @@ Version 0.5.2
 3 March 2016:
 
 - Backwards compatability with mpi4py version 1.3.1 
+
+Version 0.5.3
+-------------
+
+3 March 2016:
+
+- Updates just for PyPI release
