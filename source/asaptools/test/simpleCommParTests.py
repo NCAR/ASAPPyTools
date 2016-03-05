@@ -259,7 +259,8 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'collect(int)', data, actual, expected)
         print msg
         if self.gcomm.is_manager():
-            self.assertItemsEqual(actual, expected, msg)
+            for a in actual:
+                self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
 
@@ -277,7 +278,8 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'collect(list)', data, actual, expected)
         print msg
         if self.gcomm.is_manager():
-            self.assertItemsEqual(actual, expected, msg)
+            for a in actual:
+                self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
  
@@ -297,7 +299,8 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'collect(array)', data, actual, expected)
         print msg
         if self.gcomm.is_manager():
-            self.assertItemsEqual(actual, expected, msg)
+            for a in actual:
+                self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
  
@@ -317,7 +320,8 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'collect(string-array)', data, actual, expected)
         print msg
         if self.gcomm.is_manager():
-            self.assertItemsEqual(actual, expected, msg)
+            for a in actual:
+                self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
 
@@ -338,7 +342,8 @@ class SimpleCommParTests(unittest.TestCase):
             self.rank, self.size, 'collect(char-array)', data, actual, expected)
         print msg
         if self.gcomm.is_manager():
-            self.assertItemsEqual(actual, expected, msg)
+            for a in actual:
+                self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
 
@@ -358,7 +363,7 @@ class SimpleCommParTests(unittest.TestCase):
         if self.gcomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
-            self.assertIn(actual, expected, msg)
+            self.assertTrue(actual in expected, msg)
  
     def testRationArray(self):
         if self.gcomm.is_manager():

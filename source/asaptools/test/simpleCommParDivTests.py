@@ -275,7 +275,8 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print msg
         if self.monocomm.is_manager():
-            self.assertItemsEqual(actual, expected, msg)
+            for a in actual:
+                self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
 
@@ -296,7 +297,8 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print msg
         if self.multicomm.is_manager():
-            self.assertItemsEqual(actual, expected, msg)
+            for a in actual:
+                self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
 
@@ -318,7 +320,8 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print msg
         if self.monocomm.is_manager():
-            self.assertItemsEqual(actual, expected, msg)
+            for a in actual:
+                self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
 
@@ -339,7 +342,8 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print msg
         if self.multicomm.is_manager():
-            self.assertItemsEqual(actual, expected, msg)
+            for a in actual:
+                self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
 
@@ -361,7 +365,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         if self.monocomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
-            self.assertIn(actual, expected, msg)
+            self.assertTrue(actual in expected, msg)
 
     def testMultiRationInt(self):
         if self.multicomm.is_manager():
@@ -381,7 +385,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         if self.multicomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
-            self.assertIn(actual, expected, msg)
+            self.assertTrue(actual in expected, msg)
 
     def testTreeScatterInt(self):
         if self.gcomm.is_manager():
