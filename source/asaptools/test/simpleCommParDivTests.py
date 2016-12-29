@@ -39,8 +39,8 @@ class SimpleCommParDivTests(unittest.TestCase):
         self.groups = ['a', 'b', 'c']
 
         # This MPI process's rank, color, and group after division
-        self.rank = self.grank / len(self.groups)
-        self.color = self.grank % len(self.groups)
+        self.rank = int(self.grank // len(self.groups))
+        self.color = int(self.grank % len(self.groups))
         self.group = self.groups[self.color]
 
         # The divided communicators (monocolor and multicolor)
@@ -49,11 +49,19 @@ class SimpleCommParDivTests(unittest.TestCase):
         # Every MPI process's color, group, and grank after division
         self.all_colors = [i % len(self.groups) for i in range(self.gsize)]
         self.all_groups = [self.groups[i] for i in self.all_colors]
-        self.all_ranks = [i / len(self.groups) for i in range(self.gsize)]
+        self.all_ranks = [int(i // len(self.groups)) for i in range(self.gsize)]
 
     def tearDown(self):
         pass
 
+    def testGlobalRanksMatch(self):
+        actual = self.gcomm.get_rank()
+        expected = self.grank
+        msg = test_info_msg(self.grank, self.gsize, 'comm.get_rank() == COMM_WORLD.Get_rank()',
+                            None, actual, expected)
+        print(msg)
+        self.assertEqual(actual, expected, msg)
+ 
     def testMonoGetRank(self):
         actual = self.monocomm.get_rank()
         expected = self.rank
@@ -61,7 +69,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                             None, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMultiGetRank(self):
         actual = self.multicomm.get_rank()
         expected = self.color
@@ -69,7 +77,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                             None, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+  
     def testMonoGetSize(self):
         actual = self.monocomm.get_size()
         expected = self.all_colors.count(self.color)
@@ -77,7 +85,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                             None, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+  
     def testMultiGetSize(self):
         actual = self.multicomm.get_size()
         expected = self.all_ranks.count(self.rank)
@@ -85,7 +93,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                             None, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMonoIsManager(self):
         actual = self.monocomm.is_manager()
         expected = (self.rank == 0)
@@ -93,7 +101,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                             None, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMultiIsManager(self):
         actual = self.multicomm.is_manager()
         expected = (self.color == 0)
@@ -101,7 +109,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                             None, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMonoSumInt(self):
         data = self.color + 1
         actual = self.monocomm.allreduce(data, 'sum')
@@ -110,7 +118,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMultiSumInt(self):
         data = (self.rank + 1)
         actual = self.multicomm.allreduce(data, 'sum')
@@ -119,27 +127,27 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMonoSumList(self):
-        data = range(5)
+        data = list(range(5))
         actual = self.monocomm.allreduce(data, 'sum')
         expected = self.monocomm.get_size() * sum(data)
         msg = test_info_msg(self.grank, self.gsize, 'mono.sum(list)',
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMultiSumList(self):
-        data = range(5)
+        data = list(range(5))
         actual = self.multicomm.allreduce(data, 'sum')
         expected = self.multicomm.get_size() * sum(data)
         msg = test_info_msg(self.grank, self.gsize, 'multi.sum(list)',
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMonoSumDict(self):
-        data = {'a': range(3), 'b': [5, 7]}
+        data = {'a': list(range(3)), 'b': [5, 7]}
         actual = self.monocomm.allreduce(data, 'sum')
         expected = {'a': self.monocomm.get_size() * sum(range(3)),
                     'b': self.monocomm.get_size() * sum([5, 7])}
@@ -147,9 +155,9 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMultiSumDict(self):
-        data = {'a': range(3), 'b': [5, 7]}
+        data = {'a': list(range(3)), 'b': [5, 7]}
         actual = self.multicomm.allreduce(data, 'sum')
         expected = {'a': self.multicomm.get_size() * sum(range(3)),
                     'b': self.multicomm.get_size() * sum([5, 7])}
@@ -157,7 +165,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMonoPartitionInt(self):
         data = self.grank
         actual = self.monocomm.partition(data, func=Duplicate())
@@ -169,7 +177,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMultiPartitionInt(self):
         data = self.grank
         actual = self.multicomm.partition(data, func=Duplicate())
@@ -181,7 +189,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMonoPartitionIntInvolved(self):
         data = self.grank
         actual = self.monocomm.partition(data, func=Duplicate(), involved=True)
@@ -190,7 +198,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMultiPartitionIntInvolved(self):
         data = self.grank
         actual = self.multicomm.partition(
@@ -200,66 +208,66 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMonoPartitionList(self):
         if self.monocomm.is_manager():
-            data = range(10 + self.grank)
+            data = list(range(10 + self.grank))
         else:
             data = None
         actual = self.monocomm.partition(data)
         if self.monocomm.is_manager():
             expected = None
         else:
-            expected = range(self.rank - 1, 10 + self.color,
-                             self.monocomm.get_size() - 1)
+            expected = list(range(self.rank - 1, 10 + self.color,
+                                  self.monocomm.get_size() - 1))
         msg = test_info_msg(self.grank, self.gsize, 'mono.partition(list)',
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMultiPartitionList(self):
         if self.multicomm.is_manager():
-            data = range(10 + self.grank)
+            data = list(range(10 + self.grank))
         else:
             data = None
         actual = self.multicomm.partition(data)
         if self.multicomm.is_manager():
             expected = None
         else:
-            expected = range(self.color - 1, 10 + self.rank * len(self.groups),
-                             self.multicomm.get_size() - 1)
+            expected = list(range(self.color - 1, 10 + self.rank * len(self.groups),
+                                  self.multicomm.get_size() - 1))
         msg = test_info_msg(self.grank, self.gsize, 'multi.partition(list)',
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMonoPartitionListInvolved(self):
         if self.monocomm.is_manager():
-            data = range(10 + self.grank)
+            data = list(range(10 + self.grank))
         else:
             data = None
         actual = self.monocomm.partition(data, func=EqualStride(),
                                          involved=True)
-        expected = range(self.rank, 10 + self.color, self.monocomm.get_size())
+        expected = list(range(self.rank, 10 + self.color, self.monocomm.get_size()))
         msg = test_info_msg(self.grank, self.gsize, 'mono.partition(list,T)',
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMultiPartitionListInvolved(self):
         if self.multicomm.is_manager():
-            data = range(10 + self.grank)
+            data = list(range(10 + self.grank))
         else:
             data = None
         actual = self.multicomm.partition(data, func=EqualStride(),
                                           involved=True)
-        expected = range(self.color, 10 + self.rank * len(self.groups),
-                         self.multicomm.get_size())
+        expected = list(range(self.color, 10 + self.rank * len(self.groups),
+                              self.multicomm.get_size()))
         msg = test_info_msg(self.grank, self.gsize, 'multi.partition(list,T)',
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testMonoCollectInt(self):
         if self.monocomm.is_manager():
             data = None
@@ -282,7 +290,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                 self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
-
+ 
     def testMultiCollectInt(self):
         if self.multicomm.is_manager():
             data = None
@@ -304,18 +312,18 @@ class SimpleCommParDivTests(unittest.TestCase):
                 self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
-
+ 
     def testMonoCollectList(self):
         if self.monocomm.is_manager():
             data = None
             actual = [self.monocomm.collect()
                       for _ in range(1, self.monocomm.get_size())]
-            expected = [(i, range(x)) for i, x in
+            expected = [(i, list(range(x))) for i, x in
                         enumerate(range(len(self.groups) + self.color,
                                         self.gsize,
                                         len(self.groups)), 1)]
         else:
-            data = range(self.grank)
+            data = list(range(self.grank))
             actual = self.monocomm.collect(data)
             expected = None
         self.monocomm.sync()
@@ -327,17 +335,17 @@ class SimpleCommParDivTests(unittest.TestCase):
                 self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
-
+ 
     def testMultiCollectList(self):
         if self.multicomm.is_manager():
             data = None
             actual = [self.multicomm.collect()
                       for _ in range(1, self.multicomm.get_size())]
-            expected = [(i, range(x)) for (i, x) in
+            expected = [(i, list(range(x))) for (i, x) in
                         enumerate([j + self.rank * len(self.groups) for j in
                                    range(1, self.multicomm.get_size())], 1)]
         else:
-            data = range(self.grank)
+            data = list(range(self.grank))
             actual = self.multicomm.collect(data)
             expected = None
         self.multicomm.sync()
@@ -349,7 +357,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                 self.assertTrue(a in expected, msg)
         else:
             self.assertEqual(actual, expected, msg)
-
+ 
     def testMonoRationInt(self):
         if self.monocomm.is_manager():
             data = [100 * self.color + i
@@ -369,7 +377,7 @@ class SimpleCommParDivTests(unittest.TestCase):
             self.assertEqual(actual, expected, msg)
         else:
             self.assertTrue(actual in expected, msg)
-
+ 
     def testMultiRationInt(self):
         if self.multicomm.is_manager():
             data = [100 * self.rank + i
@@ -389,19 +397,19 @@ class SimpleCommParDivTests(unittest.TestCase):
             self.assertEqual(actual, expected, msg)
         else:
             self.assertTrue(actual in expected, msg)
-
+ 
     def testTreeScatterInt(self):
         if self.gcomm.is_manager():
             data = 10
         else:
             data = None
-
+ 
         if self.monocomm.is_manager():
             mydata = self.multicomm.partition(
                 data, func=Duplicate(), involved=True)
         else:
             mydata = None
-
+ 
         actual = self.monocomm.partition(
             mydata, func=Duplicate(), involved=True)
         expected = 10
@@ -409,17 +417,17 @@ class SimpleCommParDivTests(unittest.TestCase):
                             data, actual, expected)
         print(msg)
         self.assertEqual(actual, expected, msg)
-
+ 
     def testTreeGatherInt(self):
         data = self.grank
-
+ 
         if self.monocomm.is_manager():
             mydata = [data]
             for _ in range(1, self.monocomm.get_size()):
                 mydata.append(self.monocomm.collect()[1])
         else:
             mydata = self.monocomm.collect(data)
-
+ 
         if self.gcomm.is_manager():
             actual = [mydata]
             for _ in range(1, self.multicomm.get_size()):
@@ -428,7 +436,7 @@ class SimpleCommParDivTests(unittest.TestCase):
             actual = self.multicomm.collect(mydata)
         else:
             actual = None
-
+ 
         expected = 10
         msg = test_info_msg(self.grank, self.gsize, 'TreeGather(int)',
                             data, actual, expected)

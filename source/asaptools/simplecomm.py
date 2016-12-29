@@ -983,7 +983,7 @@ class SimpleCommMPI(SimpleComm):
             RuntimeError: If executed during a serial or 1-rank parallel run
         """
         if self.get_size() > 1:
-            allgroups = list(set(self._comm.allgather(group)))
+            allgroups = list(self._comm.allgather(group))
             color = allgroups.index(group)
             monocomm = SimpleCommMPI()
             monocomm._color = color
