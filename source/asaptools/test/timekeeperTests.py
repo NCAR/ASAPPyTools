@@ -44,7 +44,7 @@ class TimeKeeperTests(unittest.TestCase):
         tk.stop(name)
         dt = tk.get_time(name)
         dterr = abs(dt / wait_time - 1.0)
-        self.assertLess(dterr, 0.15, msg='Accumulated time seems off')
+        self.assertTrue(dterr < 0.15, msg='Accumulated time seems off')
 
     def test_start_stop_order_names(self):
         tk = timekeeper.TimeKeeper()
@@ -76,10 +76,10 @@ class TimeKeeperTests(unittest.TestCase):
         tk.stop(name2)
         dt1 = tk.get_time(name1)
         dt1err = abs(dt1 / (3 * wait_time)  - 1.0) 
-        self.assertLess(dt1err, 0.15, msg='Accumulated time 1 seems off')
+        self.assertTrue(dt1err < 0.15, msg='Accumulated time 1 seems off')
         dt2 = tk.get_time(name2)
         dt2err = abs(dt2 / (2 * wait_time)  - 1.0)
-        self.assertLess(dt2err, 0.15, msg='Accumulated time 1 seems off')
+        self.assertTrue(dt2err < 0.15, msg='Accumulated time 1 seems off')
 
     def test_reset_values(self):
         tk = timekeeper.TimeKeeper()
@@ -101,7 +101,7 @@ class TimeKeeperTests(unittest.TestCase):
         tk.stop(name)
         dt = tk.get_time(name)
         dterr = abs(dt / wait_time - 1.0)
-        self.assertLess(dterr, 0.15, msg='Get time seems off')
+        self.assertTrue(dterr < 0.15, msg='Get time seems off')
 
     def test_get_all_times(self):
         tk = timekeeper.TimeKeeper()
