@@ -39,7 +39,7 @@ class SimpleCommParTests(unittest.TestCase):
         expected = self.size
         msg = test_info_msg(
             self.rank, self.size, 'get_size()', None, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
   
     def testIsManager(self):
@@ -47,7 +47,7 @@ class SimpleCommParTests(unittest.TestCase):
         expected = (self.rank == 0)
         msg = test_info_msg(
             self.rank, self.size, 'is_manager()', None, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
   
     def testSumInt(self):
@@ -56,7 +56,7 @@ class SimpleCommParTests(unittest.TestCase):
         expected = self.size * 5
         msg = test_info_msg(
             self.rank, self.size, 'sum(int)', data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
   
     def testSumList(self):
@@ -65,7 +65,7 @@ class SimpleCommParTests(unittest.TestCase):
         expected = self.size * sum(data)
         msg = test_info_msg(
             self.rank, self.size, 'sum(list)', data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
   
     def testSumArray(self):
@@ -74,7 +74,7 @@ class SimpleCommParTests(unittest.TestCase):
         expected = self.size * sum(data)
         msg = test_info_msg(
             self.rank, self.size, 'sum(array)', data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
   
     def testSumDict(self):
@@ -84,7 +84,7 @@ class SimpleCommParTests(unittest.TestCase):
             'a': self.size * sum(range(3)), 'b': self.size * sum([5, 7])}
         msg = test_info_msg(
             self.rank, self.size, 'sum(dict)', data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
   
     def testMaxInt(self):
@@ -93,7 +93,7 @@ class SimpleCommParTests(unittest.TestCase):
         expected = self.size - 1
         msg = test_info_msg(
             self.rank, self.size, 'max(int)', data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
   
     def testMaxList(self):
@@ -102,7 +102,7 @@ class SimpleCommParTests(unittest.TestCase):
         expected = self.size
         msg = test_info_msg(
             self.rank, self.size, 'max(list)', data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMaxArray(self):
@@ -111,7 +111,7 @@ class SimpleCommParTests(unittest.TestCase):
         expected = self.size
         msg = test_info_msg(
             self.rank, self.size, 'max(array)', data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMaxDict(self):
@@ -120,7 +120,7 @@ class SimpleCommParTests(unittest.TestCase):
         expected = {'rank': self.size - 1, 'range': self.size}
         msg = test_info_msg(
             self.rank, self.size, 'max(dict)', data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
   
     def testPartitionInt(self):
@@ -135,7 +135,7 @@ class SimpleCommParTests(unittest.TestCase):
             expected = 10
         msg = test_info_msg(
             self.rank, self.size, 'partition(int)', data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
   
     def testPartitionIntInvolved(self):
@@ -147,7 +147,7 @@ class SimpleCommParTests(unittest.TestCase):
         expected = 10
         msg = test_info_msg(
             self.rank, self.size, 'partition(int, T)', data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
   
     def testPartitionList(self):
@@ -162,7 +162,7 @@ class SimpleCommParTests(unittest.TestCase):
             expected = range(self.rank - 1, 10, self.size - 1)
         msg = test_info_msg(
             self.rank, self.size, 'partition(list)', data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
    
     def testPartitionListInvolved(self):
@@ -174,7 +174,7 @@ class SimpleCommParTests(unittest.TestCase):
         expected = range(self.rank, 10, self.size)
         msg = test_info_msg(
             self.rank, self.size, 'partition(list, T)', data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testPartitionArray(self):
@@ -189,7 +189,7 @@ class SimpleCommParTests(unittest.TestCase):
             expected = np.arange(self.rank - 1, 10, self.size - 1)
         msg = test_info_msg(
             self.rank, self.size, 'partition(array)', data, actual, expected)
-        print msg
+        print(msg)
         if self.gcomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
@@ -208,7 +208,7 @@ class SimpleCommParTests(unittest.TestCase):
             expected = np.array(indata[self.rank - 1::self.size - 1])
         msg = test_info_msg(
             self.rank, self.size, 'partition(string-array)', data, actual, expected)
-        print msg
+        print(msg)
         if self.gcomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
@@ -227,7 +227,7 @@ class SimpleCommParTests(unittest.TestCase):
             expected = np.array(indata[self.rank - 1::self.size - 1], dtype='c')
         msg = test_info_msg(
             self.rank, self.size, 'partition(char-array)', data, actual, expected)
-        print msg
+        print(msg)
         if self.gcomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
@@ -242,13 +242,13 @@ class SimpleCommParTests(unittest.TestCase):
         expected = np.arange(self.rank, 10, self.size)
         msg = test_info_msg(
             self.rank, self.size, 'partition(array, T)', data, actual, expected)
-        print msg
+        print(msg)
         np.testing.assert_array_equal(actual, expected, msg)
  
     def testCollectInt(self):
         if self.gcomm.is_manager():
             data = None
-            actual = [self.gcomm.collect() for _ in xrange(1, self.size)]
+            actual = [self.gcomm.collect() for _ in range(1, self.size)]
             expected = [i for i in enumerate(range(1, self.size), 1)]
         else:
             data = self.rank
@@ -257,7 +257,7 @@ class SimpleCommParTests(unittest.TestCase):
         self.gcomm.sync()
         msg = test_info_msg(
             self.rank, self.size, 'collect(int)', data, actual, expected)
-        print msg
+        print(msg)
         if self.gcomm.is_manager():
             for a in actual:
                 self.assertTrue(a in expected, msg)
@@ -267,8 +267,8 @@ class SimpleCommParTests(unittest.TestCase):
     def testCollectList(self):
         if self.gcomm.is_manager():
             data = None
-            actual = [self.gcomm.collect() for _ in xrange(1, self.size)]
-            expected = [(i, range(i)) for i in xrange(1, self.size)]
+            actual = [self.gcomm.collect() for _ in range(1, self.size)]
+            expected = [(i, range(i)) for i in range(1, self.size)]
         else:
             data = range(self.rank)
             actual = self.gcomm.collect(data)
@@ -276,7 +276,7 @@ class SimpleCommParTests(unittest.TestCase):
         self.gcomm.sync()
         msg = test_info_msg(
             self.rank, self.size, 'collect(list)', data, actual, expected)
-        print msg
+        print(msg)
         if self.gcomm.is_manager():
             for a in actual:
                 self.assertTrue(a in expected, msg)
@@ -287,9 +287,9 @@ class SimpleCommParTests(unittest.TestCase):
         if self.gcomm.is_manager():
             data = None
             actual = [(i, list(x)) for (i, x) in [self.gcomm.collect()
-                                                  for _ in xrange(1, self.size)]]
+                                                  for _ in range(1, self.size)]]
             expected = [(i, list(np.arange(self.size) + i))
-                        for i in xrange(1, self.size)]
+                        for i in range(1, self.size)]
         else:
             data = np.arange(self.size) + self.rank
             actual = self.gcomm.collect(data)
@@ -297,7 +297,7 @@ class SimpleCommParTests(unittest.TestCase):
         self.gcomm.sync()
         msg = test_info_msg(
             self.rank, self.size, 'collect(array)', data, actual, expected)
-        print msg
+        print(msg)
         if self.gcomm.is_manager():
             for a in actual:
                 self.assertTrue(a in expected, msg)
@@ -308,17 +308,17 @@ class SimpleCommParTests(unittest.TestCase):
         if self.gcomm.is_manager():
             data = None
             actual = [(i, list(x)) for (i, x) in [self.gcomm.collect()
-                                                  for _ in xrange(1, self.size)]]
+                                                  for _ in range(1, self.size)]]
             expected = [(i, map(str, list(np.arange(self.size) + i)))
-                        for i in xrange(1, self.size)]
+                        for i in range(1, self.size)]
         else:
-            data = np.array([str(i + self.rank) for i in xrange(self.size)])
+            data = np.array([str(i + self.rank) for i in range(self.size)])
             actual = self.gcomm.collect(data)
             expected = None
         self.gcomm.sync()
         msg = test_info_msg(
             self.rank, self.size, 'collect(string-array)', data, actual, expected)
-        print msg
+        print(msg)
         if self.gcomm.is_manager():
             for a in actual:
                 self.assertTrue(a in expected, msg)
@@ -329,18 +329,18 @@ class SimpleCommParTests(unittest.TestCase):
         if self.gcomm.is_manager():
             data = None
             actual = [(i, list(x)) for (i, x) in [self.gcomm.collect()
-                                                  for _ in xrange(1, self.size)]]
+                                                  for _ in range(1, self.size)]]
             expected = [(i, map(str, list(np.arange(self.size) + i)))
-                        for i in xrange(1, self.size)]
+                        for i in range(1, self.size)]
         else:
-            data = np.array([str(i + self.rank) for i in xrange(self.size)],
+            data = np.array([str(i + self.rank) for i in range(self.size)],
                             dtype='c')
             actual = self.gcomm.collect(data)
             expected = None
         self.gcomm.sync()
         msg = test_info_msg(
             self.rank, self.size, 'collect(char-array)', data, actual, expected)
-        print msg
+        print(msg)
         if self.gcomm.is_manager():
             for a in actual:
                 self.assertTrue(a in expected, msg)
@@ -359,7 +359,7 @@ class SimpleCommParTests(unittest.TestCase):
         self.gcomm.sync()
         msg = test_info_msg(
             self.rank, self.size, 'ration(int)', data, actual, expected)
-        print msg
+        print(msg)
         if self.gcomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
@@ -378,7 +378,7 @@ class SimpleCommParTests(unittest.TestCase):
         self.gcomm.sync()
         msg = test_info_msg(
             self.rank, self.size, 'ration(array)', data, actual, expected)
-        print msg
+        print(msg)
         if self.gcomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
@@ -400,7 +400,7 @@ class SimpleCommParTests(unittest.TestCase):
         self.gcomm.sync()
         msg = test_info_msg(
             self.rank, self.size, 'ration(string-array)', data, actual, expected)
-        print msg
+        print(msg)
         if self.gcomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
@@ -422,7 +422,7 @@ class SimpleCommParTests(unittest.TestCase):
         self.gcomm.sync()
         msg = test_info_msg(
             self.rank, self.size, 'ration(char-array)', data, actual, expected)
-        print msg
+        print(msg)
         if self.gcomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
@@ -433,21 +433,24 @@ class SimpleCommParTests(unittest.TestCase):
 if __name__ == "__main__":
     hline = '=' * 70
     if MPI_COMM_WORLD.Get_rank() == 0:
-        print hline
-        print 'STANDARD OUTPUT FROM ALL TESTS:'
-        print hline
+        print(hline)
+        print('STANDARD OUTPUT FROM ALL TESTS:')
+        print(hline)
     MPI_COMM_WORLD.Barrier()
 
-    from cStringIO import StringIO
+    try:
+        from cStringIO import StringIO
+    except ImportError:
+        from io import StringIO
+    
     mystream = StringIO()
     tests = unittest.TestLoader().loadTestsFromTestCase(SimpleCommParTests)
     unittest.TextTestRunner(stream=mystream).run(tests)
-    MPI_COMM_WORLD.Barrier()
+    #MPI_COMM_WORLD.Barrier()
 
     results = MPI_COMM_WORLD.gather(mystream.getvalue())
     if MPI_COMM_WORLD.Get_rank() == 0:
         for rank, result in enumerate(results):
-            print hline
-            print 'TESTS RESULTS FOR RANK ' + str(rank) + ':'
-            print hline
-            print str(result)
+            print(hline)
+            print('TESTS RESULTS FOR RANK ' + str(rank) + ':')
+            print(str(result))

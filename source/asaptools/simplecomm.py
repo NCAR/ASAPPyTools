@@ -689,7 +689,7 @@ class SimpleCommMPI(SimpleComm):
         if self.is_manager():
             op = func if func else lambda *x: x[0][x[1]::x[2]]
             j = 1 if not involved else 0
-            for i in xrange(1, self.get_size()):
+            for i in range(1, self.get_size()):
 
                 # Get the part of the data to send to rank i
                 part = op(data, i - j, self.get_size() - j)

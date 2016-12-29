@@ -44,9 +44,9 @@ class SimpleCommParDivTests(unittest.TestCase):
         self.monocomm, self.multicomm = self.gcomm.divide(self.group)
 
         # Every MPI process's color, group, and grank after division
-        self.all_colors = [i % len(self.groups) for i in xrange(self.gsize)]
+        self.all_colors = [i % len(self.groups) for i in range(self.gsize)]
         self.all_groups = [self.groups[i] for i in self.all_colors]
-        self.all_ranks = [i / len(self.groups) for i in xrange(self.gsize)]
+        self.all_ranks = [i / len(self.groups) for i in range(self.gsize)]
 
     def tearDown(self):
         pass
@@ -56,7 +56,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = self.rank
         msg = test_info_msg(self.grank, self.gsize, 'mono.get_rank()',
                             None, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMultiGetRank(self):
@@ -64,7 +64,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = self.color
         msg = test_info_msg(self.grank, self.gsize, 'multi.get_rank()',
                             None, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMonoGetSize(self):
@@ -72,7 +72,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = self.all_colors.count(self.color)
         msg = test_info_msg(self.grank, self.gsize, 'mono.get_size()',
                             None, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMultiGetSize(self):
@@ -80,7 +80,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = self.all_ranks.count(self.rank)
         msg = test_info_msg(self.grank, self.gsize, 'multi.get_size()',
                             None, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMonoIsManager(self):
@@ -88,7 +88,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = (self.rank == 0)
         msg = test_info_msg(self.grank, self.gsize, 'mono.is_manager()',
                             None, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMultiIsManager(self):
@@ -96,7 +96,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = (self.color == 0)
         msg = test_info_msg(self.grank, self.gsize, 'multi.is_manager()',
                             None, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMonoSumInt(self):
@@ -105,7 +105,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = self.monocomm.get_size() * data
         msg = test_info_msg(self.grank, self.gsize, 'mono.sum(int)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMultiSumInt(self):
@@ -114,7 +114,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = self.multicomm.get_size() * data
         msg = test_info_msg(self.grank, self.gsize, 'multi.sum(int)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMonoSumList(self):
@@ -123,7 +123,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = self.monocomm.get_size() * sum(data)
         msg = test_info_msg(self.grank, self.gsize, 'mono.sum(list)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMultiSumList(self):
@@ -132,7 +132,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = self.multicomm.get_size() * sum(data)
         msg = test_info_msg(self.grank, self.gsize, 'multi.sum(list)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMonoSumDict(self):
@@ -142,7 +142,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                     'b': self.monocomm.get_size() * sum([5, 7])}
         msg = test_info_msg(self.grank, self.gsize, 'mono.sum(dict)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMultiSumDict(self):
@@ -152,7 +152,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                     'b': self.multicomm.get_size() * sum([5, 7])}
         msg = test_info_msg(self.grank, self.gsize, 'multi.sum(dict)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMonoPartitionInt(self):
@@ -164,7 +164,7 @@ class SimpleCommParDivTests(unittest.TestCase):
             expected = self.color  # By chance!
         msg = test_info_msg(self.grank, self.gsize, 'mono.partition(int)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMultiPartitionInt(self):
@@ -176,7 +176,7 @@ class SimpleCommParDivTests(unittest.TestCase):
             expected = self.rank * len(self.groups)
         msg = test_info_msg(self.grank, self.gsize, 'multi.partition(int)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMonoPartitionIntInvolved(self):
@@ -185,7 +185,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = self.color  # By chance!
         msg = test_info_msg(self.grank, self.gsize, 'mono.partition(int,T)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMultiPartitionIntInvolved(self):
@@ -195,7 +195,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = self.rank * len(self.groups)
         msg = test_info_msg(self.grank, self.gsize, 'multi.partition(int,T)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMonoPartitionList(self):
@@ -211,7 +211,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                              self.monocomm.get_size() - 1)
         msg = test_info_msg(self.grank, self.gsize, 'mono.partition(list)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMultiPartitionList(self):
@@ -227,7 +227,7 @@ class SimpleCommParDivTests(unittest.TestCase):
                              self.multicomm.get_size() - 1)
         msg = test_info_msg(self.grank, self.gsize, 'multi.partition(list)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMonoPartitionListInvolved(self):
@@ -240,7 +240,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = range(self.rank, 10 + self.color, self.monocomm.get_size())
         msg = test_info_msg(self.grank, self.gsize, 'mono.partition(list,T)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMultiPartitionListInvolved(self):
@@ -254,14 +254,14 @@ class SimpleCommParDivTests(unittest.TestCase):
                          self.multicomm.get_size())
         msg = test_info_msg(self.grank, self.gsize, 'multi.partition(list,T)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testMonoCollectInt(self):
         if self.monocomm.is_manager():
             data = None
             actual = [self.monocomm.collect()
-                      for _ in xrange(1, self.monocomm.get_size())]
+                      for _ in range(1, self.monocomm.get_size())]
             expected = [i for i in
                         enumerate(range(len(self.groups) + self.color,
                                         self.gsize,
@@ -273,7 +273,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         self.monocomm.sync()
         msg = test_info_msg(self.grank, self.gsize, 'mono.collect(int)',
                             data, actual, expected)
-        print msg
+        print(msg)
         if self.monocomm.is_manager():
             for a in actual:
                 self.assertTrue(a in expected, msg)
@@ -284,7 +284,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         if self.multicomm.is_manager():
             data = None
             actual = [self.multicomm.collect()
-                      for _ in xrange(1, self.multicomm.get_size())]
+                      for _ in range(1, self.multicomm.get_size())]
             expected = [i for i in
                         enumerate([j + self.rank * len(self.groups) for j in
                                    range(1, self.multicomm.get_size())], 1)]
@@ -295,7 +295,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         self.multicomm.sync()
         msg = test_info_msg(self.grank, self.gsize, 'multi.collect(int)',
                             data, actual, expected)
-        print msg
+        print(msg)
         if self.multicomm.is_manager():
             for a in actual:
                 self.assertTrue(a in expected, msg)
@@ -306,7 +306,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         if self.monocomm.is_manager():
             data = None
             actual = [self.monocomm.collect()
-                      for _ in xrange(1, self.monocomm.get_size())]
+                      for _ in range(1, self.monocomm.get_size())]
             expected = [(i, range(x)) for i, x in
                         enumerate(range(len(self.groups) + self.color,
                                         self.gsize,
@@ -318,7 +318,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         self.monocomm.sync()
         msg = test_info_msg(self.grank, self.gsize, 'mono.collect(list)',
                             data, actual, expected)
-        print msg
+        print(msg)
         if self.monocomm.is_manager():
             for a in actual:
                 self.assertTrue(a in expected, msg)
@@ -329,7 +329,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         if self.multicomm.is_manager():
             data = None
             actual = [self.multicomm.collect()
-                      for _ in xrange(1, self.multicomm.get_size())]
+                      for _ in range(1, self.multicomm.get_size())]
             expected = [(i, range(x)) for (i, x) in
                         enumerate([j + self.rank * len(self.groups) for j in
                                    range(1, self.multicomm.get_size())], 1)]
@@ -340,7 +340,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         self.multicomm.sync()
         msg = test_info_msg(self.grank, self.gsize, 'multi.collect(list)',
                             data, actual, expected)
-        print msg
+        print(msg)
         if self.multicomm.is_manager():
             for a in actual:
                 self.assertTrue(a in expected, msg)
@@ -361,7 +361,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         self.monocomm.sync()
         msg = test_info_msg(self.grank, self.gsize, 'mono.ration(int)',
                             data, actual, expected)
-        print msg
+        print(msg)
         if self.monocomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
@@ -381,7 +381,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         self.multicomm.sync()
         msg = test_info_msg(self.grank, self.gsize, 'multi.ration(int)',
                             data, actual, expected)
-        print msg
+        print(msg)
         if self.multicomm.is_manager():
             self.assertEqual(actual, expected, msg)
         else:
@@ -404,7 +404,7 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = 10
         msg = test_info_msg(self.grank, self.gsize, 'TreeScatter(int)',
                             data, actual, expected)
-        print msg
+        print(msg)
         self.assertEqual(actual, expected, msg)
 
     def testTreeGatherInt(self):
@@ -419,7 +419,7 @@ class SimpleCommParDivTests(unittest.TestCase):
 
         if self.gcomm.is_manager():
             actual = [mydata]
-            for _ in xrange(1, self.multicomm.get_size()):
+            for _ in range(1, self.multicomm.get_size()):
                 actual.append(self.multicomm.collect()[1])
         elif self.monocomm.is_manager():
             actual = self.multicomm.collect(mydata)
@@ -429,18 +429,22 @@ class SimpleCommParDivTests(unittest.TestCase):
         expected = 10
         msg = test_info_msg(self.grank, self.gsize, 'TreeGather(int)',
                             data, actual, expected)
-        print msg
+        print(msg)
 
 
 if __name__ == "__main__":
     hline = '=' * 70
     if MPI_COMM_WORLD.Get_rank() == 0:
-        print hline
-        print 'STANDARD OUTPUT FROM ALL TESTS:'
-        print hline
+        print(hline)
+        print('STANDARD OUTPUT FROM ALL TESTS:')
+        print(hline)
     MPI_COMM_WORLD.Barrier()
 
-    from cStringIO import StringIO
+    try:
+        from cStringIO import StringIO
+    except ImportError:
+        from io import StringIO
+    
     mystream = StringIO()
     tests = unittest.TestLoader().loadTestsFromTestCase(SimpleCommParDivTests)
     unittest.TextTestRunner(stream=mystream).run(tests)
@@ -449,7 +453,7 @@ if __name__ == "__main__":
     results = MPI_COMM_WORLD.gather(mystream.getvalue())
     if MPI_COMM_WORLD.Get_rank() == 0:
         for rank, result in enumerate(results):
-            print hline
-            print 'TESTS RESULTS FOR RANK ' + str(rank) + ':'
-            print hline
-            print str(result)
+            print(hline)
+            print('TESTS RESULTS FOR RANK ' + str(rank) + ':')
+            print(hline)
+            print(str(result))
