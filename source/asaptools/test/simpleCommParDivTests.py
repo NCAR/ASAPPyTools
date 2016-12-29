@@ -10,7 +10,7 @@ from asaptools import simplecomm
 from asaptools.partition import EqualStride, Duplicate
 from os import linesep as eol
 from mpi4py import MPI
-MPI_COMM_WORLD = MPI.COMM_WORLD
+MPI_COMM_WORLD = MPI.COMM_WORLD  # @UndefinedVariable
 
 
 def test_info_msg(rank, size, name, data, actual, expected):
