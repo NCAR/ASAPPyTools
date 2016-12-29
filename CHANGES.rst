@@ -7,7 +7,7 @@ See the LICENSE.txt file for details
 Version 0.6.0
 -------------
 
-- Allowing for support of Python 2.6+ (including Python 3)
+- Allowing for support of all Python 2.6+ (including Python 3+)
 
 Version 0.5.4
 -------------
