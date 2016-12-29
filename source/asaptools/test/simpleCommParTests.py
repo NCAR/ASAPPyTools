@@ -4,6 +4,9 @@ Parallel Tests for the SimpleComm class
 Copyright 2016, University Corporation for Atmospheric Research
 See the LICENSE.txt file for details
 """
+
+from __future__ import print_function
+
 import unittest
 import numpy as np
 
@@ -407,7 +410,7 @@ class SimpleCommParTests(unittest.TestCase):
             contained = any([np.all(actual == expected[i:i + actual.size])
                              for i in range(expected.size - actual.size + 1)])
             self.assertTrue(contained, msg)
-
+  
     def testRationCharArray(self):
         if self.gcomm.is_manager():
             data = np.array(map(str, range(3 * (self.size-1))), dtype='c')
@@ -446,7 +449,7 @@ if __name__ == "__main__":
     mystream = StringIO()
     tests = unittest.TestLoader().loadTestsFromTestCase(SimpleCommParTests)
     unittest.TextTestRunner(stream=mystream).run(tests)
-    #MPI_COMM_WORLD.Barrier()
+    MPI_COMM_WORLD.Barrier()
 
     results = MPI_COMM_WORLD.gather(mystream.getvalue())
     if MPI_COMM_WORLD.Get_rank() == 0:

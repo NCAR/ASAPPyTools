@@ -4,6 +4,9 @@ Parallel Tests with communicator division for the SimpleComm class
 Copyright 2016, University Corporation for Atmospheric Research
 See the LICENSE.txt file for details
 """
+
+from __future__ import print_function
+
 import unittest
 
 from asaptools import simplecomm
