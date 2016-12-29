@@ -23,5 +23,5 @@ setup(name='ASAPTools',
       packages=['asaptools'],
       package_dir={'asaptools': 'source/asaptools'},
       package_data={'asaptools': ['LICENSE.txt']},
-      install_requires=['mpi4py>=1.3', 'numpy']
+      install_requires=['mpi4py>=1.3']
       )
