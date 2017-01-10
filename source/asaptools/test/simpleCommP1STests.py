@@ -6,7 +6,7 @@ same as the 1-rank parallel behavior.  If the 'Par' test suite passes with
 various communicator sizes (1, 2, ...), then this suite should be run to make
 sure that serial communication behaves consistently.
 
-Copyright 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 See the LICENSE.txt file for details
 """
 
