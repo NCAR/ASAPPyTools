@@ -31,7 +31,7 @@ Python packages.
 Dependencies
 ------------
 
-All of the ASAP Python Toolbox are written to work with Python 2.6+ (including
+All of the ASAP Python Toolbox tools are written to work with Python 2.6+ (including
 Python 3+). The vprinter, timekeeper, and partition modules are pure
 Python. The simplecomm module depends on mpi4py (>=1.3).
 
@@ -45,7 +45,7 @@ Easy Installation
 The easiest way to install the ASAP Python Toolbox is from the Python
 Package Index (PyPI) with the pip package manager::
 
-    $  pip install [--user] ASAPTools
+    $  pip install [--user] asaptools
     
 The optional '--user' argument can be used to install the package in the
 local user's directory, which is useful if the user doesn't have root
