@@ -10,7 +10,7 @@ before_install:
   - export PATH="$HOME/miniconda3/bin:$PATH"
 
 install:
-  - ./ci/install-travis.sh
+  - bash ./ci/install-travis.sh
 
 script:
   - echo "Run Tests"
