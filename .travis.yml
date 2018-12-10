@@ -1,0 +1,27 @@
+sudo: required
+language: python
+env:
+
+  matrix:
+    - PYTHON=2.7
+    - PYTHON=3.6
+
+before_install:
+  - export PATH="$HOME/miniconda3/bin:$PATH"
+
+install:
+  - ./ci/install-travis.sh
+
+script:
+  - echo "Run Tests"
+  - source activate asaptools-dev
+  - python -m unittest tests/vprinterTests.py
+  - python -m unittest tests/timekeeperTests.py
+  - python -m unittest tests/partitionTests.py
+  - python -m unittest tests/partitionArrayTests.py
+  - python -m unittest tests/simpleCommP1STests.py
+  - mpirun --oversubscribe -np 4 python -m unittest tests/simpleCommParTests.py
+  - mpirun --oversubscribe -np 4 python -m unittest tests/simpleCommParDivTests.py
+
+notifications:
+  email: false
