@@ -21,7 +21,7 @@ setup(name='ASAPTools',
       download_url='https://github.com/NCAR/ASAPPyTools/tarball/v' + __version__,
       license='https://github.com/NCAR/ASAPPyTools/blob/master/LICENSE.rst',
       packages=['asaptools'],
-      package_dir={'asaptools': 'source/asaptools'},
+      package_dir={'asaptools': 'asaptools'},
       package_data={'asaptools': ['LICENSE.txt']},
       install_requires=['mpi4py>=1.3']
       )
