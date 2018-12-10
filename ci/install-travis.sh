@@ -4,7 +4,7 @@ set -e
 echo "[install-travis]"
 
 MINICONDA_DIR="$HOME/miniconda3"
-time wget -q http://repo.continuum.io/miniconda3/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh || exit 1
+time wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh || exit 1
 time bash miniconda.sh -b -p "$MINICONDA_DIR" || exit 1
 
 echo
