@@ -1,0 +1,2 @@
+include versioneer.py
+include asaptools/_version.py

@@ -1,0 +1,11 @@
+name: asaptools-dev
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - mpi4py
+  - numpy
+  - coverage
+  - pytest
+  - sphinx
+  - versioneer

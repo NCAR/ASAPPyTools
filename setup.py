@@ -7,18 +7,17 @@ See the LICENSE.txt file for details
 """
 
 from setuptools import setup
-
-exec(open('source/asaptools/version.py').read())
+import versioneer
 
 setup(name='ASAPTools',
-      version=__version__,
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass(),
       description='A collection of useful Python modules from the '
                   'Application Scalability And Performance (ASAP) group '
                   'at the National Center for Atmospheric Research',
       author='Kevin Paul',
       author_email='kpaul@ucar.edu',
       url='https://github.com/NCAR/ASAPPyTools',
-      download_url='https://github.com/NCAR/ASAPPyTools/tarball/v' + __version__,
       license='https://github.com/NCAR/ASAPPyTools/blob/master/LICENSE.rst',
       packages=['asaptools'],
       package_dir={'asaptools': 'asaptools'},
