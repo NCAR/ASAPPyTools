@@ -14,8 +14,6 @@ which conda
 echo
 echo "[update conda]"
 conda config --set always_yes true --set changeps1 false || exit 1
-conda config --add channels conda-forge
-conda update -q conda
 
 echo
 echo "[install dependencies]"
