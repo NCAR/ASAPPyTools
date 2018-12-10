@@ -15,13 +15,13 @@ install:
 script:
   - echo "Run Tests"
   - source activate asaptools-dev
-  - python -m unittest tests/vprinterTests.py
-  - python -m unittest tests/timekeeperTests.py
-  - python -m unittest tests/partitionTests.py
-  - python -m unittest tests/partitionArrayTests.py
-  - python -m unittest tests/simpleCommP1STests.py
-  - mpirun --oversubscribe -np 4 python -m unittest tests/simpleCommParTests.py
-  - mpirun --oversubscribe -np 4 python -m unittest tests/simpleCommParDivTests.py
+  - python -m unittest tests/vprinterTests
+  - python -m unittest tests/timekeeperTests
+  - python -m unittest tests/partitionTests
+  - python -m unittest tests/partitionArrayTests
+  - python -m unittest tests/simpleCommP1STests
+  - mpirun --oversubscribe -np 4 python -m unittest tests/simpleCommParTests
+  - mpirun --oversubscribe -np 4 python -m unittest tests/simpleCommParDivTests
 
 notifications:
   email: false
