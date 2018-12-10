@@ -432,6 +432,7 @@ class SimpleCommParTests(unittest.TestCase):
                              for i in range(expected.size - actual.size + 1)])
             self.assertTrue(contained, msg)
 
+
 if __name__ == "__main__":
     hline = '=' * 70
     if MPI_COMM_WORLD.Get_rank() == 0:
