@@ -1,39 +1,54 @@
 version: 2
+
 jobs:
+
   # Define a "build_docs" job to be run with Circle
   build_docs:
+  
     # This is the base environment that Circle will use
     docker:
       - image: frolvlad/alpine-miniconda3
+      
     steps:
+    
       - run: apk add --no-cache build-base ca-certificates git openssh
+      
       # Get our data and merge with upstream
       - checkout
+      
       # Restore cached files to speed things up
       - restore_cache:
           keys:
             - conda-pkgs
+            
       - run: conda create -q -n asaptools-dev python=3.6 && conda env update -f environment-dev.yml
+      
       - run: source activate asaptools-dev && pip install --no-deps -e .
+      
       # Cache some files for a speedup in subsequent builds
       - save_cache:
           key: conda-pkgs
           paths:
             - /opt/conda/pkgs
+            
       # Build the docs
       - run:
            name: Build docs to store
            command: source activate asaptools-dev && cd docs && make html
+           
       # Tell Circle to store the documentation output in a folder that we can access later
       - store_artifacts:
           path: docs/build/html
           destination: html
-
 
 # Tell CircleCI to use this workflow
 workflows:
   version: 2
   default:
     jobs:
-      - build_docs
+      - build_docs:
+          filters:
+            branches:
+              only:
+                - devel
  
