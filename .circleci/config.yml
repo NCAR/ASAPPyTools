@@ -16,6 +16,7 @@ jobs:
         keys:
           - conda-pkgs
       - run: conda create -q -n asaptools-dev python && conda env update -f environment-dev.yml
+      - run: conda activate asaptools-dev && pip install --no-deps -e .
       # Cache some files for a speedup in subsequent builds
       - save_cache:
         key: conda-pkgs
