@@ -6,7 +6,7 @@ jobs:
     docker:
       - image: frolvlad/alpine-miniconda3
     steps:
-      - run: conda update -q conda
+      - run: apk add --no-cache build-base ca-certificates git openssh
       # Get our data and merge with upstream
       - checkout
       # Restore cached files to speed things up
@@ -14,7 +14,7 @@ jobs:
           keys:
             - conda-pkgs
       - run: conda create -q -n asaptools-dev python=3.6 && conda env update -f environment-dev.yml
-      - run: conda activate asaptools-dev && pip install --no-deps -e .
+      - run: source activate asaptools-dev && pip install --no-deps -e .
       # Cache some files for a speedup in subsequent builds
       - save_cache:
           key: conda-pkgs
