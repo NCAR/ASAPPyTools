@@ -1,6 +1,7 @@
 version: 2
 jobs:
-  coverage:
+  # Define a "build_docs" job to be run with Circle
+  build_docs:
     branches:
       only:
         - devel
@@ -22,13 +23,24 @@ jobs:
         key: conda-pkgs
         paths:
           - /opt/conda/pkgs
+      # Build the docs
+      - run:
+           name: Build docs to store
+           command: |
+             cd docs/source
+             make html
+      # Tell Circle to store the documentation output in a folder that we can access later
+      - store_artifacts:
+          path: docs/source/_build/html/
+          destination: html
+
 
 # Tell CircleCI to use this workflow
 workflows:
   version: 2
   test:
     jobs:
-      - conda 
+      - build_docs
       
 
 
