@@ -1,0 +1,27 @@
+version: 2
+jobs:
+  coverage:
+    branches:
+      only:
+        - devel
+    docker:
+      - image: condaforge/linux-anvil
+    steps:
+      - restore_cache:
+        keys:
+          - conda-pkgs
+      - run: conda create -q -n asaptools-dev python && conda env update -f environment-dev.yml
+      - save_cache:
+        key: conda-pkgs
+        paths:
+          - /opt/conda/pkgs
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - conda 
+      
+
+
+
