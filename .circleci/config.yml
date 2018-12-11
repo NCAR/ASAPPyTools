@@ -4,7 +4,7 @@ jobs:
   build_docs:
     # This is the base environment that Circle will use
     docker:
-      - image: condaforge/linux-anvil
+      - image: frolvlad/alpine-miniconda3
     steps:
       # Get our data and merge with upstream
       - checkout
