@@ -9,3 +9,8 @@ dependencies:
   - pytest
   - sphinx
   - versioneer
+  - coverage 
+  - sphinx_rtd_theme 
+  - recommonmark 
+  - pip:
+    - sphinx_copybutton

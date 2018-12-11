@@ -1,6 +1,9 @@
 .. image:: https://travis-ci.org/NCAR/ASAPPyTools.svg?branch=devel
     :target: https://travis-ci.org/NCAR/ASAPPyTools
 
+.. image:: https://circleci.com/gh/NCAR/ASAPPyTools.svg?style=svg
+    :target: https://circleci.com/gh/NCAR/ASAPPyTools
+    
 =======================
 The ASAP Python Toolbox
 =======================
