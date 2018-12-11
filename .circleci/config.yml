@@ -2,6 +2,7 @@ version: 2
 jobs:
   # Define a "build_docs" job to be run with Circle
   build_docs:
+    # This is the base environment that Circle will use
     docker:
       - image: condaforge/linux-anvil
     steps:
@@ -34,10 +35,7 @@ jobs:
 # Tell CircleCI to use this workflow
 workflows:
   version: 2
-  test:
+  default:
     jobs:
       - build_docs
-      
-
-
-
+ 
