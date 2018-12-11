@@ -7,7 +7,6 @@ jobs:
       - image: condaforge/linux-anvil
     steps:
       # Get our data and merge with upstream
-      - run: sudo apt-get update
       - checkout
       # Restore cached files to speed things up
       - restore_cache:
