@@ -26,7 +26,7 @@ jobs:
            command: source activate asaptools-dev && cd docs && make html
       # Tell Circle to store the documentation output in a folder that we can access later
       - store_artifacts:
-          path: docs/_build/html/
+          path: docs/build/html
           destination: html
 
 
