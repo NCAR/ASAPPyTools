@@ -4,18 +4,25 @@ jobs:
     branches:
       only:
         - devel
+        - circleci
     docker:
       - image: condaforge/linux-anvil
     steps:
+      # Get our data and merge with upstream
+      - run: sudo apt-get update
+      - checkout
+      # Restore cached files to speed things up
       - restore_cache:
         keys:
           - conda-pkgs
       - run: conda create -q -n asaptools-dev python && conda env update -f environment-dev.yml
+      # Cache some files for a speedup in subsequent builds
       - save_cache:
         key: conda-pkgs
         paths:
           - /opt/conda/pkgs
 
+# Tell CircleCI to use this workflow
 workflows:
   version: 2
   test:
