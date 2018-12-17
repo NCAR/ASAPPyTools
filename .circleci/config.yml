@@ -11,7 +11,6 @@ workflows:
                 - devel
  
 jobs:
-
   test-2.7:
     docker:
       - image: frolvlad/alpine-miniconda3
@@ -31,4 +30,11 @@ jobs:
            name: Running tests
            command: |
              source activate asaptools-dev
-             python -m unittest tests.vprinterTests
+             coverage run -m tests.vprinterTests
+             coverage run -m tests.timekeeperTests
+             coverage run -m tests.partitionTests
+             coverage run -m tests.partitionArrayTests
+             coverage run -m tests.simpleCommP1STests
+             mpirun -np 4 coverage run -m tests.simpleCommParTests
+             mpirun -np 4 coverage run -m tests.simpleCommParDivTests
+             
