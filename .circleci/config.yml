@@ -15,7 +15,7 @@ jobs:
     docker:
       - image: frolvlad/alpine-miniconda3
     steps:
-      - run: apk add --no-cache build-base ca-certificates git openssh
+      - run: apk add --no-cache build-base ca-certificates git openssh bash curl
       - checkout
       - restore_cache:
           keys:
@@ -27,14 +27,22 @@ jobs:
           paths:
             - /opt/conda/pkgs
       - run:
-           name: Running tests
-           command: |
-             source activate asaptools-dev
-             coverage run -m tests.vprinterTests
-             coverage run -m tests.timekeeperTests
-             coverage run -m tests.partitionTests
-             coverage run -m tests.partitionArrayTests
-             coverage run -m tests.simpleCommP1STests
-             mpirun -np 4 coverage run -m tests.simpleCommParTests
-             mpirun -np 4 coverage run -m tests.simpleCommParDivTests
-             
+          name: Running tests
+          command: |
+            source activate asaptools-dev
+            coverage run -m tests.vprinterTests
+            coverage run -m tests.timekeeperTests
+            coverage run -m tests.partitionTests
+            coverage run -m tests.partitionArrayTests
+            coverage run -m tests.simpleCommP1STests
+            mpirun -np 4 coverage run -m tests.simpleCommParTests
+            mpirun -np 4 coverage run -m tests.simpleCommParDivTests
+      - run:
+          name: Coverage
+          command: |
+            source activate asaptools-dev
+            curl -s https://codecov.io/bash > .codecov
+            chmod +x .codecov
+            ./.codecov
+          when: on_success
+
