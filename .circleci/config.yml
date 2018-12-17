@@ -31,12 +31,12 @@ jobs:
           command: |
             source activate asaptools-dev
             coverage run -m tests.vprinterTests
-            coverage run -m tests.timekeeperTests
-            coverage run -m tests.partitionTests
-            coverage run -m tests.partitionArrayTests
-            coverage run -m tests.simpleCommP1STests
-            mpirun -np 4 coverage run -m tests.simpleCommParTests
-            mpirun -np 4 coverage run -m tests.simpleCommParDivTests
+            coverage run -a -m tests.timekeeperTests
+            coverage run -a -m tests.partitionTests
+            coverage run -a -m tests.partitionArrayTests
+            coverage run -a -m tests.simpleCommP1STests
+            mpirun -np 4 coverage run -a -m tests.simpleCommParTests
+            mpirun -np 4 coverage run -a -m tests.simpleCommParDivTests
       - run:
           name: Coverage
           command: |
