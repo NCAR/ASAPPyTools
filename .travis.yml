@@ -20,8 +20,8 @@ script:
   - python -m unittest tests.partitionTests
   - python -m unittest tests.partitionArrayTests
   - python -m unittest tests.simpleCommP1STests
-  - mpirun --oversubscribe -np 4 python -m unittest tests.simpleCommParTests
-  - mpirun --oversubscribe -np 4 python -m unittest tests.simpleCommParDivTests
+  - mpirun -np 4 python -m unittest tests.simpleCommParTests
+  - mpirun -np 4 python -m unittest tests.simpleCommParDivTests
 
 notifications:
   email: false
