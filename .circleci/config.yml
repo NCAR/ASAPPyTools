@@ -30,13 +30,14 @@ jobs:
           name: Running tests
           command: |
             source activate asaptools-dev
-            coverage run -m tests.vprinterTests
-            coverage run -a -m tests.timekeeperTests
-            coverage run -a -m tests.partitionTests
-            coverage run -a -m tests.partitionArrayTests
-            coverage run -a -m tests.simpleCommP1STests
-            mpirun -np 4 coverage run -a -m tests.simpleCommParTests
-            mpirun -np 4 coverage run -a -m tests.simpleCommParDivTests
+            coverage run -p -m tests.vprinterTests
+            coverage run -p -m tests.timekeeperTests
+            coverage run -p -m tests.partitionTests
+            coverage run -p -m tests.partitionArrayTests
+            coverage run -p -m tests.simpleCommP1STests
+            mpirun -np 4 coverage run -p -m tests.simpleCommParTests
+            mpirun -np 4 coverage run -p -m tests.simpleCommParDivTests
+            coverage combine
       - run:
           name: Coverage
           command: |
