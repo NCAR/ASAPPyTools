@@ -5,6 +5,9 @@
     :target: https://asappytools.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. image:: https://codecov.io/gh/NCAR/ASAPPyTools/branch/devel/graph/badge.svg
+    :target: https://codecov.io/gh/NCAR/ASAPPyTools
+  
 .. image:: https://circleci.com/gh/NCAR/ASAPPyTools/tree/devel.svg?style=svg
     :target: https://circleci.com/gh/NCAR/ASAPPyTools/tree/devel
 
