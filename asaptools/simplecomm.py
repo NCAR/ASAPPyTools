@@ -114,7 +114,7 @@ that within each group, the same *partition*, *collecting*, and *reducing*
 operations can be performed in the same way as described above for the *global*
 group.
 
-Copyright 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 See the LICENSE.txt file for details
 """
 

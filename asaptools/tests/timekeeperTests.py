@@ -1,7 +1,7 @@
 """
 Unit tests (serial only) for the TimeKeeper class
 
-Copyright 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 See the LICENSE.txt file for details
 """
 
@@ -31,12 +31,9 @@ class TimeKeeperTests(unittest.TestCase):
         tk.start(name)
         sleep(wait_time)
         tk.stop(name)
-        self.assertTrue(name in tk._accumulated_times,
-                        'Clock name not found in accumulated times dictionary')
-        self.assertTrue(name in tk._added_order,
-                        'Clock name not found in added order list')
-        self.assertTrue(name in tk._start_times,
-                        'Clock name not found in start times dictionary')
+        self.assertTrue(name in tk._accumulated_times)
+        self.assertTrue(name in tk._added_order)
+        self.assertTrue(name in tk._start_times)
 
     def test_start_stop_values(self):
         tk = timekeeper.TimeKeeper()
@@ -47,7 +44,7 @@ class TimeKeeperTests(unittest.TestCase):
         tk.stop(name)
         dt = tk.get_time(name)
         dterr = abs(dt / wait_time - 1.0)
-        self.assertTrue(dterr < 0.15, msg='Accumulated time seems off')
+        self.assertTrue(dterr < 0.15)
 
     def test_start_stop_order_names(self):
         tk = timekeeper.TimeKeeper()
@@ -60,10 +57,8 @@ class TimeKeeperTests(unittest.TestCase):
         tk.start(name2)
         sleep(wait_time)
         tk.stop(name2)
-        self.assertEqual(name1, tk._added_order[0],
-                         'Clock name 1 not appropriately ordered')
-        self.assertEqual(name2, tk._added_order[1],
-                         'Clock name 2 not appropriately ordered')
+        self.assertEqual(name1, tk._added_order[0])
+        self.assertEqual(name2, tk._added_order[1])
 
     def test_start_stop_values2(self):
         tk = timekeeper.TimeKeeper()
@@ -79,10 +74,10 @@ class TimeKeeperTests(unittest.TestCase):
         tk.stop(name2)
         dt1 = tk.get_time(name1)
         dt1err = abs(dt1 / (3 * wait_time)  - 1.0) 
-        self.assertTrue(dt1err < 0.15, msg='Accumulated time 1 seems off')
+        self.assertTrue(dt1err < 0.15)
         dt2 = tk.get_time(name2)
         dt2err = abs(dt2 / (2 * wait_time)  - 1.0)
-        self.assertTrue(dt2err < 0.15, msg='Accumulated time 1 seems off')
+        self.assertTrue(dt2err < 0.15)
 
     def test_reset_values(self):
         tk = timekeeper.TimeKeeper()
@@ -92,8 +87,7 @@ class TimeKeeperTests(unittest.TestCase):
         sleep(wait_time)
         tk.stop(name)
         tk.reset(name)
-        self.assertEqual(0, tk.get_time(name),
-                         msg='Accumulated time seems off')
+        self.assertEqual(0, tk.get_time(name))
 
     def test_get_time(self):
         tk = timekeeper.TimeKeeper()
@@ -104,7 +98,7 @@ class TimeKeeperTests(unittest.TestCase):
         tk.stop(name)
         dt = tk.get_time(name)
         dterr = abs(dt / wait_time - 1.0)
-        self.assertTrue(dterr < 0.15, msg='Get time seems off')
+        self.assertTrue(dterr < 0.15)
 
     def test_get_all_times(self):
         tk = timekeeper.TimeKeeper()
@@ -121,21 +115,16 @@ class TimeKeeperTests(unittest.TestCase):
         all_times = tk.get_all_times()
         expected_all_times = {name1: 3 * wait_time,
                               name2: 2 * wait_time}
-        self.assertTrue(len(expected_all_times.keys()) == len(all_times.keys()),
-                        'Different number of time clonk names')
+        self.assertTrue(len(expected_all_times.keys()) == len(all_times.keys()))
         self.assertTrue(all([i1==i2 for i1,i2 in 
-                             zip(expected_all_times.keys(),all_times.keys())]),
-                        'Clock names are not the same')
+                             zip(expected_all_times.keys(),all_times.keys())]))
         self.assertAlmostEqual(list(expected_all_times.values())[0],
                                list(all_times.values())[0],
-                               msg='Accumulated time 1 seems off',
                                places=1)
         self.assertAlmostEqual(list(expected_all_times.values())[1],
                                list(all_times.values())[1],
-                               msg='Accumulated time 2 seems off',
                                places=1)
 
 
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

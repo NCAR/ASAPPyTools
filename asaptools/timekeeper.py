@@ -4,7 +4,7 @@ A module containing the TimeKeeper class.
 This module contains is a simple class to act as a time keeper for internal
 performance monitoring (namely, timing given processes).
 
-Copyright 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 See the LICENSE.txt file for details
 """
 

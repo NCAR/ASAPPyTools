@@ -2,12 +2,14 @@
 The ASAP Python Toolbox
 =======================
 
+|Circle| |Codecov| |Docs| |PyPI|
+
 The ASAP Python Toolbox is a collection of stand-alone tools for doing simple
 tasks, from managing print messages with a set verbosity level, to
 keeping timing information, to managing simple MPI communication.
 
 :AUTHORS: Kevin Paul, John Dennis, Sheri Mickelson, Haiying Xu
-:COPYRIGHT: 2016, University Corporation for Atmospheric Research
+:COPYRIGHT: 2016-2019, University Corporation for Atmospheric Research
 :LICENSE: See the LICENSE.rst file for details
 
 Send questions and comments to Kevin Paul (kpaul@ucar.edu).
@@ -31,7 +33,7 @@ Python packages.
 Dependencies
 ------------
 
-All of the ASAP Python Toolbox are written to work with Python 2.6+ (including
+All of the ASAP Python Toolbox tools are written to work with Python 2.6+ (including
 Python 3+). The vprinter, timekeeper, and partition modules are pure
 Python. The simplecomm module depends on mpi4py (>=1.3).
 
@@ -45,7 +47,7 @@ Easy Installation
 The easiest way to install the ASAP Python Toolbox is from the Python
 Package Index (PyPI) with the pip package manager::
 
-    $  pip install [--user] ASAPTools
+    $  pip install [--user] asaptools
     
 The optional '--user' argument can be used to install the package in the
 local user's directory, which is useful if the user doesn't have root
@@ -91,43 +93,25 @@ This can be handy since the site-packages directory will be common for
 all user installs, and therefore only needs to be added to the
 PYTHONPATH once.
 
-To build the documentation for developer use, you will need Sphinx.  Sphinx
-can be installed with the pip utility simple::
-
-    $  pip install Sphinx
-
-Once Sphinx is installed, you can build the ASAP Python Toolbox's
-HTML documentation with::
-
-    $  cd docs
-    $  make html
-
-which will build the documentation in the docs/build/html directory.  If you
-wish to build a PDF, do the following::
-
-    $  cd docs
-    $  make latexpdf
-
-which requires pdflatex to build a PDF version of the documentation.
-
-Before Using the ASAP Python Toolbox
-------------------------------------
-
-Before the ASAP Python Toolbox package can be used, you must make sure that the
-site-packages directory containing the 'pytools' source directory is in
-your PYTHONPATH. Depending on the PREFIX used during installation, this
-path will be::
-
-    $PREFIX/lib/python2.X/site-packages
-
-where X will be 6 or 7 (or other) depending on the version of Python
-that you are using to install the package.
-
 Instructions & Use
 ------------------
 
-For instructions on how to use the ASAP Python Toolbox, see the additional
-documentation found in the docs directory.  Please read the
-'Building & Installation' section above for instructions on how to build the
-HTML documentation. Once built, you will be able to open the
-'docs/build/html/index.html' page in any browser.
+For instructions on how to use the ASAP Python Toolbox, see the
+documentation_.
+
+
+.. _documentation: https://asappytools.readthedocs.io/en/latest/
+
+.. |Circle| image:: https://img.shields.io/circleci/project/github/NCAR/ASAPPyTools/devel.svg?style=for-the-badge&logo=circleci
+    :target: https://circleci.com/gh/NCAR/ASAPPyTools/tree/devel
+
+.. |Codecov| image:: https://img.shields.io/codecov/c/github/NCAR/ASAPPyTools/devel.svg?style=for-the-badge
+    :target: https://codecov.io/gh/NCAR/ASAPPyTools/branch/devel
+
+.. |Docs| image:: https://readthedocs.org/projects/asappytools/badge/?version=latest&style=for-the-badge
+    :target: https://asappytools.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
+.. |PyPI| image:: https://img.shields.io/pypi/v/asaptools.svg?style=for-the-badge
+    :target: https://pypi.org/project/asaptools/
+    :alt: Python Package Index

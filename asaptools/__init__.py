@@ -14,5 +14,6 @@ Send questions and comments to Kevin Paul (kpaul@ucar.edu).
 
 from __future__ import absolute_import
 
-from .version import __version__
-
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
