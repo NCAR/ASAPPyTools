@@ -136,7 +136,7 @@ HTML documentation. Once built, you will be able to open the
 
 
 .. |Circle| image:: https://img.shields.io/circleci/project/github/NCAR/ASAPPyTools/master.svg?style=for-the-badge&logo=circleci
-    :target: https://circleci.com/gh/NCAR/ASAPPyTools/tree/master
+    :target: https://circleci.com/gh/NCAR/ASAPPyTools/tree/devel
 
 .. |Codecov| image:: https://img.shields.io/codecov/c/github/NCAR/ASAPPyTools.svg?style=for-the-badge
     :target: https://codecov.io/gh/NCAR/ASAPPyTools
