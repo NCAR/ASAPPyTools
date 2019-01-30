@@ -139,7 +139,7 @@ HTML documentation. Once built, you will be able to open the
     :target: https://circleci.com/gh/NCAR/ASAPPyTools/tree/devel
 
 .. |Codecov| image:: https://img.shields.io/codecov/c/github/NCAR/ASAPPyTools.svg?style=for-the-badge
-    :target: https://codecov.io/gh/NCAR/ASAPPyTools
+    :target: https://codecov.io/gh/NCAR/ASAPPyTools/branch/devel
 
 .. |Docs| image:: https://readthedocs.org/projects/ASAPPyTools/badge/?version=latest&style=for-the-badge
     :target: https://asappytools.readthedocs.io/en/latest/?badge=latest
