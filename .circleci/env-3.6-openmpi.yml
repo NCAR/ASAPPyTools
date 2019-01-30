@@ -1,0 +1,19 @@
+name: asaptools-dev
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.6
+  - openmpi
+  - mpi4py
+  - numpy
+  - pytest
+  - pytest-cov
+  - sphinx
+  - versioneer
+  - coverage
+  - codecov
+  - sphinx_rtd_theme 
+  - recommonmark 
+  - pip:
+    - sphinx_copybutton

@@ -4,46 +4,195 @@ workflows:
   version: 2
   default:
     jobs:
-      - test-2.7:
+      - test-2.7-mpich:
           filters:
             branches:
               only:
                 - devel
- 
+      - test-2.7-openmpi:
+          filters:
+            branches:
+              only:
+                - devel
+      - test-3.6-mpich:
+          filters:
+            branches:
+              only:
+                - devel
+      - test-3.6-openmpi:
+          filters:
+            branches:
+              only:
+                - devel
+
 jobs:
-  test-2.7:
+
+  test-2.7-mpich:
     docker:
-      - image: frolvlad/alpine-miniconda3
+      - image: continuumio/miniconda:latest
+
+    environment:
+      PYTHON: "2.7"
+      ENV_NAME: "asaptools-dev"
+      MPI: "mpich"
+
     steps:
-      - run: apk add --no-cache build-base ca-certificates git openssh bash curl
       - checkout
       - restore_cache:
-          keys:
-            - conda-pkgs
-      - run: conda create -q -n asaptools-dev python=2.7 && conda env update -f environment-dev.yml --prune
-      - run: source activate asaptools-dev && pip install --no-deps -e .
-      - save_cache:
-          key: conda-pkgs
-          paths:
-            - /opt/conda/pkgs
+          key: deps-{{ .Branch }}-2.7-mpich-{{ checksum ".circleci/env-2.7-mpich.yml" }}
+      - run:
+          name: Install and activate conda environment
+          command: .circleci/install.sh
       - run:
           name: Running tests
           command: |
-            source activate asaptools-dev
-            coverage run -p -m tests.vprinterTests
-            coverage run -p -m tests.timekeeperTests
-            coverage run -p -m tests.partitionTests
-            coverage run -p -m tests.partitionArrayTests
-            coverage run -p -m tests.simpleCommP1STests
-            mpirun -np 4 coverage run -p -m tests.simpleCommParTests
-            mpirun -np 4 coverage run -p -m tests.simpleCommParDivTests
+            conda activate ${ENV_NAME}
+            coverage run -p -m asaptools.tests.vprinterTests
+            coverage run -p -m asaptools.tests.timekeeperTests
+            coverage run -p -m asaptools.tests.partitionTests
+            coverage run -p -m asaptools.tests.partitionArrayTests
+            coverage run -p -m asaptools.tests.simpleCommP1STests
+            mpirun -np 4 coverage run -p -m asaptools.tests.simpleCommParTests
+            mpirun -np 4 coverage run -p -m asaptools.tests.simpleCommParDivTests
             coverage combine
       - run:
           name: Coverage
           command: |
-            source activate asaptools-dev
+            conda activate ${ENV_NAME}
             curl -s https://codecov.io/bash > .codecov
             chmod +x .codecov
             ./.codecov
           when: on_success
+      - save_cache:
+          key: deps-{{ .Branch }}-2.7-mpich-{{ checksum ".circleci/env-2.7-mpich.yml" }}
+          paths:
+            - "/opt/conda/envs/${ENV_NAME}/"
+            - "/opt/conda/pkgs"
 
+  test-2.7-openmpi:
+    docker:
+      - image: continuumio/miniconda:latest
+
+    environment:
+      PYTHON: "2.7"
+      ENV_NAME: "asaptools-dev"
+      MPI: "openmpi"
+      OMPI_MCA_rmaps_base_oversubscribe: "1"
+
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps-{{ .Branch }}-2.7-mpich-{{ checksum ".circleci/env-2.7-openmpi.yml" }}
+      - run:
+          name: Install and activate conda environment
+          command: .circleci/install.sh
+      - run:
+          name: Running tests
+          command: |
+            conda activate ${ENV_NAME}
+            coverage run -p -m asaptools.tests.vprinterTests
+            coverage run -p -m asaptools.tests.timekeeperTests
+            coverage run -p -m asaptools.tests.partitionTests
+            coverage run -p -m asaptools.tests.partitionArrayTests
+            coverage run -p -m asaptools.tests.simpleCommP1STests
+            mpirun --allow-run-as-root -np 4 coverage run -p -m asaptools.tests.simpleCommParTests
+            mpirun --allow-run-as-root -np 4 coverage run -p -m asaptools.tests.simpleCommParDivTests
+            coverage combine
+      - run:
+          name: Coverage
+          command: |
+            conda activate ${ENV_NAME}
+            curl -s https://codecov.io/bash > .codecov
+            chmod +x .codecov
+            ./.codecov
+          when: on_success
+      - save_cache:
+          key: deps-{{ .Branch }}-2.7-mpich-{{ checksum ".circleci/env-2.7-openmpi.yml" }}
+          paths:
+            - "/opt/conda/envs/${ENV_NAME}/"
+            - "/opt/conda/pkgs"
+
+  test-3.6-mpich:
+    docker:
+      - image: continuumio/miniconda:latest
+
+    environment:
+      PYTHON: "3.6"
+      ENV_NAME: "asaptools-dev"
+      MPI: "mpich"
+
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps-{{ .Branch }}-3.6-mpich-{{ checksum ".circleci/env-3.6-mpich.yml" }}
+      - run:
+          name: Install and activate conda environment
+          command: .circleci/install.sh
+      - run:
+          name: Running tests
+          command: |
+            conda activate ${ENV_NAME}
+            coverage run -p -m asaptools.tests.vprinterTests
+            coverage run -p -m asaptools.tests.timekeeperTests
+            coverage run -p -m asaptools.tests.partitionTests
+            coverage run -p -m asaptools.tests.partitionArrayTests
+            coverage run -p -m asaptools.tests.simpleCommP1STests
+            mpirun -np 4 coverage run -p -m asaptools.tests.simpleCommParTests
+            mpirun -np 4 coverage run -p -m asaptools.tests.simpleCommParDivTests
+            coverage combine
+      - run:
+          name: Coverage
+          command: |
+            conda activate ${ENV_NAME}
+            curl -s https://codecov.io/bash > .codecov
+            chmod +x .codecov
+            ./.codecov
+          when: on_success
+      - save_cache:
+          key: deps-{{ .Branch }}-3.6-mpich-{{ checksum ".circleci/env-3.6-mpich.yml" }}
+          paths:
+            - "/opt/conda/envs/${ENV_NAME}/"
+            - "/opt/conda/pkgs"
+
+  test-3.6-openmpi:
+    docker:
+      - image: continuumio/miniconda:latest
+
+    environment:
+      PYTHON: "3.6"
+      ENV_NAME: "asaptools-dev"
+      MPI: "openmpi"
+      OMPI_MCA_rmaps_base_oversubscribe: "1"
+
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps-{{ .Branch }}-3.6-openmpi-{{ checksum ".circleci/env-3.6-openmpi.yml" }}
+      - run:
+          name: Install and activate conda environment
+          command: .circleci/install.sh
+      - run:
+          name: Running tests
+          command: |
+            conda activate ${ENV_NAME}
+            coverage run -p -m asaptools.tests.vprinterTests
+            coverage run -p -m asaptools.tests.timekeeperTests
+            coverage run -p -m asaptools.tests.partitionTests
+            coverage run -p -m asaptools.tests.partitionArrayTests
+            coverage run -p -m asaptools.tests.simpleCommP1STests
+            mpirun --allow-run-as-root -np 4 coverage run -p -m asaptools.tests.simpleCommParTests
+            mpirun --allow-run-as-root -np 4 coverage run -p -m asaptools.tests.simpleCommParDivTests
+            coverage combine
+      - run:
+          name: Coverage
+          command: |
+            conda activate ${ENV_NAME}
+            curl -s https://codecov.io/bash > .codecov
+            chmod +x .codecov
+            ./.codecov
+          when: on_success
+      - save_cache:
+          key: deps-{{ .Branch }}-3.6-openmpi-{{ checksum ".circleci/env-3.6-openmpi.yml" }}
+          paths:
+            - "/opt/conda/envs/${ENV_NAME}/"
+            - "/opt/conda/pkgs"
