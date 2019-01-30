@@ -1,6 +1,3 @@
-.. image:: https://travis-ci.org/NCAR/ASAPPyTools.svg?branch=devel
-    :target: https://travis-ci.org/NCAR/ASAPPyTools
-
 .. image:: https://readthedocs.org/projects/asappytools/badge/?version=latest
     :target: https://asappytools.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
