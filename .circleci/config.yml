@@ -46,7 +46,7 @@ jobs:
       - run:
           name: Running tests
           command: |
-            conda activate ${ENV_NAME}
+            source activate ${ENV_NAME}
             coverage run -p -m asaptools.tests.vprinterTests
             coverage run -p -m asaptools.tests.timekeeperTests
             coverage run -p -m asaptools.tests.partitionTests
@@ -58,7 +58,7 @@ jobs:
       - run:
           name: Coverage
           command: |
-            conda activate ${ENV_NAME}
+            source activate ${ENV_NAME}
             curl -s https://codecov.io/bash > .codecov
             chmod +x .codecov
             ./.codecov
@@ -89,7 +89,7 @@ jobs:
       - run:
           name: Running tests
           command: |
-            conda activate ${ENV_NAME}
+            source activate ${ENV_NAME}
             coverage run -p -m asaptools.tests.vprinterTests
             coverage run -p -m asaptools.tests.timekeeperTests
             coverage run -p -m asaptools.tests.partitionTests
@@ -101,7 +101,7 @@ jobs:
       - run:
           name: Coverage
           command: |
-            conda activate ${ENV_NAME}
+            source activate ${ENV_NAME}
             curl -s https://codecov.io/bash > .codecov
             chmod +x .codecov
             ./.codecov
@@ -131,7 +131,7 @@ jobs:
       - run:
           name: Running tests
           command: |
-            conda activate ${ENV_NAME}
+            source activate ${ENV_NAME}
             coverage run -p -m asaptools.tests.vprinterTests
             coverage run -p -m asaptools.tests.timekeeperTests
             coverage run -p -m asaptools.tests.partitionTests
@@ -143,7 +143,7 @@ jobs:
       - run:
           name: Coverage
           command: |
-            conda activate ${ENV_NAME}
+            source activate ${ENV_NAME}
             curl -s https://codecov.io/bash > .codecov
             chmod +x .codecov
             ./.codecov
@@ -174,7 +174,7 @@ jobs:
       - run:
           name: Running tests
           command: |
-            conda activate ${ENV_NAME}
+            source activate ${ENV_NAME}
             coverage run -p -m asaptools.tests.vprinterTests
             coverage run -p -m asaptools.tests.timekeeperTests
             coverage run -p -m asaptools.tests.partitionTests
@@ -186,7 +186,7 @@ jobs:
       - run:
           name: Coverage
           command: |
-            conda activate ${ENV_NAME}
+            source activate ${ENV_NAME}
             curl -s https://codecov.io/bash > .codecov
             chmod +x .codecov
             ./.codecov
