@@ -135,10 +135,10 @@ HTML documentation. Once built, you will be able to open the
 'docs/build/html/index.html' page in any browser.
 
 
-.. |Circle| image:: https://img.shields.io/circleci/project/github/NCAR/ASAPPyTools/master.svg?style=for-the-badge&logo=circleci
+.. |Circle| image:: https://img.shields.io/circleci/project/github/NCAR/ASAPPyTools/devel.svg?style=for-the-badge&logo=circleci
     :target: https://circleci.com/gh/NCAR/ASAPPyTools/tree/devel
 
-.. |Codecov| image:: https://img.shields.io/codecov/c/github/NCAR/ASAPPyTools.svg?style=for-the-badge
+.. |Codecov| image:: https://img.shields.io/codecov/c/github/NCAR/ASAPPyTools/devel.svg?style=for-the-badge
     :target: https://codecov.io/gh/NCAR/ASAPPyTools/branch/devel
 
 .. |Docs| image:: https://readthedocs.org/projects/ASAPPyTools/badge/?version=latest&style=for-the-badge
