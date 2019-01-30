@@ -5,7 +5,7 @@ Copyright 2017, University Corporation for Atmospheric Research
 See the LICENSE.txt file for details
 """
 
-from __future__ import print_function
+from __future__ import print_function, division, absolute_import
 
 import unittest
 from asaptools import partition
@@ -38,9 +38,6 @@ class partitionArrayTests(unittest.TestCase):
             for (i, s) in indices_sizes:
                 self.inputs.append((d, i, s))
 
-    def tearDown(self):
-        pass
-
     def testOutOfBounds(self):
         self.assertRaises(
             IndexError, partition.EqualLength(), [1, 2, 3], 3, 3)
@@ -52,10 +49,7 @@ class partitionArrayTests(unittest.TestCase):
             pfunc = partition.Duplicate()
             actual = pfunc(*inp)
             expected = inp[0]
-            msg = test_info_msg(
-                'Duplicate', inp[0], inp[1], inp[2], actual, expected)
-            print(msg)
-            testing.assert_array_equal(actual, expected, msg)
+            testing.assert_array_equal(actual, expected)
 
     def testEquallength(self):
         results = [arange(3), array([1]), array([]),
@@ -65,20 +59,14 @@ class partitionArrayTests(unittest.TestCase):
             pfunc = partition.EqualLength()
             actual = pfunc(*inp)
             expected = results[ii]
-            msg = test_info_msg(
-                'EqualLength', inp[0], inp[1], inp[2], actual, expected)
-            print(msg)
-            testing.assert_array_equal(actual, expected, msg)
+            testing.assert_array_equal(actual, expected)
 
     def testEqualStride(self):
         for inp in self.inputs:
             pfunc = partition.EqualStride()
             actual = pfunc(*inp)
             expected = inp[0][inp[1]::inp[2]]
-            msg = test_info_msg(
-                'EqualStride', inp[0], inp[1], inp[2], actual, expected)
-            print(msg)
-            testing.assert_array_equal(actual, expected, msg)
+            testing.assert_array_equal(actual, expected)
 
     def testSortedStride(self):
         for inp in self.inputs:
@@ -88,10 +76,7 @@ class partitionArrayTests(unittest.TestCase):
             actual = pfunc(data, inp[1], inp[2])
             expected = inp[0][::-1]
             expected = expected[inp[1]::inp[2]]
-            msg = test_info_msg(
-                'SortedStride', data, inp[1], inp[2], actual, expected)
-            print(msg)
-            testing.assert_array_equal(actual, expected, msg)
+            testing.assert_array_equal(actual, expected)
 
     def testWeightBalanced(self):
         results = [set([0, 1, 2]), set([1]), set(),
@@ -103,12 +88,8 @@ class partitionArrayTests(unittest.TestCase):
             data = dstack((inp[0], weights))[0]
             actual = set(pfunc(data, inp[1], inp[2]))
             expected = results[ii]
-            msg = test_info_msg(
-                'WeightBalanced', data, inp[1], inp[2], actual, expected)
-            print(msg)
-            self.assertEqual(actual, expected, msg)
+            self.assertEqual(actual, expected)
 
 
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testBasicInt']
     unittest.main()

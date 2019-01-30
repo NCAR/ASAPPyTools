@@ -18,13 +18,6 @@ except ImportError:
     from io import StringIO
 
 
-def test_message(name, data, actual, expected):
-    spcr = ' ' * len(name)
-    return ''.join([name, ' - data:     ', str(data), linesep,
-                    spcr, ' - actual:   ', str(actual), linesep,
-                    spcr, ' - expected: ', str(expected), linesep])
-
-
 class VPrinterTests(unittest.TestCase):
 
     def setUp(self):
@@ -35,17 +28,13 @@ class VPrinterTests(unittest.TestCase):
         data = ['a', 'b', 'c', 1, 2, 3, 4.0, 5.0, 6.0]
         actual = self.vprint.to_str(*data)
         expected = ''.join([str(d) for d in data])
-        msg = test_message('to_str(*data)', data, actual, expected)
-        print(msg)
-        self.assertEqual(actual, expected, msg)
+        self.assertEqual(actual, expected)
 
     def testToStrHeader(self):
         data = ['a', 'b', 'c', 1, 2, 3, 4.0, 5.0, 6.0]
         actual = self.vprint.to_str(*data, header=True)
         expected = self.header + ''.join([str(d) for d in data])
-        msg = test_message('to_str(*data)', data, actual, expected)
-        print(msg)
-        self.assertEqual(actual, expected, msg)
+        self.assertEqual(actual, expected)
 
     def testVPrint(self):
         data = ['a', 'b', 'c', 1, 2, 3, 4.0, 5.0, 6.0]
@@ -56,9 +45,7 @@ class VPrinterTests(unittest.TestCase):
         sys.stdout.close()
         sys.stdout = backup
         expected = self.vprint.to_str(*data) + linesep
-        msg = test_message('vprint(*data)', data, actual, expected)
-        print(msg)
-        self.assertEqual(actual, expected, msg)
+        self.assertEqual(actual, expected)
 
     def testVPrintHeader(self):
         data = ['a', 'b', 'c', 1, 2, 3, 4.0, 5.0, 6.0]
@@ -69,9 +56,7 @@ class VPrinterTests(unittest.TestCase):
         sys.stdout.close()
         sys.stdout = backup
         expected = self.vprint.to_str(*data, header=True) + linesep
-        msg = test_message('vprint(*data)', data, actual, expected)
-        print(msg)
-        self.assertEqual(actual, expected, msg)
+        self.assertEqual(actual, expected)
 
     def testVPrintVerbosityCut(self):
         data = ['a', 'b', 'c', 1, 2, 3, 4.0, 5.0, 6.0]
@@ -82,11 +67,8 @@ class VPrinterTests(unittest.TestCase):
         sys.stdout.close()
         sys.stdout = backup
         expected = ''
-        msg = test_message('vprint(*data)', data, actual, expected)
-        print(msg)
-        self.assertEqual(actual, expected, msg)
+        self.assertEqual(actual, expected)
 
 
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testToStr']
     unittest.main()
