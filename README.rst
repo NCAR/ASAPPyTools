@@ -102,11 +102,11 @@ documentation_.
 
 .. _documentation: https://asappytools.readthedocs.io/en/latest/
 
-.. |Circle| image:: https://img.shields.io/circleci/project/github/NCAR/ASAPPyTools/devel.svg?style=for-the-badge&logo=circleci
-    :target: https://circleci.com/gh/NCAR/ASAPPyTools/tree/devel
+.. |Circle| image:: https://img.shields.io/circleci/project/github/NCAR/ASAPPyTools.svg?style=for-the-badge&logo=circleci
+    :target: https://circleci.com/gh/NCAR/ASAPPyTools
 
-.. |Codecov| image:: https://img.shields.io/codecov/c/github/NCAR/ASAPPyTools/devel.svg?style=for-the-badge
-    :target: https://codecov.io/gh/NCAR/ASAPPyTools/branch/devel
+.. |Codecov| image:: https://img.shields.io/codecov/c/github/NCAR/ASAPPyTools.svg?style=for-the-badge
+    :target: https://codecov.io/gh/NCAR/ASAPPyTools
 
 .. |Docs| image:: https://readthedocs.org/projects/asappytools/badge/?version=latest&style=for-the-badge
     :target: https://asappytools.readthedocs.io/en/latest/?badge=latest
