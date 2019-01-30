@@ -4,26 +4,10 @@ workflows:
   version: 2
   default:
     jobs:
-      - test-2.7-mpich:
-          filters:
-            branches:
-              only:
-                - devel
-      - test-2.7-openmpi:
-          filters:
-            branches:
-              only:
-                - devel
-      - test-3.6-mpich:
-          filters:
-            branches:
-              only:
-                - devel
-      - test-3.6-openmpi:
-          filters:
-            branches:
-              only:
-                - devel
+      - test-2.7-mpich
+      - test-2.7-openmpi
+      - test-3.6-mpich
+      - test-3.6-openmpi
 
 jobs:
 
