@@ -1,16 +1,8 @@
-.. image:: https://readthedocs.org/projects/asappytools/badge/?version=latest
-    :target: https://asappytools.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
-
-.. image:: https://codecov.io/gh/NCAR/ASAPPyTools/branch/devel/graph/badge.svg
-    :target: https://codecov.io/gh/NCAR/ASAPPyTools
-  
-.. image:: https://circleci.com/gh/NCAR/ASAPPyTools/tree/devel.svg?style=svg
-    :target: https://circleci.com/gh/NCAR/ASAPPyTools/tree/devel
-
 =======================
 The ASAP Python Toolbox
 =======================
+
+|Circle| |Codecov| |Docs| |PyPI|
 
 The ASAP Python Toolbox is a collection of stand-alone tools for doing simple
 tasks, from managing print messages with a set verbosity level, to
@@ -141,3 +133,18 @@ documentation found in the docs directory.  Please read the
 'Building & Installation' section above for instructions on how to build the
 HTML documentation. Once built, you will be able to open the
 'docs/build/html/index.html' page in any browser.
+
+
+.. |Circle| image:: https://img.shields.io/circleci/project/github/NCAR/ASAPPyTools/master.svg?style=for-the-badge&logo=circleci
+    :target: https://circleci.com/gh/dask/dask-mpi/tree/master
+
+.. |Codecov| image:: https://img.shields.io/codecov/c/github/NCAR/ASAPPyTools.svg?style=for-the-badge
+    :target: https://codecov.io/gh/dask/dask-mpi
+
+.. |Docs| image:: https://readthedocs.org/projects/ASAPPyTools/badge/?version=latest&style=for-the-badge
+    :target: https://asappytools.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
+.. |PyPI| image:: https://img.shields.io/pypi/v/asaptools.svg?style=for-the-badge
+    :target: https://pypi.org/project/asaptools/
+    :alt: Python Package Index
