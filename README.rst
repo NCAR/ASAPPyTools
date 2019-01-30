@@ -93,47 +93,14 @@ This can be handy since the site-packages directory will be common for
 all user installs, and therefore only needs to be added to the
 PYTHONPATH once.
 
-To build the documentation for developer use, you will need Sphinx.  Sphinx
-can be installed with the pip utility simple::
-
-    $  pip install Sphinx
-
-Once Sphinx is installed, you can build the ASAP Python Toolbox's
-HTML documentation with::
-
-    $  cd docs
-    $  make html
-
-which will build the documentation in the docs/build/html directory.  If you
-wish to build a PDF, do the following::
-
-    $  cd docs
-    $  make latexpdf
-
-which requires pdflatex to build a PDF version of the documentation.
-
-Before Using the ASAP Python Toolbox
-------------------------------------
-
-Before the ASAP Python Toolbox package can be used, you must make sure that the
-site-packages directory containing the 'pytools' source directory is in
-your PYTHONPATH. Depending on the PREFIX used during installation, this
-path will be::
-
-    $PREFIX/lib/python2.X/site-packages
-
-where X will be 6 or 7 (or other) depending on the version of Python
-that you are using to install the package.
-
 Instructions & Use
 ------------------
 
-For instructions on how to use the ASAP Python Toolbox, see the additional
-documentation found in the docs directory.  Please read the
-'Building & Installation' section above for instructions on how to build the
-HTML documentation. Once built, you will be able to open the
-'docs/build/html/index.html' page in any browser.
+For instructions on how to use the ASAP Python Toolbox, see the
+documentation_.
 
+
+.. _documentation: https://asappytools.readthedocs.io/en/latest/
 
 .. |Circle| image:: https://img.shields.io/circleci/project/github/NCAR/ASAPPyTools/devel.svg?style=for-the-badge&logo=circleci
     :target: https://circleci.com/gh/NCAR/ASAPPyTools/tree/devel
