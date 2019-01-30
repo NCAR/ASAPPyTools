@@ -8,9 +8,11 @@ dependencies:
   - numpy
   - coverage
   - pytest
+  - pytest-cov
   - sphinx
   - versioneer
-  - coverage 
+  - coverage
+  - codecov
   - sphinx_rtd_theme 
   - recommonmark 
   - pip:
