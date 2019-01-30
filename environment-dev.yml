@@ -6,7 +6,6 @@ dependencies:
   - mpich
   - mpi4py
   - numpy
-  - coverage
   - pytest
   - pytest-cov
   - sphinx
