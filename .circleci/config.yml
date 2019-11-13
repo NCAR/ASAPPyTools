@@ -42,8 +42,9 @@ jobs:
       - run:
           name: Coverage
           command: |
+            apt-get install curl
             source activate ${ENV_NAME}
-            wget https://codecov.io/bash -O .codecov
+            curl -s https://codecov.io/bash > .codecov
             chmod +x .codecov
             ./.codecov
           when: on_success
@@ -85,8 +86,9 @@ jobs:
       - run:
           name: Coverage
           command: |
+            apt-get install curl
             source activate ${ENV_NAME}
-            wget https://codecov.io/bash -O .codecov
+            curl -s https://codecov.io/bash > .codecov
             chmod +x .codecov
             ./.codecov
           when: on_success
@@ -127,8 +129,9 @@ jobs:
       - run:
           name: Coverage
           command: |
+            apt-get install curl
             source activate ${ENV_NAME}
-            wget https://codecov.io/bash -O .codecov
+            curl -s https://codecov.io/bash > .codecov
             chmod +x .codecov
             ./.codecov
           when: on_success
@@ -170,8 +173,9 @@ jobs:
       - run:
           name: Coverage
           command: |
+            apt-get install curl
             source activate ${ENV_NAME}
-            wget https://codecov.io/bash -O .codecov
+            curl -s https://codecov.io/bash > .codecov
             chmod +x .codecov
             ./.codecov
           when: on_success
