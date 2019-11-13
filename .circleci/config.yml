@@ -43,7 +43,7 @@ jobs:
           name: Coverage
           command: |
             source activate ${ENV_NAME}
-            curl -s https://codecov.io/bash > .codecov
+            wget https://codecov.io/bash -O .codecov
             chmod +x .codecov
             ./.codecov
           when: on_success
@@ -86,7 +86,7 @@ jobs:
           name: Coverage
           command: |
             source activate ${ENV_NAME}
-            curl -s https://codecov.io/bash > .codecov
+            wget https://codecov.io/bash -O .codecov
             chmod +x .codecov
             ./.codecov
           when: on_success
@@ -128,7 +128,7 @@ jobs:
           name: Coverage
           command: |
             source activate ${ENV_NAME}
-            curl -s https://codecov.io/bash > .codecov
+            wget https://codecov.io/bash -O .codecov
             chmod +x .codecov
             ./.codecov
           when: on_success
@@ -171,7 +171,7 @@ jobs:
           name: Coverage
           command: |
             source activate ${ENV_NAME}
-            curl -s https://codecov.io/bash > .codecov
+            wget https://codecov.io/bash -O .codecov
             chmod +x .codecov
             ./.codecov
           when: on_success
