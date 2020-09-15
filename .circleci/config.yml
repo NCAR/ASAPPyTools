@@ -7,6 +7,8 @@ workflows:
       - test-3.6-mpich
       - test-3.6-openmpi
 
+default-job:
+
 jobs:
 
   test-3.6-mpich:
@@ -14,33 +16,23 @@ jobs:
       - image: continuumio/miniconda:latest
 
     environment:
-      PYTHON: "3.6"
-      ENV_NAME: "asaptools-dev"
-      MPI: "mpich"
+      ENV: "3.6-mpich"
+      COV: "enabled"
 
     steps:
       - checkout
       - restore_cache:
-          key: deps-{{ .Branch }}-3.6-mpich-{{ checksum "ci/env-3.6-mpich.yml" }}
+          key: deps-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
       - run:
           name: Install and activate conda environment
           command: ci/install.sh
       - run:
           name: Running tests
-          command: ci/test_with_coverage.sh
-      - run:
-          name: Coverage
-          command: |
-            apt-get --yes install curl
-            source activate ${ENV_NAME}
-            curl -s https://codecov.io/bash > .codecov
-            chmod +x .codecov
-            ./.codecov
-          when: on_success
+          command: ci/runtests.sh
       - save_cache:
-          key: deps-{{ .Branch }}-3.6-mpich-{{ checksum "ci/env-3.6-mpich.yml" }}
+          key: deps-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
           paths:
-            - "/opt/conda/envs/${ENV_NAME}/"
+            - "/opt/conda/envs/asaptools-${PYTHON}-${MPI}/"
             - "/opt/conda/pkgs"
 
   test-3.6-openmpi:
@@ -48,9 +40,7 @@ jobs:
       - image: continuumio/miniconda:latest
 
     environment:
-      PYTHON: "3.6"
-      ENV_NAME: "asaptools-dev"
-      MPI: "openmpi"
+      ENV: "3.6-openmpi"
       OMPI_MCA_rmaps_base_oversubscribe: "1"
       OMPI_ALLOW_RUN_AS_ROOT: "1"
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: "1"
@@ -58,24 +48,15 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps-{{ .Branch }}-3.6-openmpi-{{ checksum "ci/env-3.6-openmpi.yml" }}
+          key: deps-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
       - run:
           name: Install and activate conda environment
           command: ci/install.sh
       - run:
           name: Running tests
-          command: ci/test.sh
-      - run:
-          name: Coverage
-          command: |
-            apt-get --yes install curl
-            source activate ${ENV_NAME}
-            curl -s https://codecov.io/bash > .codecov
-            chmod +x .codecov
-            ./.codecov
-          when: on_success
+          command: ci/runtests.sh
       - save_cache:
-          key: deps-{{ .Branch }}-3.6-openmpi-{{ checksum "ci/env-3.6-openmpi.yml" }}
+          key: deps-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
           paths:
-            - "/opt/conda/envs/${ENV_NAME}/"
+            - "/opt/conda/envs/asaptools-${PYTHON}-${MPI}/"
             - "/opt/conda/pkgs"
