@@ -24,10 +24,10 @@ jobs:
       - restore_cache:
           key: deps-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}
       - run:
-          name: Install and activate conda environment
+          name: Install conda environment
           command: ci/install.sh
       - run:
-          name: Running tests
+          name: Run tests
           command: ci/runtests.sh
       - save_cache:
           key: deps-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}

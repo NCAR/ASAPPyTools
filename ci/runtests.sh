@@ -6,12 +6,14 @@ set -eo pipefail
 if [[ -z "${ENV}" ]]; then
   ENV=default
 fi
+echo "${ENV}"
 
 if [[ -z "${COV}" ]]; then
   CMD="python -m unittest"
 else
   CMD="coverage run -p -m"
 fi
+echo "${CMD}"
 
 source activate asaptools-${ENV}
 ${CMD} asaptools.tests.vprinterTests

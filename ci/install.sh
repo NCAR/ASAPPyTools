@@ -6,6 +6,7 @@ set -eo pipefail
 if [[ -z "${ENV}" ]]; then
   ENV=default
 fi
+echo "${ENV}"
 
 conda config --set always_yes true --set changeps1 false --set quiet true
 conda update -q conda
