@@ -49,19 +49,11 @@ jobs:
           python -m pip install -e .
           conda list
       - name: Run Tests
-        run: |
-          coverage run -p -m asaptools.tests.vprinterTests
-          coverage run -p -m asaptools.tests.timekeeperTests
-          coverage run -p -m asaptools.tests.partitionTests
-          coverage run -p -m asaptools.tests.partitionArrayTests
-          coverage run -p -m asaptools.tests.simpleCommP1STests
-          mpirun -np 4 coverage run -p -m asaptools.tests.simpleCommParTests
-          mpirun -np 4 coverage run -p -m asaptools.tests.simpleCommParDivTests
-          coverage combine
+        run: ci/runtests.sh
       - name: Upload code coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
-          file: ./.coverage
+          file: ./coverage.xml
           flags: unittests
           env_vars: PYTHON,MPI
           name: codecov-umbrella
