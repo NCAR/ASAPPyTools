@@ -21,10 +21,10 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps-{{ .Branch }}-3.6-mpich-{{ checksum ".circleci/env-3.6-mpich.yml" }}
+          key: deps-{{ .Branch }}-3.6-mpich-{{ checksum "ci/env-3.6-mpich.yml" }}
       - run:
           name: Install and activate conda environment
-          command: .circleci/install.sh
+          command: ci/install.sh
       - run:
           name: Running tests
           command: |
@@ -47,7 +47,7 @@ jobs:
             ./.codecov
           when: on_success
       - save_cache:
-          key: deps-{{ .Branch }}-3.6-mpich-{{ checksum ".circleci/env-3.6-mpich.yml" }}
+          key: deps-{{ .Branch }}-3.6-mpich-{{ checksum "ci/env-3.6-mpich.yml" }}
           paths:
             - "/opt/conda/envs/${ENV_NAME}/"
             - "/opt/conda/pkgs"
@@ -65,10 +65,10 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps-{{ .Branch }}-3.6-openmpi-{{ checksum ".circleci/env-3.6-openmpi.yml" }}
+          key: deps-{{ .Branch }}-3.6-openmpi-{{ checksum "ci/env-3.6-openmpi.yml" }}
       - run:
           name: Install and activate conda environment
-          command: .circleci/install.sh
+          command: ci/install.sh
       - run:
           name: Running tests
           command: |
@@ -91,7 +91,7 @@ jobs:
             ./.codecov
           when: on_success
       - save_cache:
-          key: deps-{{ .Branch }}-3.6-openmpi-{{ checksum ".circleci/env-3.6-openmpi.yml" }}
+          key: deps-{{ .Branch }}-3.6-openmpi-{{ checksum "ci/env-3.6-openmpi.yml" }}
           paths:
             - "/opt/conda/envs/${ENV_NAME}/"
             - "/opt/conda/pkgs"
