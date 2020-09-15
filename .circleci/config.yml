@@ -52,6 +52,8 @@ jobs:
       ENV_NAME: "asaptools-dev"
       MPI: "openmpi"
       OMPI_MCA_rmaps_base_oversubscribe: "1"
+      OMPI_ALLOW_RUN_AS_ROOT: "1"
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: "1"
 
     steps:
       - checkout
