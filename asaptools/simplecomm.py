@@ -115,7 +115,7 @@ operations can be performed in the same way as described above for the *global*
 group.
 
 
-Copyright 2019 University Corporation for Atmospheric Research
+Copyright 2020 University Corporation for Atmospheric Research
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -577,7 +577,7 @@ class SimpleCommMPI(SimpleComm):
                 return False
         else:
             return False
-        
+
     def get_size(self):
         """
         Get the integer number of ranks in this communicator.
@@ -712,7 +712,7 @@ class SimpleCommMPI(SimpleComm):
                 msg['buffer'] = self._is_bufferable(part)
                 msg['shape'] = getattr(part, 'shape', None)
                 msg['dtype'] = getattr(part, 'dtype', None)
-                
+
                 # Send the handshake message to the worker rank
                 msg_tag = self._tag_offset(self.PART_TAG, self.MSG_TAG, tag)
                 self._comm.send(msg, dest=i, tag=msg_tag)
@@ -747,8 +747,8 @@ class SimpleCommMPI(SimpleComm):
             msg = self._comm.recv(source=0, tag=msg_tag)
 
             # Check the message content
-            ack = (type(msg) is dict and 
-                   all([key in msg for key in 
+            ack = (type(msg) is dict and
+                   all([key in msg for key in
                         ['rank', 'buffer', 'shape', 'dtype']]))
 
             # If the message is good, acknowledge
@@ -911,7 +911,7 @@ class SimpleCommMPI(SimpleComm):
 
                 # Check the message content
                 ack = (type(msg) is dict and
-                       all([key in msg for key in 
+                       all([key in msg for key in
                             ['rank', 'buffer', 'shape', 'dtype']]))
 
                 # Send acknowledgement back to the worker

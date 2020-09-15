@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-Copyright 2019 University Corporation for Atmospheric Research
+Copyright 2020 University Corporation for Atmospheric Research
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ Version 0.6.0
 Version 0.5.4
 -------------
 
-- Bugfix: Special catch for dtype='c' (C-type char arrays) in check for 
+- Bugfix: Special catch for dtype='c' (C-type char arrays) in check for
   Numpy arrays being bufferable
 
 Version 0.5.3
@@ -36,14 +36,14 @@ Version 0.5.2
 -------------
 
 - Improved testing for send/recv data types
-- Backwards compatability with mpi4py version 1.3.1 
+- Backwards compatability with mpi4py version 1.3.1
 
 Version 0.5.1
 -------------
 
 - Checking dtype of Numpy NDArrays before determing if buffered send/recv
   calls can be used.
- 
+
 Version 0.5.0
 -------------
 

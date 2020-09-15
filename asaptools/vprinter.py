@@ -5,7 +5,7 @@ This module contains the VPrinter class that enables clean printing to
 standard out (or a string) with verbosity-level print management.
 
 
-Copyright 2019 University Corporation for Atmospheric Research
+Copyright 2020 University Corporation for Atmospheric Research
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ class VPrinter(object):
         to a string representation, and concatenates them into a single string.
 
         Parameters:
-            args (list): A list of arguments supplied to the function.  All 
+            args (list): A list of arguments supplied to the function.  All
                 of these arguments will be concatenated together.
 
         Keyword Arguments:
@@ -73,11 +73,11 @@ class VPrinter(object):
         Returns:
             str: A single string with the arguments given converted to strings
                 and concatenated together (in order).  If the keyword
-                'header==True' is supplied, then the 'header' string is 
+                'header==True' is supplied, then the 'header' string is
                 prepended to the string before being output.
 
         Raises:
-            TypeError: If the 'header' keyword argument is supplied and is 
+            TypeError: If the 'header' keyword argument is supplied and is
                 not a bool
         """
         out_args = []
@@ -100,7 +100,7 @@ class VPrinter(object):
         also print a useful header based on the parallel rank and size.
 
         Parameters:
-            args (list): A list of arguments supplied to the function.  All 
+            args (list): A list of arguments supplied to the function.  All
                 of these arguments will be concatenated together.
 
         Keyword Arguments:

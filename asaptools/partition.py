@@ -11,7 +11,7 @@ By design, partitioning functions should keep the data "unchanged" except for
 subselecting parts of the data.
 
 
-Copyright 2019 University Corporation for Atmospheric Research
+Copyright 2020 University Corporation for Atmospheric Research
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -40,8 +40,8 @@ class PartitionFunction(object):
     The abstract base-class for all Partitioning Function objects.
 
     A PartitionFunction object is one with a __call__ method that takes
-    three arguments.  The first argument is the data to be partitioned, the 
-    second argument is the index of the partition (or part) requested, and 
+    three arguments.  The first argument is the data to be partitioned, the
+    second argument is the index of the partition (or part) requested, and
     third argument is the number of partitions to assume when dividing
     the data.
     """
@@ -164,10 +164,10 @@ class EqualLength(PartitionFunction):
     Partition an indexable object by striding through the data.
 
     The initial object is "chopped" along its length into roughly equal length
-    sublists.  If the partition size is greater than the length of the input 
-    data, then it will return an empty list for 'empty' partitions.  If the 
-    data is not indexable, then it will return the data for index=0 only, and 
-    an empty list otherwise.  
+    sublists.  If the partition size is greater than the length of the input
+    data, then it will return an empty list for 'empty' partitions.  If the
+    data is not indexable, then it will return the data for index=0 only, and
+    an empty list otherwise.
     """
 
     def __call__(self, data, index=0, size=1):
@@ -217,8 +217,8 @@ class EqualStride(PartitionFunction):
     Partition an object by chopping the data into roughly equal lengths.
 
     This returns a sublist of an indexable object by "striding" through the
-    data in steps equal to the partition size.  If the partition size is 
-    greater than the length of the input data, then it will return an empty 
+    data in steps equal to the partition size.  If the partition size is
+    greater than the length of the input data, then it will return an empty
     list for "empty" partitions.  If the data is not indexable, then it will
     return the data for index=0 only, and an empty list otherwise.
     """
@@ -264,9 +264,9 @@ class SortedStride(PartitionFunction):
     """
     Partition an indexable list of pairs by striding through sorted data.
 
-    The first index of each pair is assumed to be an item of data (which will 
-    be partitioned), and the second index in each pair is assumed to be a 
-    numeric weight.  The pairs are first sorted by weight, and then partitions 
+    The first index of each pair is assumed to be an item of data (which will
+    be partitioned), and the second index in each pair is assumed to be a
+    numeric weight.  The pairs are first sorted by weight, and then partitions
     are returned by striding through the sorted data.
 
     The results are partitions of roughly equal length and roughly equal
@@ -310,9 +310,9 @@ class WeightBalanced(PartitionFunction):
     """
     Partition an indexable list of pairs by balancing the total weight.
 
-    The first index of each pair is assumed to be an item of data (which will 
-    be partitioned), and the second index in each pair is assumed to be a 
-    numeric weight.  The data items are grouped via a "greedy" binning 
+    The first index of each pair is assumed to be an item of data (which will
+    be partitioned), and the second index in each pair is assumed to be a
+    numeric weight.  The data items are grouped via a "greedy" binning
     algorithm into partitions of roughly equal total weight.
 
     The results are partitions of roughly equal length and roughly equal

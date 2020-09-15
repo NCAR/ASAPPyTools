@@ -5,7 +5,7 @@ This module contains is a simple class to act as a time keeper for internal
 performance monitoring (namely, timing given processes).
 
 
-Copyright 2019 University Corporation for Atmospheric Research
+Copyright 2020 University Corporation for Atmospheric Research
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

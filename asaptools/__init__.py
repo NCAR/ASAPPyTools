@@ -5,7 +5,7 @@ The ASAP Python Toolbox is a collection of stand-alone tools for doing simple
 tasks, from managing print messages with a set verbosity level, to
 keeping timing information, to managing simple MPI communication.
 
-Copyright 2019 University Corporation for Atmospheric Research
+Copyright 2020 University Corporation for Atmospheric Research
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
