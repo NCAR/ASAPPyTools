@@ -1,0 +1,67 @@
+name: Tests
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+  workflow_dispatch: # allows you to trigger manually
+
+jobs:
+  build:
+    name: python-${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ['3.6', '3.7', '3.8']
+        mpi: ['mpich', 'openmpi']
+    env:
+      OS: ${{ matrix.os }}
+      PYTHON: ${{ matrix.python }}
+      MPI: ${{ matrix.mpi }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache conda
+        uses: actions/cache@v2
+        env:
+          # Increase this value to reset cache if ci/environment.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key: ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{ hashFiles('ci/environment.yml') }}
+      - name: Setup miniconda
+        uses: goanpeca/setup-miniconda@v1
+        with:
+          activate-environment: asaptools # Defined in ci/environment.yml
+          auto-update-conda: false
+          python-version: ${{ matrix.python }}
+          environment-file: ci/env-${{ matrix.mpi }}
+          use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+      - name: Install package
+        run: |
+          python -m pip install -e .
+          conda list
+      - name: Run Tests
+        run: |
+          coverage run -p -m asaptools.tests.vprinterTests
+          coverage run -p -m asaptools.tests.timekeeperTests
+          coverage run -p -m asaptools.tests.partitionTests
+          coverage run -p -m asaptools.tests.partitionArrayTests
+          coverage run -p -m asaptools.tests.simpleCommP1STests
+          mpirun -np 4 coverage run -p -m asaptools.tests.simpleCommParTests
+          mpirun -np 4 coverage run -p -m asaptools.tests.simpleCommParDivTests
+          coverage combine
+      - name: Upload code coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./.coverage
+          flags: unittests
+          env_vars: OS,PYTHON,MPI
+          name: codecov-umbrella
+          fail_ci_if_error: false
