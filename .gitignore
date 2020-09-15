@@ -2,3 +2,4 @@
 *.egg-info
 .idea
 .vscode
+.coverage*
