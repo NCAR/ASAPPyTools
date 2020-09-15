@@ -27,16 +27,7 @@ jobs:
           command: ci/install.sh
       - run:
           name: Running tests
-          command: |
-            source activate ${ENV_NAME}
-            coverage run -p -m asaptools.tests.vprinterTests
-            coverage run -p -m asaptools.tests.timekeeperTests
-            coverage run -p -m asaptools.tests.partitionTests
-            coverage run -p -m asaptools.tests.partitionArrayTests
-            coverage run -p -m asaptools.tests.simpleCommP1STests
-            mpirun -np 4 coverage run -p -m asaptools.tests.simpleCommParTests
-            mpirun -np 4 coverage run -p -m asaptools.tests.simpleCommParDivTests
-            coverage combine
+          command: ci/test_with_coverage.sh
       - run:
           name: Coverage
           command: |
@@ -71,16 +62,7 @@ jobs:
           command: ci/install.sh
       - run:
           name: Running tests
-          command: |
-            source activate ${ENV_NAME}
-            coverage run -p -m asaptools.tests.vprinterTests
-            coverage run -p -m asaptools.tests.timekeeperTests
-            coverage run -p -m asaptools.tests.partitionTests
-            coverage run -p -m asaptools.tests.partitionArrayTests
-            coverage run -p -m asaptools.tests.simpleCommP1STests
-            mpirun --allow-run-as-root -np 4 coverage run -p -m asaptools.tests.simpleCommParTests
-            mpirun --allow-run-as-root -np 4 coverage run -p -m asaptools.tests.simpleCommParDivTests
-            coverage combine
+          command: ci/test.sh
       - run:
           name: Coverage
           command: |
