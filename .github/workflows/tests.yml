@@ -23,6 +23,9 @@ jobs:
     env:
       PYTHON: ${{ matrix.python }}
       MPI: ${{ matrix.mpi }}
+      OMPI_MCA_rmaps_base_oversubscribe: '1'
+      OMPI_ALLOW_RUN_AS_ROOT: '1'
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: '1'
     steps:
       - uses: actions/checkout@v2
       - name: Cache conda
@@ -39,7 +42,7 @@ jobs:
           activate-environment: asaptools # Defined in ci/environment.yml
           auto-update-conda: false
           python-version: ${{ matrix.python }}
-          environment-file: ci/env-${{ matrix.mpi }}
+          environment-file: ci/env-${{ matrix.mpi }}.yml
           use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
       - name: Install package
         run: |
