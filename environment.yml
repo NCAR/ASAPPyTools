@@ -1,7 +1,0 @@
-name: asaptools
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - mpi4py
-  - numpy
