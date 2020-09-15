@@ -1,4 +1,4 @@
-name: asaptools-dev
+name: asaptools
 channels:
   - conda-forge
   - defaults
@@ -12,7 +12,8 @@ dependencies:
   - versioneer
   - coverage
   - codecov
-  - sphinx_rtd_theme 
-  - recommonmark 
+  - sphinx_rtd_theme
+  - recommonmark
+  - pip
   - pip:
     - sphinx_copybutton
