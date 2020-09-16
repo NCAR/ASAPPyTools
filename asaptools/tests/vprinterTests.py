@@ -7,11 +7,12 @@ See the LICENSE.txt file for details
 
 from __future__ import print_function
 
-import unittest
 import sys
+import unittest
+from os import linesep
 
 from asaptools import vprinter
-from os import linesep
+
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -19,7 +20,6 @@ except ImportError:
 
 
 class VPrinterTests(unittest.TestCase):
-
     def setUp(self):
         self.header = '[1] '
         self.vprint = vprinter.VPrinter(header=self.header, verbosity=2)
@@ -70,5 +70,5 @@ class VPrinterTests(unittest.TestCase):
         self.assertEqual(actual, expected)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

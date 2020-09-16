@@ -6,4 +6,3 @@ asaptools.partition module
     :members:
     :undoc-members:
     :show-inheritance:
-   

@@ -8,7 +8,6 @@ dependencies:
   - pytest
   - pytest-cov
   - sphinx
-  - versioneer
   - coverage
   - codecov
   - sphinx_rtd_theme

@@ -6,4 +6,3 @@ asaptools.simplecomm module
     :members:
     :undoc-members:
     :show-inheritance:
-    

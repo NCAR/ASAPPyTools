@@ -8,6 +8,7 @@ See the LICENSE.txt file for details
 from __future__ import print_function
 
 import unittest
+
 from asaptools import partition
 
 
@@ -26,10 +27,8 @@ class partitionTests(unittest.TestCase):
                 self.inputs.append((d, i, s))
 
     def testOutOfBounds(self):
-        self.assertRaises(
-            IndexError, partition.EqualLength(), [1, 2, 3], 3, 3)
-        self.assertRaises(
-            IndexError, partition.EqualLength(), [1, 2, 3], 7, 3)
+        self.assertRaises(IndexError, partition.EqualLength(), [1, 2, 3], 3, 3)
+        self.assertRaises(IndexError, partition.EqualLength(), [1, 2, 3], 7, 3)
 
     def testDuplicate(self):
         for inp in self.inputs:
@@ -39,9 +38,17 @@ class partitionTests(unittest.TestCase):
             self.assertEqual(actual, expected)
 
     def testEquallength(self):
-        results = [list(range(3)), [1], [],
-                   list(range(5)), [2, 3], [],
-                   list(range(7)), [3, 4], [5]]
+        results = [
+            list(range(3)),
+            [1],
+            [],
+            list(range(5)),
+            [2, 3],
+            [],
+            list(range(7)),
+            [3, 4],
+            [5],
+        ]
         for (ii, inp) in enumerate(self.inputs):
             pfunc = partition.EqualLength()
             actual = pfunc(*inp)
@@ -52,7 +59,7 @@ class partitionTests(unittest.TestCase):
         for inp in self.inputs:
             pfunc = partition.EqualStride()
             actual = pfunc(*inp)
-            expected = list(inp[0][inp[1]::inp[2]])
+            expected = list(inp[0][inp[1] :: inp[2]])
             self.assertEqual(actual, expected)
 
     def testSortedStride(self):
@@ -62,13 +69,21 @@ class partitionTests(unittest.TestCase):
             actual = pfunc(list(zip(inp[0], weights)), inp[1], inp[2])
             expected = list(inp[0][:])
             expected.reverse()
-            expected = expected[inp[1]::inp[2]]
+            expected = expected[inp[1] :: inp[2]]
             self.assertEqual(actual, expected)
 
     def testWeightBalanced(self):
-        results = [set([0, 1, 2]), set([1]), set(),
-                   set([3, 2, 4, 1, 0]), set([1]), set(),
-                   set([3, 2, 4, 1, 5, 0, 6]), set([3, 6]), set([4])]
+        results = [
+            set([0, 1, 2]),
+            set([1]),
+            set(),
+            set([3, 2, 4, 1, 0]),
+            set([1]),
+            set(),
+            set([3, 2, 4, 1, 5, 0, 6]),
+            set([3, 6]),
+            set([4]),
+        ]
         for (ii, inp) in enumerate(self.inputs):
             weights = [(3 - i) ** 2 for i in inp[0]]
             pfunc = partition.WeightBalanced()
@@ -77,5 +92,5 @@ class partitionTests(unittest.TestCase):
             self.assertEqual(actual, expected)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
