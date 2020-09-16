@@ -47,7 +47,7 @@ The easiest way to install the ASAP Python Toolbox is from the Python
 Package Index (PyPI) with the pip package manager::
 
     $  pip install [--user] asaptools
-    
+
 The optional '--user' argument can be used to install the package in the
 local user's directory, which is useful if the user doesn't have root
 privileges.
@@ -101,16 +101,16 @@ documentation_.
 
 .. _documentation: https://asappytools.readthedocs.io/en/latest/
 
-.. |Circle| image:: https://img.shields.io/circleci/project/github/NCAR/ASAPPyTools.svg?style=for-the-badge&logo=circleci
+.. |Circle| image:: https://img.shields.io/circleci/project/github/NCAR/ASAPPyTools.svg?logo=circleci
     :target: https://circleci.com/gh/NCAR/ASAPPyTools
 
-.. |Codecov| image:: https://img.shields.io/codecov/c/github/NCAR/ASAPPyTools.svg?style=for-the-badge
+.. |Codecov| image:: https://img.shields.io/codecov/c/github/NCAR/ASAPPyTools.svg
     :target: https://codecov.io/gh/NCAR/ASAPPyTools
 
-.. |Docs| image:: https://readthedocs.org/projects/asappytools/badge/?version=latest&style=for-the-badge
+.. |Docs| image:: https://readthedocs.org/projects/asappytools/badge/?version=latest
     :target: https://asappytools.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-.. |PyPI| image:: https://img.shields.io/pypi/v/asaptools.svg?style=for-the-badge
+.. |PyPI| image:: https://img.shields.io/pypi/v/asaptools.svg
     :target: https://pypi.org/project/asaptools/
     :alt: Python Package Index
