@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# flake8: noqa
 """
 The ASAP Python Toolbox
 
@@ -22,8 +24,9 @@ limitations under the License.
 Send questions and comments to Kevin Paul (kpaul@ucar.edu).
 """
 
-from __future__ import absolute_import
+from pkg_resources import DistributionNotFound, get_distribution
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:  # pragma: no cover
+    __version__ = '0.0.0'  # pragma: no cover

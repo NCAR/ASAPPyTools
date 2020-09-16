@@ -72,7 +72,7 @@ class TimeKeeper(object):
         """
 
         # Reset the named timer (creates it if it doesn't exist yet)
-        if (name not in self._added_order):
+        if name not in self._added_order:
             self._added_order.append(name)
         self._accumulated_times[name] = 0.0
         self._start_times[name] = self._time()
@@ -89,7 +89,7 @@ class TimeKeeper(object):
         """
 
         # Start the named timer (creates it if it doesn't exist yet)
-        if (name not in self._accumulated_times):
+        if name not in self._accumulated_times:
             self.reset(name)
         else:
             self._start_times[name] = self._time()
@@ -108,11 +108,10 @@ class TimeKeeper(object):
         """
 
         # Stop the named timer, add to accumulated time
-        if (name not in self._accumulated_times):
+        if name not in self._accumulated_times:
             self.reset(name)
         else:
-            self._accumulated_times[name] += \
-                self._time() - self._start_times[name]
+            self._accumulated_times[name] += self._time() - self._start_times[name]
 
     def get_names(self):
         """
@@ -139,7 +138,7 @@ class TimeKeeper(object):
         """
 
         # Get the accumulated time
-        if (name not in self._accumulated_times):
+        if name not in self._accumulated_times:
             self.reset(name)
         return self._accumulated_times[name]
 

@@ -30,10 +30,6 @@ from abc import ABCMeta, abstractmethod
 from operator import itemgetter
 
 
-#==============================================================================
-# PartitionFunction -
-# Base class for all partitioning functions
-#==============================================================================
 class PartitionFunction(object):
 
     """
@@ -45,6 +41,7 @@ class PartitionFunction(object):
     third argument is the number of partitions to assume when dividing
     the data.
     """
+
     __metaclass__ = ABCMeta
 
     @staticmethod
@@ -108,8 +105,7 @@ class PartitionFunction(object):
                 False, otherwise.
         """
         if PartitionFunction._is_indexable(data):
-            return all(map(lambda i: PartitionFunction._is_indexable(i)
-                           and len(i) == 2, data))
+            return all(map(lambda i: PartitionFunction._is_indexable(i) and len(i) == 2, data))
         else:
             return False
 
@@ -121,10 +117,6 @@ class PartitionFunction(object):
         return
 
 
-#==============================================================================
-# Duplicate Partitioning Function -
-# Grab parts of a list-like object with equal lengths
-#==============================================================================
 class Duplicate(PartitionFunction):
 
     """
@@ -154,10 +146,6 @@ class Duplicate(PartitionFunction):
         return data
 
 
-#==============================================================================
-# EqualLength Partitioning Function -
-# Grab parts of a list-like object with equal lengths
-#==============================================================================
 class EqualLength(PartitionFunction):
 
     """
@@ -207,10 +195,6 @@ class EqualLength(PartitionFunction):
                 return []
 
 
-#==============================================================================
-# EqualStride Partitioning Function -
-# Grab parts of a list-like object with equal lengths
-#==============================================================================
 class EqualStride(PartitionFunction):
 
     """
@@ -255,10 +239,6 @@ class EqualStride(PartitionFunction):
                 return []
 
 
-#==============================================================================
-# SortedStride PartitionFunction -
-# Grab parts of an indexable object with equal length  after sorting by weights
-#==============================================================================
 class SortedStride(PartitionFunction):
 
     """
@@ -300,11 +280,6 @@ class SortedStride(PartitionFunction):
             return EqualStride()(data, index=index, size=size)
 
 
-#==============================================================================
-# WeightBalanced PartitionFunction -
-# Grab parts of an indexable object that have equal (or roughly equal)
-# total weight, though not necessarily equal length
-#==============================================================================
 class WeightBalanced(PartitionFunction):
 
     """

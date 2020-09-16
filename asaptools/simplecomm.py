@@ -130,8 +130,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from functools import partial  # @UnusedImport
 from collections import defaultdict
+from functools import partial  # noqa: UnusedImport
 
 # Define the supported reduction operators
 OPERATORS = ['sum', 'prod', 'max', 'min']
@@ -142,23 +142,14 @@ OPERATORS = ['sum', 'prod', 'max', 'min']
 # numpy code.  The 'mpi' function names are passed to 'getattr(mpi4py,*)'
 # and return an MPI operator object which is passed as an argument to MPI
 # reduce functions.
-_OP_MAP = {'sum': {'py': 'sum',
-                   'np': 'sum',
-                   'mpi': 'SUM'},
-           'prod': {'py': 'partial(reduce, lambda x, y: x * y)',
-                    'np': 'prod',
-                    'mpi': 'PROD'},
-           'max': {'py': 'max',
-                   'np': 'max',
-                   'mpi': 'MAX'},
-           'min': {'py': 'min',
-                   'np': 'min',
-                   'mpi': 'MIN'}}
+_OP_MAP = {
+    'sum': {'py': 'sum', 'np': 'sum', 'mpi': 'SUM'},
+    'prod': {'py': 'partial(reduce, lambda x, y: x * y)', 'np': 'prod', 'mpi': 'PROD'},
+    'max': {'py': 'max', 'np': 'max', 'mpi': 'MAX'},
+    'min': {'py': 'min', 'np': 'min', 'mpi': 'MIN'},
+}
 
 
-#==============================================================================
-# create_comm - Simple Communicator Factory Function
-#==============================================================================
 def create_comm(serial=False):
     """
     This is a factory function for creating SimpleComm objects.
@@ -196,9 +187,6 @@ def create_comm(serial=False):
         return SimpleCommMPI()
 
 
-#==============================================================================
-# SimpleComm - Simple Communicator
-#==============================================================================
 class SimpleComm(object):
 
     """
@@ -247,7 +235,7 @@ class SimpleComm(object):
             >>> _is_ndarray(1)
             False
 
-            >>> alist = [1,2,3,4]
+            >>> alist = [1, 2, 3, 4]
             >>> _is_ndarray(alist)
             False
 
@@ -353,20 +341,15 @@ class SimpleComm(object):
             The single value constituting the reduction of the input data.
             (The same value is returned on all ranks in this communicator.)
         """
-        if (isinstance(data, dict)):
+        if isinstance(data, dict):
             totals = {}
             for k, v in data.items():
                 totals[k] = SimpleComm.allreduce(self, v, op)
             return totals
         elif self._is_ndarray(data):
-            return SimpleComm.allreduce(self,
-                                        getattr(self._numpy,
-                                                _OP_MAP[op]['np'])(data),
-                                        op)
+            return SimpleComm.allreduce(self, getattr(self._numpy, _OP_MAP[op]['np'])(data), op)
         elif hasattr(data, '__len__'):
-            return SimpleComm.allreduce(self,
-                                        eval(_OP_MAP[op]['py'])(data),
-                                        op)
+            return SimpleComm.allreduce(self, eval(_OP_MAP[op]['py'])(data), op)
         else:
             return data
 
@@ -404,7 +387,7 @@ class SimpleComm(object):
             on the PartitionFunction used (or if it is used at all), this method
             may return a different part on each rank.
         """
-        op = func if func else lambda *x: x[0][x[1]::x[2]]
+        op = func if func else lambda *x: x[0][x[1] :: x[2]]
         if involved:
             return op(data, 0, 1)
         else:
@@ -502,9 +485,6 @@ class SimpleComm(object):
         raise RuntimeError(err_msg)
 
 
-#==============================================================================
-# SimpleCommMPI - Simple Communicator using MPI
-#==============================================================================
 class SimpleCommMPI(SimpleComm):
 
     """
@@ -569,10 +549,9 @@ class SimpleCommMPI(SimpleComm):
         """
         if self._is_ndarray(obj):
             if hasattr(self._mpi, '_typedict_c'):
-                return (obj.dtype.char in self._mpi._typedict_c)
+                return obj.dtype.char in self._mpi._typedict_c
             elif hasattr(self._mpi, '__CTypeDict__'):
-                return (obj.dtype.char in self._mpi.__CTypeDict__ and
-                        obj.dtype.char != 'c')
+                return obj.dtype.char in self._mpi.__CTypeDict__ and obj.dtype.char != 'c'
             else:
                 return False
         else:
@@ -630,7 +609,7 @@ class SimpleCommMPI(SimpleComm):
             The single value constituting the reduction of the input data.
             (The same value is returned on all ranks in this communicator.)
         """
-        if (isinstance(data, dict)):
+        if isinstance(data, dict):
             all_list = self._comm.gather(SimpleComm.allreduce(self, data, op))
             if self.is_manager():
                 all_dict = defaultdict(list)
@@ -644,9 +623,10 @@ class SimpleCommMPI(SimpleComm):
             else:
                 return self._comm.bcast(None)
         else:
-            return self._comm.allreduce(SimpleComm.allreduce(self, data, op),
-                                        op=getattr(self._mpi,
-                                                   _OP_MAP[op]['mpi']))
+            return self._comm.allreduce(
+                SimpleComm.allreduce(self, data, op),
+                op=getattr(self._mpi, _OP_MAP[op]['mpi']),
+            )
 
     def _tag_offset(self, method, message, user):
         """
@@ -699,7 +679,7 @@ class SimpleCommMPI(SimpleComm):
             this method may return a different part on each rank.
         """
         if self.is_manager():
-            op = func if func else lambda *x: x[0][x[1]::x[2]]
+            op = func if func else lambda *x: x[0][x[1] :: x[2]]
             j = 1 if not involved else 0
             for i in range(1, self.get_size()):
 
@@ -727,13 +707,10 @@ class SimpleCommMPI(SimpleComm):
 
                 # If OK, send the data to the worker
                 if msg['buffer']:
-                    npy_tag = self._tag_offset(
-                        self.PART_TAG, self.NPY_TAG, tag)
-                    self._comm.Send(self._numpy.array(part),
-                                    dest=i, tag=npy_tag)
+                    npy_tag = self._tag_offset(self.PART_TAG, self.NPY_TAG, tag)
+                    self._comm.Send(self._numpy.array(part), dest=i, tag=npy_tag)
                 else:
-                    pyt_tag = self._tag_offset(
-                        self.PART_TAG, self.PYT_TAG, tag)
+                    pyt_tag = self._tag_offset(self.PART_TAG, self.PYT_TAG, tag)
                     self._comm.send(part, dest=i, tag=pyt_tag)
 
             if involved:
@@ -747,9 +724,9 @@ class SimpleCommMPI(SimpleComm):
             msg = self._comm.recv(source=0, tag=msg_tag)
 
             # Check the message content
-            ack = (type(msg) is dict and
-                   all([key in msg for key in
-                        ['rank', 'buffer', 'shape', 'dtype']]))
+            ack = type(msg) is dict and all(
+                [key in msg for key in ['rank', 'buffer', 'shape', 'dtype']]
+            )
 
             # If the message is good, acknowledge
             ack_tag = self._tag_offset(self.PART_TAG, self.ACK_TAG, tag)
@@ -761,13 +738,11 @@ class SimpleCommMPI(SimpleComm):
 
             # Receive the data
             if msg['buffer']:
-                npy_tag = self._tag_offset(
-                    self.PART_TAG, self.NPY_TAG, tag)
+                npy_tag = self._tag_offset(self.PART_TAG, self.NPY_TAG, tag)
                 recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
                 self._comm.Recv(recvd, source=0, tag=npy_tag)
             else:
-                pyt_tag = self._tag_offset(
-                    self.PART_TAG, self.PYT_TAG, tag)
+                pyt_tag = self._tag_offset(self.PART_TAG, self.PYT_TAG, tag)
                 recvd = self._comm.recv(source=0, tag=pyt_tag)
 
             return recvd
@@ -805,8 +780,7 @@ class SimpleCommMPI(SimpleComm):
 
                 # Listen for a requesting worker rank
                 req_tag = self._tag_offset(self.RATN_TAG, self.REQ_TAG, tag)
-                rank = self._comm.recv(
-                    source=self._mpi.ANY_SOURCE, tag=req_tag)
+                rank = self._comm.recv(source=self._mpi.ANY_SOURCE, tag=req_tag)
 
                 # Create the handshake message
                 msg = {}
@@ -828,12 +802,10 @@ class SimpleCommMPI(SimpleComm):
 
                 # If OK, send the data to the requesting worker
                 if msg['buffer']:
-                    npy_tag = self._tag_offset(
-                        self.RATN_TAG, self.NPY_TAG, tag)
+                    npy_tag = self._tag_offset(self.RATN_TAG, self.NPY_TAG, tag)
                     self._comm.Send(data, dest=rank, tag=npy_tag)
                 else:
-                    pyt_tag = self._tag_offset(
-                        self.RATN_TAG, self.PYT_TAG, tag)
+                    pyt_tag = self._tag_offset(self.RATN_TAG, self.PYT_TAG, tag)
                     self._comm.send(data, dest=rank, tag=pyt_tag)
             else:
 
@@ -846,9 +818,9 @@ class SimpleCommMPI(SimpleComm):
                 msg = self._comm.recv(source=0, tag=msg_tag)
 
                 # Check the message content
-                ack = (type(msg) is dict and
-                       all([key in msg for key in
-                            ['buffer', 'shape', 'dtype']]))
+                ack = type(msg) is dict and all(
+                    [key in msg for key in ['buffer', 'shape', 'dtype']]
+                )
 
                 # Send acknowledgement back to the manager
                 ack_tag = self._tag_offset(self.RATN_TAG, self.ACK_TAG, tag)
@@ -860,13 +832,11 @@ class SimpleCommMPI(SimpleComm):
 
                 # Receive the data from the manager
                 if msg['buffer']:
-                    npy_tag = self._tag_offset(
-                        self.RATN_TAG, self.NPY_TAG, tag)
+                    npy_tag = self._tag_offset(self.RATN_TAG, self.NPY_TAG, tag)
                     recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
                     self._comm.Recv(recvd, source=0, tag=npy_tag)
                 else:
-                    pyt_tag = self._tag_offset(
-                        self.RATN_TAG, self.PYT_TAG, tag)
+                    pyt_tag = self._tag_offset(self.RATN_TAG, self.PYT_TAG, tag)
                     recvd = self._comm.recv(source=0, tag=pyt_tag)
                 return recvd
         else:
@@ -910,9 +880,9 @@ class SimpleCommMPI(SimpleComm):
                 msg = self._comm.recv(source=self._mpi.ANY_SOURCE, tag=msg_tag)
 
                 # Check the message content
-                ack = (type(msg) is dict and
-                       all([key in msg for key in
-                            ['rank', 'buffer', 'shape', 'dtype']]))
+                ack = type(msg) is dict and all(
+                    [key in msg for key in ['rank', 'buffer', 'shape', 'dtype']]
+                )
 
                 # Send acknowledgement back to the worker
                 ack_tag = self._tag_offset(self.CLCT_TAG, self.ACK_TAG, tag)
@@ -924,13 +894,11 @@ class SimpleCommMPI(SimpleComm):
 
                 # Receive the data
                 if msg['buffer']:
-                    npy_tag = self._tag_offset(
-                        self.CLCT_TAG, self.NPY_TAG, tag)
+                    npy_tag = self._tag_offset(self.CLCT_TAG, self.NPY_TAG, tag)
                     recvd = self._numpy.empty(msg['shape'], dtype=msg['dtype'])
                     self._comm.Recv(recvd, source=msg['rank'], tag=npy_tag)
                 else:
-                    pyt_tag = self._tag_offset(
-                        self.CLCT_TAG, self.PYT_TAG, tag)
+                    pyt_tag = self._tag_offset(self.CLCT_TAG, self.PYT_TAG, tag)
                     recvd = self._comm.recv(source=msg['rank'], tag=pyt_tag)
                 return msg['rank'], recvd
 
@@ -957,12 +925,10 @@ class SimpleCommMPI(SimpleComm):
 
                 # If OK, send the data to the manager
                 if msg['buffer']:
-                    npy_tag = self._tag_offset(
-                        self.CLCT_TAG, self.NPY_TAG, tag)
+                    npy_tag = self._tag_offset(self.CLCT_TAG, self.NPY_TAG, tag)
                     self._comm.Send(data, dest=0, tag=npy_tag)
                 else:
-                    pyt_tag = self._tag_offset(
-                        self.CLCT_TAG, self.PYT_TAG, tag)
+                    pyt_tag = self._tag_offset(self.CLCT_TAG, self.PYT_TAG, tag)
                     self._comm.send(data, dest=0, tag=pyt_tag)
         else:
             err_msg = 'Collection cannot be used in a 1-rank communicator'

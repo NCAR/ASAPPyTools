@@ -8,8 +8,8 @@ See the LICENSE.txt file for details
 from __future__ import print_function
 
 import unittest
-
 from time import sleep
+
 from asaptools import timekeeper
 
 
@@ -21,8 +21,11 @@ class TimeKeeperTests(unittest.TestCase):
 
     def test_init(self):
         tk = timekeeper.TimeKeeper()
-        self.assertEqual(type(tk), timekeeper.TimeKeeper,
-                         'TimeKeeper class instantiated incorrectly.')
+        self.assertEqual(
+            type(tk),
+            timekeeper.TimeKeeper,
+            'TimeKeeper class instantiated incorrectly.',
+        )
 
     def test_start_stop_names(self):
         tk = timekeeper.TimeKeeper()
@@ -73,10 +76,10 @@ class TimeKeeperTests(unittest.TestCase):
         sleep(wait_time)
         tk.stop(name2)
         dt1 = tk.get_time(name1)
-        dt1err = abs(dt1 / (3 * wait_time)  - 1.0) 
+        dt1err = abs(dt1 / (3 * wait_time) - 1.0)
         self.assertTrue(dt1err < 0.15)
         dt2 = tk.get_time(name2)
-        dt2err = abs(dt2 / (2 * wait_time)  - 1.0)
+        dt2err = abs(dt2 / (2 * wait_time) - 1.0)
         self.assertTrue(dt2err < 0.15)
 
     def test_reset_values(self):
@@ -113,18 +116,18 @@ class TimeKeeperTests(unittest.TestCase):
         sleep(wait_time)
         tk.stop(name2)
         all_times = tk.get_all_times()
-        expected_all_times = {name1: 3 * wait_time,
-                              name2: 2 * wait_time}
+        expected_all_times = {name1: 3 * wait_time, name2: 2 * wait_time}
         self.assertTrue(len(expected_all_times.keys()) == len(all_times.keys()))
-        self.assertTrue(all([i1==i2 for i1,i2 in 
-                             zip(expected_all_times.keys(),all_times.keys())]))
-        self.assertAlmostEqual(list(expected_all_times.values())[0],
-                               list(all_times.values())[0],
-                               places=1)
-        self.assertAlmostEqual(list(expected_all_times.values())[1],
-                               list(all_times.values())[1],
-                               places=1)
+        self.assertTrue(
+            all([i1 == i2 for i1, i2 in zip(expected_all_times.keys(), all_times.keys())])
+        )
+        self.assertAlmostEqual(
+            list(expected_all_times.values())[0], list(all_times.values())[0], places=1
+        )
+        self.assertAlmostEqual(
+            list(expected_all_times.values())[1], list(all_times.values())[1], places=1
+        )
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

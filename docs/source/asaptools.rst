@@ -11,9 +11,8 @@ Submodules
 
 .. toctree::
    :maxdepth: 2
-   
+
    vprinter
    timekeeper
    partition
    simplecomm
-   

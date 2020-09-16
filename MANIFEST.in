@@ -1,2 +1,12 @@
-include versioneer.py
-include asaptools/_version.py
+include CHANGELOG.rst
+include CONTRIBUTING.rst
+include LICENSE.txt
+include README.rst
+include requirements.txt
+
+recursive-include docs/source *
+include docs/Makefile docs/make.bat
+recursive-include asaptools *.py
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+prune ci*

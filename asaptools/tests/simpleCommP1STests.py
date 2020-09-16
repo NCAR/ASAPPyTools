@@ -13,16 +13,17 @@ See the LICENSE.txt file for details
 from __future__ import print_function
 
 import unittest
+
 import numpy as np
+from mpi4py import MPI
 
 from asaptools import simplecomm
-from asaptools.partition import EqualStride, Duplicate
-from mpi4py import MPI
+from asaptools.partition import Duplicate, EqualStride
+
 MPI_COMM_WORLD = MPI.COMM_WORLD
 
 
 class SimpleCommP1STests(unittest.TestCase):
-
     def setUp(self):
         self.scomm = simplecomm.create_comm(serial=True)
         self.pcomm = simplecomm.create_comm(serial=False)
@@ -30,10 +31,8 @@ class SimpleCommP1STests(unittest.TestCase):
         self.rank = MPI_COMM_WORLD.Get_rank()
 
     def testIsSerialLike(self):
-        self.assertEqual(
-            self.rank, 0, 'Rank not consistent with serial-like operation')
-        self.assertEqual(
-            self.size, 1, 'Size not consistent with serial-like operation')
+        self.assertEqual(self.rank, 0, 'Rank not consistent with serial-like operation')
+        self.assertEqual(self.size, 1, 'Size not consistent with serial-like operation')
 
     def testGetSize(self):
         sresult = self.scomm.get_size()
@@ -140,7 +139,7 @@ class SimpleCommP1STests(unittest.TestCase):
         sresult = self.scomm.partition(data, involved=True)
         presult = self.pcomm.partition(data, involved=True)
         np.testing.assert_array_equal(sresult, presult)
-        
+
     def testRationError(self):
         data = 10
         self.assertRaises(RuntimeError, self.scomm.ration, data)
@@ -152,12 +151,12 @@ class SimpleCommP1STests(unittest.TestCase):
         self.assertRaises(RuntimeError, self.pcomm.collect, data)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     try:
         from cStringIO import StringIO
     except ImportError:
         from io import StringIO
-    
+
     mystream = StringIO()
     tests = unittest.TestLoader().loadTestsFromTestCase(SimpleCommP1STests)
     unittest.TextTestRunner(stream=mystream).run(tests)
